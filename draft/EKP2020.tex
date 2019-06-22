@@ -1,0 +1,1595 @@
+\documentclass[letterpaper,12pt]{article}
+
+\usepackage{threeparttable}
+\usepackage{geometry}
+\geometry{letterpaper,tmargin=1in,bmargin=1in,lmargin=1.25in,rmargin=1.25in}
+\usepackage[format=hang,font=normalsize,labelfont=bf]{caption}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{delarray}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{lscape}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{float,color}
+\usepackage[pdftex]{graphicx}
+\usepackage{pdfsync}
+\usepackage{verbatim}
+\usepackage{placeins}
+\usepackage{geometry}
+\usepackage{pdflscape}
+\synctex=1
+\usepackage{hyperref}
+\hypersetup{colorlinks,linkcolor=red,urlcolor=blue,citecolor=red}
+\usepackage{bm}
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=1pt] (char) {#1};}}
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}{Definition} % Number definitions on their own
+\newtheorem{derivation}{Derivation} % Number derivations on their own
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}{Proposition} % Number propositions on their own
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\bibliographystyle{aer}
+\newcommand\ve{\varepsilon}
+\renewcommand\theenumi{\roman{enumi}}
+\newcommand\norm[1]{\left\lVert#1\right\rVert}
+\newcommand\abs[1]{\left\lvert#1\right\rvert}
+
+\begin{document}
+
+\begin{titlepage}
+\title{Negative Shocks, Public Debt, and Interest Rates \thanks{This research benefited from support from the \href{https://www.oselab.org/}{Open Source Economics Laboratory} at the University of Chicago. All Python code and documentation for the computational model is available at \href{?}{?}.}
+}
+\author{
+  Richard W. Evans\footnote{University of Chicago, M.A. Program in Computational Social Science, McGiffert House, Room 208, Chicago, IL 60637, (773) 702-9169, \href{mailto:rwevans@uchicago.edu}{rwevans@uchicago.edu}.}
+  \and
+  Laurence J. Kotlikoff\footnote{Boston University, Department of Economics, 270 Bay State Road, Boston, Massachusetts 02215, \href{mailto:kotlikoff@gmail.com}{kotlikoff@gmail.com}.}
+  \and
+  Kerk L. Phillips\footnote{Congressional Budget Office, Macroeconomic Analysis Division, Fiscal Studies Unit, \href{mailto:kerk.phillips@cbo.gov}{kerk.phillips@cbo.gov}.}}
+\date{June 2019 \\
+  \scriptsize{(version 19.06.a)}}
+\maketitle
+\vspace{-9mm}
+\begin{abstract}
+  Put abstract here.
+  \vspace{3mm}
+
+  \noindent\textit{keywords:}\: [Put keywords here.]
+
+  \vspace{3mm}
+
+  \noindent\textit{JEL classification:} [Put JEL codes here.]
+
+\end{abstract}
+\thispagestyle{empty}
+\end{titlepage}
+
+
+\begin{spacing}{1.5}
+
+
+\section{Introduction}\label{SecIntro}
+
+  % \noindent Outline
+  %    \begin{itemize}
+  %       \item Fiscal limits have become important in the aftermath of the Great Recession as many countries are facing the risk of defaulting on their sovereign debt. In order to avoid default and reduce unfunded policies, governments are also changing revenue and expenditure characteristics of their fiscal transfer programs. These policy changes could be defined as a type of fiscal default in that the governments are reneging on promised transfers.
+  %       \item \citet{LeeperWalker:2011} discuss ``models of fiscal limits and lays out a research agenda to integrate political economy and empirical considerations with general equilibrium models of monetary and fiscal interactions."
+  %          \begin{itemize}
+  %             \item They suggest that discussing large changes in fiscal policy, rather than sovereign debt default, is probably the more productive line to pursue for advanced economies.
+  %             \item They define the fiscal limit as ``the point beyond which taxes and government expenditures can no longer adjust to stabilize the value of government debt."
+  %          \end{itemize}
+  %       \item Popular measures of a country's degree of indebtedness or fiscal insolvency, such as the deficit or the debt-to-GDP ratio, are not well defined or offer an incomplete picture. \citet{AuerbachGokhaleKotlikoff:1991} proposed a long-run measure of fiscal insolvency---``generational accounting''---in which the long-run fiscal burden is calculated as the net present value of expected future government revenues minus the net present value of expected future government expenditures minus the current debt. In the face of unsustainable policy, we create a measure of the degree to which promised government transfers are not sustainable in the long-run by the government's ability to pay. We define the fiscal gap as the net present value of promised transfers minus the net present value of expected actual transfers as a percent of the net present value of real output.
+  %    \end{itemize}
+
+
+\section{Economic Model}\label{SecModel}
+
+  We study a simple 2-period-lived agent overlapping generations model in which the government promises to make a lump sum transfer $\bar{H}\geq 0$ from the young to the old each period. Ricardian equivalence holds in the sense that households have rational expectations and can forecast the effects of government budget imbalances. The constraints of the model generate states of the world in which the government can only make a transfer that is less that the promised amount $0 \leq H_t \leq \bar{H}$.
+
+  Our characterization of government budget insolvency relies on the assumption that when the state of the world is such that $\bar{H}$ generates negative consumption for the young, the agents in the economy resort to autarky rather than starvation (negative consumption). This shut-down result would not hold if the government merely reduced the size of the transfer program in the face of a shut down. Rational agents would expect this and incorporate that risk on the payment $\bar{H}$ in the second period of their lives.\footnote{The argument here is that a proportional transfer program will never shut down a government. However, if the government is locked in to some degree of nonproportional transfer program, then there are states of the world in which the government must either shut down or default on that debt. If they default in a way that the consumption of the young does not go to zero, then the government has changed its nonproportional transfer program to look like a proportional transfer program.}
+
+
+  \subsection{Household problem}\label{SecModelHH}
+
+    A unit measure of identical consumer-worker households is born each period. A Household lives for exactly two periods indexed by $s=1,2$. They supply a unit of labor inelastically in both the young and old period of life $n_1>0$ and $n_2\geq 0$ in all periods $t$.
+
+    In the first period of life, consumer-worker households choose how to divide their net labor income between age-$1$ consumption $c_{1,t}$ and capital investment (savings) with the firms $k_{2,t+1}$. The objective of a household is maximize utility subject to a period budget constraint and two nonnegativity constraints,
+    \begin{align}
+      &\max_{c_{1,t},k_{2,t+1},c_{2,t+1}}\: u(c_{1,t}) + \beta E_t\left[u(c_{2,t+1})\right] \quad \forall t \label{EqHHmaxUtil} \\
+      &\quad\text{where}\quad u(c_{s,t}) = \frac{(c_{s,t})^{1-\gamma} - 1}{1-\gamma} \quad\text{for}\quad s=1,2 \label{EqHHutilCRRA} \\
+      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} = w_t n_1 - H_t \label{EqHHbc1} \\
+      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + w_{t+1}n_2 + H_{t+1} \label{EqHHbc2} \\
+      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqHHnonneg}
+    \end{align}
+    Let new households have no initial capital $k_{1,t} = 0$. Note that the nonnegativity constraints on consumption $c_{1,t}$ and $c_{2,t+1}$ are strict inequalities. Nonpositive consumption is not defined in the utility function \eqref{EqHHutilCRRA}. Furthermore, we also do not allow the government transfer program to zero out the consumption and savings of the young, as shown in Section \ref{SecModelGovt} equation \eqref{EqGovt_Ht}. Finally, the strict inequality on savings $k_{2,t+1}>0$ comes from the market clearing condition \eqref{EqModelMC_K}, that negative capital stock $K_t<0$ is not defined in the production function \eqref{EqModelFirmProdFunc}, and that zero capital stock $K_t=0$ would results in zero output $Y_t=0$ from \eqref{EqModelFirmProdFunc}, zero wage $w_t=0$ from \eqref{EqModelFirm_FOCL}, and therefore zero first period consumption $c_{1,t}=0$ from \eqref{EqHHbc1}.
+
+    Consumption in the second period of life is characterized by the second period budget constraint.
+    \begin{equation}\tag{\ref{EqHHbc2}}
+       c_{2,t+1} = (1+r_{t+1})k_{2,t+1} + w_{t+1}n_2 + H_{t+1} \quad\forall t
+    \end{equation}
+    Note that the nonnegativity constraint on old-age consumption $c_{2,t+1}$ will never bind because everything on the right-hand-side of \eqref{EqHHbc2} is weakly positive. Consumption in the first period of life $c_{1,t}$ and savings in the first period of life $k_{2,t+1}$ are jointly determined by the first period budget constraint \eqref{EqHHbc1} and by the Euler equation that characterizes the optimal young $s=1$ consumption-savings decision that maximizes lifetime utility \eqref{EqHHmaxUtil} subject to constraints \eqref{EqHHbc1}, \eqref{EqHHbc2}, and \eqref{EqHHnonneg}.
+    \begin{equation}\label{EqHHEul_cs}
+       u'\bigl(c_{1,t}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl(c_{2,t+1}\bigr)\Bigr]
+    \end{equation}
+
+    By substituting the age $s=1$ and $s=2$ budget constraints \eqref{EqHHbc1} and \eqref{EqHHbc2} into the household Euler equation \eqref{EqHHEul_cs}, we can see that the characterizing equation for savings $k_{2,t+1}$ is one equation with one unknown.
+    \begin{equation}\label{EqHHEul_ks}
+      u'\bigl(w_t n_1 - H_t- k_{2,t+1}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl([1 + r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + H_{t+1}\bigr)\Bigr]
+    \end{equation}
+    Equation \eqref{EqHHEul_ks} shows that the functional solution for household savings $k_{2,t+1}$ every period is a stationary function $\psi(\cdot)$ of the time path of transfers and prices over the lifetime of the household.
+    \begin{equation}\label{EqHH_psi}
+      k_{2,t+1} = \psi\bigl(H_t, H_{t+1} w_t, w_{t+1}, r_{t+1}\bigr)
+    \end{equation}
+
+
+  \subsection{Firm problem}\label{SecModelFirm}
+
+    A unit measure of identical perfectly competitive firms exist in this economy that hire aggregate labor $L_t$ at wage $w_t$ and rent aggregate capital $K_t$ at rental rate $r_t$ every period in order to produce consumption good $Y_t$ according to a Cobb-Douglas production function,
+    \begin{equation}\label{EqModelFirmProdFunc}
+       Y_t = F(K_t, L_t) = A_t K_t^\alpha L_t^{1-\alpha} \quad\forall t
+    \end{equation}
+    where the capital share of income is given by $\alpha\in(0,1)$. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
+    \begin{equation}\label{EqModelFirmZAR1}
+       \begin{split}
+          z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
+          &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim N(0,\sigma^2)
+       \end{split}
+    \end{equation}
+    The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
+    \begin{equation}\label{EqModelFirmProfMax}
+      \max_{K_t, L_t}\:Pr_t = A_t K_t^\alpha L_t^{1-\alpha} - w_t L_t - (r_t + \delta)K_t \quad\forall t
+    \end{equation}
+    where $\delta$ is the per-period depreciation rate of capital. Profit maximization implies that the real wage and real rental rate are determined by the standard first order conditions for the firm.
+    \begin{gather}
+      r_t = \alpha e^{z_t}\left(\frac{L_t}{K_t}\right)^{1-\alpha} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
+      w_t = (1-\alpha)e^{z_t}\left(\frac{K_t}{L_t}\right)^\alpha \quad\forall t \label{EqModelFirm_FOCL}
+    \end{gather}
+
+    Because the interest rate $r_t$ in \eqref{EqModelFirm_FOCK} is not defined when the capital stock is zero $K_t=0$ and because the wage $w_t$ in \eqref{EqModelFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, we know that both values must be strictly positive $K_t, L_t>0$.
+
+
+  \subsection{Government transfer program}\label{SecModelGovt}
+
+    We model a simple balanced budget public transfer program that takes an amount from the young each period $H_t$ and gives that same amount to the old each period, as shown in the young and old budget constraints.
+    \begin{gather}
+      c_{1,t} + k_{2,t+1} = w_t n_1 - H_t \quad\forall t \tag{\ref{EqHHbc1}} \\
+      c_{2,t} = \bigl(1+r_t\bigr)k_{2,t} + w_t n_2 + H_t \quad\forall t \tag{\ref{EqHHbc2}}
+    \end{gather}
+    In contrast to the way the old-age ($s=2$) budget constraint \eqref{EqHHbc2} is displayed in Section \ref{SecModelHH}, we show the budget constraints here for a young household and old household both in period $t$ (two separate individuals). The government budget is made up entirely of this transfer program, and the budget is always balanced because the government revenue taken from the young in period $H_t$ is always equal to the transfers to the old $H_t$ in all periods $t$.
+
+    In most periods, the government promises that the transfer will be $\bar{H}\geq 0$. However, in the case that $\bar{H}>0$, there could exist states of the economy such that $\bar{H}\geq w_t n_1$. In these cases, net labor income is less than or equal to zero, so the strict inequalities on $c_{1,t}$ and $k_{2,t+1}$ in \eqref{EqHHnonneg} must be violated. To avoid negative consumption, we require that the most the government can take from the young in any period is all their income up to some arbitrarily small minimum consumption $c_{min}>0$ and an arbitrarily small amount of savings $K_{min}>0$.
+    \begin{equation}\label{EqGovt_Ht}
+      \begin{split}
+        H_t &\equiv
+          \begin{cases}
+            \bar{H} \qquad\qquad\qquad\qquad\:\:\,\text{if}\quad w_t n_1 \geq \bar{H} + c_{min} + K_{min} \\
+            w_t n_1 - c_{min} - K_{min} \quad\text{if}\quad w_t n_1 < \bar{H} + c_{min} + K_{min}
+          \end{cases} \quad\forall t \\
+          &= \min\left(\bar{H}, w_t n_1 - c_{min} - K_{min}\right) \quad\forall t
+      \end{split}
+    \end{equation}
+    This rule states that the government implements a balanced budget transfer program from the young to the old every period. And for $\bar{H}>0$, once the wage dips low enough, the government can no longer take $\bar{H}$ from the young. In this case, the government takes all that it can from the young $H_t = w_t n_1 - c_{min} - K_{min}<\bar{H}$ and transfers that amount to the old. The young are left with consumption and savings equal to the minimum $c_{1,t}=c_{min}$ and $k_{2,t+1}=K_{min}$, and the economy shuts down and devolves into autarky.
+
+
+  \subsection{Market clearing}\label{SecModelShutMktClr}
+
+    Market clearing implies that the aggregate labor demand equals aggregate labor supply, aggregate capital demand equals aggregate capital supply, and output equals consumption plus investment in each period,
+    \begin{align}
+      L_t &= n_1 + n_2 \quad\forall t \label{EqModelMC_L} \\
+      K_t &= k_{2,t} \quad\forall t \label{EqModelMC_K} \\
+      \begin{split}
+        Y_t &= C_t + K_{t+1} - (1-\delta)K_t \quad\forall t \\
+        &\quad\text{where}\quad C_t\equiv c_{1,t} + c_{2,t}
+      \end{split} \label{EqModelMC_rescnstr}
+    \end{align}
+    where the goods market clearing condition or resource constraint \eqref{EqModelMC_rescnstr} is redundant by Walras' Law.
+
+
+  \subsection{Equilibrium}\label{SecModelEqlb}
+
+    In this section, we define a functional stationary equilibrium in which our definition of stationary is that the functional forms are not time dependent. That is, for a function $f(\bm{x})$ of vector of variables $\bm{x}$, the function does not change. Only the output values of the function changes in response to changing inputs $\bm{x}$.
+
+    \end{spacing}
+    \vspace{5mm}
+    \hrule
+    \vspace{-1mm}
+    \begin{definition}[\textbf{Functional stationary equilibrium}]\label{DefEqlb}
+      A non-autarkic functional stationary equilibrium in the two-period-lived overlapping generations model with exogenous labor supply and aggregate shocks is defined by stationary price functions $r(k,z)$ and $w(k,z)$ and a stationary savings function $k'=\psi(k,z)$ for all current state wealth $k$ and total factor productivity component $z$ such that:
+      \begin{enumerate}
+        \item households optimize according to \eqref{EqHHbc1} and \eqref{EqHHbc2}, and \eqref{EqHHEul_cs}
+        \item firms optimize according to \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL},
+        \item markets clear according to \eqref{EqModelMC_L} and \eqref{EqModelMC_K}.
+      \end{enumerate}
+    \end{definition}
+    \vspace{-2mm}
+    \hrule
+    \vspace{5mm}
+    \begin{spacing}{1.5}
+
+    We can solve for the stationary price functions analytically by substituting the market clearing conditions \eqref{EqModelMC_L} and \eqref{EqModelMC_K} into the firms' respective first order conditions \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL}.
+    \begin{gather}
+      r_t\equiv r\bigl(k_{2,t}, z_t\bigr) = \alpha e^{z_t}\left(\frac{n_1 + n_2}{k_{2,t}}\right)^{1-\alpha} - \delta \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_r} \\
+      w_t\equiv w\bigl(k_{2,t}, z_t\bigr) = (1-\alpha)e^{z_t}\left(\frac{k_{2,t}}{n_1 + n_2}\right)^\alpha \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_w}
+    \end{gather}
+    We can also solve analytically for the equilibrium expression for the transfer each period $H_t$ as a function of the wealth of the current-period old $k_{2,t}$ and the value of the normally distributed component $z_t$ of the total factor productivity process (as well as the parameters of the promised transfer amount $\bar{H}$ and minimum values of young age consumption $c_{min}$ and aggregate capital $K_{min}$)  by substituting the equilibrium wage expression \eqref{EqModelEqlb_w} into the expression for $H_t$ \eqref{EqGovt_Ht}.
+    \begin{equation}\label{EqModelEqlb_H}
+      H_t \equiv H\bigl(k_{2,t}, z_t\bigr) = min\Bigl(\bar{H}, w(k_{2,t},z_t)n_1 - c_{min} - K_{min}\Bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
+    \end{equation}
+
+    Finally, if we substitute the equilibrium expressions for prices $r(k,z)$ and $w(k,z)$ and the transfer $H(k,z)$ from \eqref{EqModelEqlb_r}, \eqref{EqModelEqlb_w}, and \eqref{EqModelEqlb_H} into the household Euler equation \eqref{EqHHEul_ks} and resulting policy function \eqref{EqHH_psi}, it is clear that the equilibrium savings function $k'=\psi(k,z)$ is a function of the wealth of the current-period old and the value $z_t$ of the normally distributed component of total factor productivity,
+    \begin{equation}\label{EqModelEqlb_Eul}
+      \begin{split}
+        &u'\Bigl(w(k_{2,t},z_t) n_1 - H(k_{2,t},z_t) - k_{2,t+1}\Bigr) = \\
+        & \quad\beta\int_{z_{t+1}}\biggl[\bigl(1+r(k_{2,t+1},z_{t+1})\bigr)\times \\
+        &\qquad\qquad\qquad u'\Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)\times \\
+        &\qquad\qquad\qquad\qquad\qquad f\bigl(z_{t+1}|\rho z_t + (1 - \rho)\mu, \sigma\bigr)\biggr]dz_{t+1} \\
+        &\qquad\qquad\qquad\qquad\qquad\qquad\qquad \forall z_t, z_{t+1} \quad\text{and}\quad k_{2,t}, k_{2,t+1}>0
+      \end{split}
+    \end{equation}
+    \begin{equation}\label{EqModelEqlb_psi}
+      k_{2,t+1} = \psi\bigl(k_{2,t},z_t\bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
+    \end{equation}
+    where $f(z_{t+1}|\rho z_t + (1-\rho)\mu,\sigma)$ is the probability density function of $z_{t+1}$ distributed normally with mean $\rho z_t + (1-\rho)\mu$ and standard deviation $\sigma$.
+
+
+  \subsection{One-period riskless bonds}\label{SecModelRiskless}
+
+    In this section, we derive the return on a riskless bond. We make the simplifying assumption that the riskless bonds are zero absolute supply. However, this characterization can be generalized to cases in which the riskless bonds have exogenous or endogenous positive supply. Because of our zero-supply assumption on the riskless bond, we can separate its derivation from the characterization of the household problem in Section \ref{SecModelHH}. These zero-supply riskless bonds do not influence the rest of the economy. They simply represent another measure of the level of risk present in each period of the economy.
+
+    Assume that households have two potential instruments for saving. A household can invest income with the production sector $k_{2,t+1}$ and earn a stochastic risky return next period of $r_t$ and they can buy $b_{2,t+1}$ units of a one-period riskless bond  for price $p_t$ that returns exactly $b_{2,t+1}$ when old. It is clear that old-age households will have no demand for these bonds.
+
+    The maximization problem for a generic household can be characterized as choosing risky savings $k_{2,t+1}$ and riskless savings $b_{2,t+1}$ to maximize lifetime utility subject to budget constraints.
+    \begin{align}
+      &\max_{k_{2,t+1},b_{2,t+1}}\: u(c_{1,t}) + \beta E_t\left[u(c_{2,t+1})\right] \quad \forall t \label{EqModelRiskMaxUtil} \\
+      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} + p_t b_{2,t+1} = w_t n_1 - H_t \label{EqModelRisk_bc1} \\
+      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + b_{2,t+1} + w_{t+1}n_2 + H_{t+1} \label{EqModelRisk_bc2} \\
+      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqModelRisk_nonneg}
+    \end{align}
+    The optimality condition for risky savings $k_{2,t+1}$ is the same Euler equation as in Section \ref{SecModelHH}.
+    \begin{equation}\tag{\ref{EqHHEul_cs}}
+       u'\bigl(c_{1,t}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl(c_{2,t+1}\bigr)\Bigr]
+    \end{equation}
+    The Euler equation for riskless savinge $b_{2,t+1}$ if the following,
+    \begin{equation}\label{EqModelRisk_rbart}
+      \begin{split}
+        \frac{1}{1 + \bar{r}_t} \equiv p_t = \beta\frac{E_t\Bigl[u'\bigl(c_{2,t+1}\bigr)\Bigr]}{u'\bigl(c_{1,t}\bigr)} \quad \forall t \\
+        \Rightarrow\quad \bar{r}_t = \frac{u'\bigl(c_{1,t}\bigr)}{\beta E_t\Bigl[u'\bigl(c_{2,t+1}\bigr)\Bigr]} - 1 \quad\forall t
+      \end{split}
+    \end{equation}
+    where the price of the riskless bond $p_t$ is defined as the reciprocal of the gross riskless return $1 + \bar{r}_t$. The optimality conditions of the production sector are the same as in Section \ref{SecModelFirm}.
+
+    Euler equation \eqref{EqModelRisk_rbart} determines the demand for riskless bonds. We assume, generally, an exogenous supply of riskless bonds that is nonnegative $B_t\geq 0$ for all $t$. However, specifically in this model, we assume a zero supply of riskless bonds $B_t=0$. So the general version of our riskless bond market clearing condition is the following.
+    \begin{equation}\label{EqModelMC_B_gen}
+      b_{2,t} = B_t \quad\forall t
+    \end{equation}
+    With our zero supply assumption $B_t = 0$, the household demand for riskless bonds is set to zero through the market clearing condition,
+    \begin{equation}\label{EqModelMC_B_zero}
+      b_{2,t} = 0 \quad\forall t
+    \end{equation}
+    all the other endogenous variables are determined by the equilibrium described in Section \ref{SecModelEqlb}, and the riskless return $\bar{r}_t$ is characterized by Euler equation \eqref{EqModelRisk_rbart}.
+
+    If we were to relax our zero-supply assumption on riskless bonds $B_t>0$, we would have to determine the riskless return $\bar{r}_t$ jointly with the rest of the endogenous variables.
+
+    And finally, because the agents in our model live for only two periods, it is intuitive that each model period must represent many years. If we assume that the average economic life is 60 years, then each model period represents 30 years. Let the parameter $yrs$ be the number of years represented in a model period. Then we can report the riskless interest rate $\bar{r}_t$ characterized in \eqref{EqModelRisk_rbart} as an annual rate $\bar{r}_{t,an}$ using the following expression.
+    \begin{equation}\label{}
+      \bar{r}_{t,an} = \bigl(1 + \bar{r}_t\bigr)^\frac{1}{yrs} - 1 \quad\forall t
+    \end{equation}
+
+
+\section{Simulations}\label{SecSims}
+
+  We explore the properties of the model from Section \ref{SecModel} with respect to different values of the promised transfer $\bar{H}$, initial wealth $k_{2,0}$, and the extent and probability of low total factor productivity values $A_t$ by calibrating the other parameters of the model and simulating a time series of the model 3,000 times for different combinations of $\bar{H}$, $k_{2,0}$, and the support and distribution of $A_t$. The first three rows of Table \ref{TabCalibr} show the different values of $\bar{H}$, $k_{2,0}$, and $A_{min}$ that we test in our simulations. The remaining rows show our calibration of the other variables.\footnote{The code for these simulations is available at \href{?}{?}.}
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.6in}
+  \caption{\label{TabCalibr}\textbf{Calibration of 2-period-lived agent OG model with promised transfer $\bar{H}$}}
+      \begin{threeparttable}
+      \begin{tabular}{>{\small}c >{\small}l >{\small}c}
+          \hline\hline
+          Parameter & \multicolumn{1}{c}{Source to match} & Value(s) \\
+          \hline
+          $\bar{H}$ & Promised transfer amount & $[0.00, 0.05, 0.11, 0.17]$ \\
+          $k_{2,0}$ & Initial period wealth of old household & $[0.11, 0.14, 0.17]$ \\
+          $A_{min}$ & Minimum value in support of $A_t$ & $[0.0, 0.75]$ \\
+          \hline
+          $z_0$ & Initial value of $z_t$ TFP component & $\mu$ \\
+          $n_1$ & Exogenous labor supply when young & 1.0 \\
+          $n_2$ & Exogenous labor supply when old & 0.0 \\
+          $\beta$  & Annual discount factor of 0.96 & 0.29 \\
+          $\gamma$ & Coefficient of relative risk aversion between &  2.0 \\
+                   & \quad 1.5 and 4.0 &  \\
+          $\alpha$ & Capital share of income &  0.35 \\
+          $\delta$ & Annual capital depreciation of 0.05 & 0.79 \\
+          $\rho$   & AR(1) persistence of normally distributed &  0.21 \\
+                   & \quad shock to match annual persistence of 0.95 &       \\
+          $\mu$    & AR(1) long-run average $z_t$ level &  0.0 \\
+          $\sigma$ & standard deviation of normally distributed $z_t$ &  1.55 \\
+                   & \quad to match annual standard deviation of U.S. &  \\
+                   & \quad real GDP of 0.49 & \\
+          $B_t$    & Exogenous supply of riskless bonds in every & 0 \\
+                   & \quad period & \\
+          \hline
+          $yrs$ & Number of years in a model period & 30 \\
+          $T$ & Maximum number of periods to simulate in a & 100 \\
+              & \quad given simulation & \\
+          $S$ & Number of simulated time series for a given & 3,000 \\
+              & \quad parameterization & \\
+          \hline\hline
+      \end{tabular}
+      \begin{tablenotes}
+          \scriptsize{\item[]The Technical Appendix \ref{SecTAppCalib} gives a detailed description of the calibration of all parameters.}
+      \end{tablenotes}
+      \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.3in}
+  \caption{\label{TabInitVal_A0}\textbf{Initial values relative to median values: $A_{min}=0.00$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+      & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.00$}
+      & 0.281 & 0.101 & 0.282 & 0.101 & 0.282 & 0.101 \\
+      & 0.000 & 1.093 & 0.000 & 1.390 & 0.000 & 1.687 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.05$}
+      & 0.445 & 0.083 & 0.449 & 0.085 & 0.450 & 0.085 \\
+      & 0.112 & 1.321 & 0.111 & 1.654 & 0.111 & 2.003 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.11$}
+      & 0.557 & 0.064 & 0.564 & 0.066 & 0.572 & 0.068 \\
+      & 0.197 & 1.710 & 0.195 & 2.108 & 0.192 & 2.515 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.17$}
+      & 0.648 & 0.048 & 0.658 & 0.051 & 0.667 & 0.052 \\
+      & 0.262 & 2.274 & 0.259 & 2.757 & 0.255 & 3.243 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.3in}
+  \caption{\label{TabInitVal_A75}\textbf{Initial values relative to median values: $A_{min}=0.75$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+      & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.00$}
+      & 1.319 & 0.388 & 1.320 & 0.388 & 1.321 & 0.388 \\
+      & 0.000 & 0.284 & 0.000 & 0.361 & 0.000 & 0.438 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.05$}
+      & 1.158 & 0.281 & 1.160 & 0.281 & 1.161 & 0.281 \\
+      & 0.043 & 0.392 & 0.043 & 0.498 & 0.043 & 0.604 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.11$}
+      & 0.984 & 0.176 & 0.988 & 0.177 & 0.994 & 0.179 \\
+      & 0.112 & 0.625 & 0.111 & 0.789 & 0.111 & 0.950 \\
+      \hline
+      \multirow{2}{*}{$\bar{H}=0.17$}
+      & 0.953 & 0.128 & 0.950 & 0.128 & 0.960 & 0.130 \\
+      & 0.178 & 0.857 & 0.179 & 1.097 & 0.177 & 1.303 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  \caption{\label{TabPer2GO_A0}\textbf{Periods to shut down simulation statistics: $A_{min}=0.00$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+      & & Periods & CDF & Periods & CDF & Periods & CDF \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.00$}
+      & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.05$}
+      & min & 1 & 0.160 & 1 & 0.152 & 1 & 0.148 \\
+      & med & 4 & 0.517 & 4 & 0.512 & 4 & 0.507 \\
+      & mean & 6.1 & 0.693 & 6.2 & 0.689 & 6.2 & 0.686 \\
+      & max & 50 & 1.000 & 50 & 1.000 & 50 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.11$}
+      & min & 1 & 0.344 & 1 & 0.328 & 1 & 0.317 \\
+      & med & 2 & 0.534 & 2 & 0.522 & 2 & 0.512 \\
+      & mean & 3.5 & 0.713 & 3.6 & 0.705 & 3.6 & 0.697 \\
+      & max & 27 & 1.000 & 27 & 1.000 & 27 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.17$}
+      & min & 1 & 0.498 & 1 & 0.474 & 1 & 0.459 \\
+      & med & 2 & 0.683 & 2 & 0.670 & 2 & 0.658 \\
+      & mean & 2.5 & 0.758 & 2.6 & 0.745 & 2.6 & 0.732 \\
+      & max & 21 & 1.000 & 21 & 1.000 & 21 & 1.000 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  \caption{\label{TabPer2GO_A75}\textbf{Periods to shut down simulation statistics: $A_{min}=0.75$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+      & & Periods & CDF & Periods & CDF & Periods & CDF \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.00$}
+      & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.05$}
+      & min & 5 & 0.000 & 5 & 0.000 & 5 & 0.000 \\
+      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      & mean & 99.8 & 0.008 & 99.8 & 0.007 & 99.8 & 0.007 \\
+      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.11$}
+      & min & 2 & 0.108 & 2 & 0.096 & 2 & 0.086 \\
+      & med & 23 & 0.500 & 25 & 0.506 & 25 & 0.502 \\
+      & mean & 34.1 & 0.620 & 34.9 & 0.608 & 35.2 & 0.613 \\
+      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      \hline
+      \multirow{4}{*}{$\bar{H}=0.17$}
+      & min & 1 & 0.302 & 1 & 0.261 & 1 & 0.228 \\
+      & med & 3 & 0.506 & 4 & 0.521 & 4 & 0.501 \\
+      & mean & 8.5 & 0.692 & 9.0 & 0.674 & 9.4 & 0.680 \\
+      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  \caption{\label{TabRiskl_A0}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $A_{min}=0.00$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.00$}
+      & $t=0$ & -2.06\% & 0.483 & -2.12\% & 0.459 & -2.18\% & 0.440 \\
+      & min & -4.64\% & 0.000 & -4.64\% & 0.000 & -4.64\% & 0.000 \\
+      & med & -2.01\% & 0.500 & -2.01\% & 0.500 & -2.01\% & 0.500 \\
+      & mean & -1.58\% & 0.645 & -1.58\% & 0.645 & -1.59\% & 0.645 \\
+      & max & 19.01\% & 1.000 & 19.01\% & 1.000 & 19.01\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.05$}
+      & $t=0$ & -1.47\% & 0.589 & -1.54\% & 0.563 & -1.60\% & 0.541 \\
+      & min & -4.39\% & 0.000 & -4.39\% & 0.000 & -4.39\% & 0.000 \\
+      & med & -1.69\% & 0.500 & -1.70\% & 0.500 & -1.71\% & 0.500 \\
+      & mean & -1.14\% & 0.715 & -1.14\% & 0.720 & -1.14\% & 0.720 \\
+      & max & 36.56\% & 1.000 & 36.52\% & 1.000 & 36.49\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.11$}
+      & $t=0$ & -1.71\% & 0.651 & -1.80\% & 0.609 & -1.87\% & 0.580 \\
+      & min & -4.38\% & 0.000 & -4.38\% & 0.000 & -4.38\% & 0.000 \\
+      & med & -1.99\% & 0.500 & -2.00\% & 0.500 & -2.01\% & 0.500 \\
+      & mean & -1.42\% & 0.750 & -1.40\% & 0.759 & -1.43\% & 0.756 \\
+      & max & 34.67\% & 1.000 & 36.29\% & 1.000 & 32.10\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.17$}
+      & $t=0$ & -1.53\% & 0.743 & -1.71\% & 0.704 & -1.83\% & 0.674 \\
+      & min & -4.37\% & 0.000 & -4.37\% & 0.000 & -4.37\% & 0.000 \\
+      & med & -2.13\% & 0.500 & -2.16\% & 0.500 & -2.18\% & 0.500 \\
+      & mean & -1.51\% & 0.751 & -1.53\% & 0.754 & -1.59\% & 0.749 \\
+      & max & 35.69\% & 1.000 & 41.27\% & 1.000 & 35.76\% & 1.000 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  \caption{\label{TabRiskl_A75}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $A_{min}=0.75$ and $z_0=0.0$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+      \hline\hline
+      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.00$}
+      & $t=0$ & 3.91\% & 0.955 & 3.69\% & 0.940 & 3.51\% & 0.926 \\
+      & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
+      & med & 0.47\% & 0.500 & 0.47\% & 0.500 & 0.47\% & 0.500 \\
+      & mean & 0.52\% & 0.509 & 0.52\% & 0.509 & 0.52\% & 0.509 \\
+      & max & 6.19\% & 1.000 & 6.19\% & 1.000 & 6.19\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.05$}
+      & $t=0$ & 5.40\% & 0.912 & 5.06\% & 0.895 & 4.80\% & 0.879 \\
+      & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
+      & med & 1.15\% & 0.500 & 1.14\% & 0.500 & 1.14\% & 0.500 \\
+      & mean & 1.43\% & 0.537 & 1.43\% & 0.537 & 1.42\% & 0.537 \\
+      & max & 41.95\% & 1.000 & 41.95\% & 1.000 & 41.95\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.11$}
+      & $t=0$ & 7.62\% & 0.855 & 7.07\% & 0.836 & 6.65\% & 0.819 \\
+      & min & -4.57\% & 0.000 & -4.57\% & 0.000 & -4.57\% & 0.000 \\
+      & med & 2.26\% & 0.500 & 2.24\% & 0.500 & 2.23\% & 0.500 \\
+      & mean & 3.20\% & 0.588 & 3.16\% & 0.587 & 3.14\% & 0.586 \\
+      & max & 70.01\% & 1.000 & 76.72\% & 1.000 & 74.84\% & 1.000 \\
+      \hline
+      \multirow{5}{*}{$\bar{H}=0.17$}
+      & $t=0$ & 9.56\% & 0.859 & 8.92\% & 0.838 & 8.43\% & 0.822 \\
+      & min & -4.29\% & 0.000 & -4.29\% & 0.000 & -4.30\% & 0.000 \\
+      & med & 3.13\% & 0.500 & 3.13\% & 0.500 & 3.09\% & 0.500 \\
+      & mean & 4.30\% & 0.584 & 4.26\% & 0.582 & 4.21\% & 0.584 \\
+      & max & 69.65\% & 1.000 & 67.07\% & 1.000 & 70.83\% & 1.000 \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+
+
+% \subsection{Solution and calibration}\label{SecModelShutSolCal}
+
+% A competitive equilibrium for a given $\bar{H}$ is defined in the following way.
+
+% \vspace{7mm}
+% \end{spacing}
+% \hrule
+% \begin{definition}[\textbf{Competitive equilibrium}]\label{TAppDefCompEq}
+%    A competitive equilibrium in the overlapping generations model with $2$-period lived agents and promised government transfer of $\bar{H}$ is defined as consumption $c_{1,t}$ and $c_{2,t}$ and savings $k_{2,t+1}$ allocations and a real wage $w_t$ and real net interest rate $r_t$ each period such that:
+%    \begin{enumerate}
+%       \item households optimize according to \eqref{EqBC2}, \eqref{EqBC1} and \eqref{EqEul},
+%       \item firms optimize according to \eqref{EqModelRentRate} and \eqref{EqModelRealWage},
+%       \item markets clear according to \eqref{EqModelMClabor}, \eqref{EqModelMCcapital}, and \eqref{EqModelMCresconstr}.
+%    \end{enumerate}
+% \end{definition}
+% \hrule
+% \begin{spacing}{1.5}
+% \vspace{10mm}
+
+% The equilibrium can be solved in terms of either age-1 consumption $c_{1,t}$ or age-1 savings $k_{2,t+1}$. The following exposition and our numerical method obtains the solution by solving for the optimal $c_{1,t}$. We first write all the endogenous variables in terms of age-1 consumption $c_{1,t}$. The age-1 budget constraint \eqref{EqBC1} becomes
+% \begin{equation}\label{EqBC1k}
+%    k_{2,t+1} = w_t - H_t - c_{1,t}.
+% \end{equation}
+% Age-2 consumption in the next period is simply a function of $k_{2,t+1}$ as in \eqref{EqBC2}. The real wage $w_t$ and interest rate $r_t$ from \eqref{EqModelRentRate} and \eqref{EqModelRealWage} are simply functions of the savings $k_{2,t}$ in equilibrium. So the Euler equation \eqref{EqEul} can be written all in terms of parameters, period-$t$ state variables, and $c_{1,t}$
+% \begin{equation}\label{EqShutEulc1}
+%    \begin{split}
+%       &u'\bigl(c_{1,t}\bigr) = \beta E_{z_{t+1}|z_t}\Biggl[\Bigl(1 + \alpha e^{z_{t+1}}\bigl[(1-\alpha)e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr]^{\alpha-1} - \delta\Bigr)\times... \\
+%       &\quad\quad u'\biggl(\Bigl[1 + \alpha e^{z_{t+1}}\bigl([1-\alpha]e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr)^{\alpha-1} - \delta\Bigr]\bigl([1-\alpha]e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr) + ... \\
+%       & \quad\quad\quad\quad\min\left\{(1-\alpha)e^{z_{t+1}}\bigl([1-\alpha]e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr)^\alpha,\bar{H}\right\}\biggr)\Biggr]
+%    \end{split}
+% \end{equation}
+
+% Note that equation \eqref{EqShutEulc1} characterizes $c_{1,t}$ for all $t$ in which the nonnegativity constraint does not bind $w_t>\bar{H}$. In the other case when the wage is too low to be able to collect the transfer from the young $w_t \leq \bar{H}$, the government collects all that it can from the young $H_t = w_t$, transfers that amount to the old, and the young are left with zero consumption and savings $c_{1,t} = k_{2,t+1} = 0$. For this reason the amount of the transfer in equilibrium, in general, is
+% \begin{equation}\label{EqHt}
+%    H_t = \min\{w_t,\bar{H}\} \quad\forall t
+% \end{equation}
+% This expression implies the possibility that, in equilibrium, the government will not be able to collect the full promised transfer $\bar{H}$ in all states of the world. Because \eqref{EqShutEulc1} characterizes $c_{1,t}$ in the cases in which the nonnegativity constraint does not bind, $H_t=\bar{H}$ in the equation. However, the last term in \eqref{EqShutEulc1} shows that the integral over all shocks next period must include cases in which the nonnegativity constraint is not satisfied.
+
+% We calibrate the parameters of the model so that one period is equivalent to 30 years and then solve for the endogenous objects for a grid of points in the state space $(k_{2,t},z_t)$.\footnote{MatLab code for the computation is available upon request.}
+
+% \begin{table}[htbp]\centering\captionsetup{width=5.4in}
+% \caption{\label{TabCalibrShut}\textbf{Calibration of 2-period lived agent OLG model with promised transfer $\bar{H}$}}
+%     \begin{threeparttable}
+%     \begin{tabular}{>{\small}c >{\small}l >{\small}c}
+%         \hline\hline
+%         Parameter & \multicolumn{1}{c}{Source to match} & Value \\
+%         \hline
+%         $\beta$  & annual discount factor of 0.96 & 0.29 \\
+%         $\gamma$ & coefficient of relative risk aversion between 1.5 and 4.0 &  2    \\
+%         $\alpha$ & capital share of income                                   &  0.35 \\
+%         $\delta$ & annual capital depreciation of 0.05                       &  0.79 \\
+%         $\rho$   & AR(1) persistence of normally distributed shock to match  &  0.21 \\
+%                  & \quad annual persistence of 0.95                          &       \\
+%         $\mu$    & AR(1) long-run average shock level                        &  0    \\
+%         $\sigma$ & standard deviation of normally distributed shock to match &  1.55 \\
+%                  & \quad the annual standard deviation of real GDP of 0.49   &       \\
+%         $\bar{H}$ & set to be 32\% of the median real wage                   &  0.11 \\
+%         \hline\hline
+%     \end{tabular}
+%     \begin{tablenotes}
+%         \scriptsize{\item[]The Technical Appendix gives a detailed description of the calibration of all parameters.}
+%     \end{tablenotes}
+%     \end{threeparttable}
+% \end{table}
+
+% \noindent Figure \ref{FigPolFuncs} shows the policy functions for $c_{1,t}$, $c_{2,t}$, $k_{2,t+1}$, $Y_t$, $w_t$, and $r_t$ in terms of the state $(k_{2,t},z_t)$. All six endogenous variables are monotonically increasing in the productivity shock $z_t$, and all except for the interest rate $r_t$ are monotonically increasing in the capital stock $k_{2,t}$.
+
+% \begin{figure}[htb]\centering \captionsetup{width=5in}
+%     \caption{\label{FigPolFuncs}\textbf{Equilibrium policy functions}}
+%     \fbox{\resizebox{5in}{6in}{\includegraphics{polfuncs}}}
+% \end{figure}
+% \clearpage
+
+
+% \subsection{Simulation}\label{SecModelShutSim}
+
+% One way to measure the effect of fiscal policy on the probability of forcing an economy into a shut down scenario is to simulate the economy and observe when it is most likely to shut down relative to different sized transfer programs. In this section, we simulate the time series of the economy until it shuts down 3,000 times. And we do this for three different values of transfer program size $\bar{H}=\{0.05,0.11,0.17\}$ and for three different values of the initial value of the capital stock $k_{2,0}=\{0.11,0.14,0,17\}$.\footnote{The three values for each roughly correspond to low, middle and high values. That is, $\bar{H}=0.11$ is the value that is roughly equal to 32 percent of the median wage, and $k_{2,0}= 0.14$ is roughly equal to the median capital stock across simulations.} In each simulation we use an initial value of the productivity shock of its median value $z_0=\mu$.
+
+% Table \ref{TabShutInitVal} shows how each parameterization for $\bar{H}$ and $k_{2,0}$ changes the median wage $w_{med}$, the median capital stock $k_{med}$, and the size of $\bar{H}$ and $k_{2,0}$ relative to the median wage $w_{med}$ and the median capital stock $k_{med}$, respectively.
+
+% \begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% \caption{\label{TabShutInitVal}\textbf{Initial values relative to median values}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+%       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+%       & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.05$} & 0.3030 & 0.0992 & 0.3026 & 0.0996 & 0.3008 & 0.0991 \\
+%                                       & 0.1650 & 1.1093 & 0.1652 & 1.4062 & 0.1662 & 1.7148 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.11$} & 0.3445 & 0.1344 & 0.3433 & 0.1358 & 0.3474 & 0.1365 \\
+%                                       & 0.3193 & 0.8187 & 0.3204 & 1.0311 & 0.3166 & 1.2457 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.17$} & 0.2562 & 0.1043 & 0.2709 & 0.1090 & 0.2825 & 0.1134 \\
+%                                       & 0.6635 & 1.0550 & 0.6275 & 1.2846 & 0.6018 & 1.4988 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% Using the calibrated parameters from Table \ref{TabCalibrShut} and the various values for $\bar{H}$ and $k_{2,0}$ from Table \ref{TabShutInitVal}, we simulate the model 3,000 times. Table \ref{TabShutSimStats} presents the descriptive statistics of how many periods the simulations take to hit the economic shutdown point of $w_t\leq\bar{H}$. The middle row of Table \ref{TabShutSimStats} corresponding to $\bar{H}=0.11$ shows that this model economy has a greater than 50 percent chance of shutting down in 60 years (2 periods) under a fiscal transfer system that is calibrated to be close to that of the United States. Table \ref{TabShutSimStats} also shows that the probability of a shutdown increases or decreases drastically with the size of the fiscal transfer system.
+
+% \begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% \caption{\label{TabShutSimStats}\textbf{Periods to shut down simulation statistics}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+%       & & Periods & CDF & Periods & CDF & Periods & CDF \\
+%       \hline
+%       \multirow{4}{*}{$\bar{H}=0.05$} & min  & 1    & 0.1620 & 1    & 0.1543 & 1    & 0.1477 \\
+%                                       & med  & 4    & 0.5370 & 4    & 0.5320 & 4    & 0.5283 \\
+%                                       & mean & 5.95 & 0.6704 & 6.00 & 0.6703 & 6.04 & 0.6694 \\
+%                                       & max  & 45   & 1.0000 & 45   & 1.0000 & 45   & 1.0000 \\
+%       \hline
+%       \multirow{4}{*}{$\bar{H}=0.11$} & min  & 1    & 0.3623 & 1    & 0.3480 & 1    & 0.3357 \\
+%                                       & med  & 2    & 0.5653 & 2    & 0.5543 & 2    & 0.5433 \\
+%                                       & mean & 3.29 & 0.7060 & 3.35 & 0.7029 & 3.41 & 0.7022 \\
+%                                       & max  & 24   & 1.0000 & 24   & 1.0000 & 25   & 1.0000 \\
+%       \hline
+%       \multirow{4}{*}{$\bar{H}=0.17$} & min  & 1    & 0.5203 & 1    & 0.4987 & 1    & 0.4807 \\
+%                                       & med  & 1    & 0.5203 & 2    & 0.6833 & 2    & 0.6707 \\
+%                                       & mean & 2.42 & 0.7373 & 2.48 & 0.7336 & 2.54 & 0.7295 \\
+%                                       & max  & 18   & 1.0000 & 18   & 1.0000 & 18   & 1.0000 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+
+% \subsection{Fiscal gap and equity premium}\label{SecModelShutFgapEP}
+
+% Because the actual transfer is not always equal to the promised transfer $H_t\leq\bar{H}$, we define the fiscal gap as the deviation of the net present value of promised transfers from the net present value of actual transfers as a percent of the net present value of output.
+% \begin{equation}\label{EqFgap}
+%    \text{fiscal gap}_{1,t} = x_{1,t} \equiv \frac{NPV(\bar{H}) - NPV(H_t)}{NPV(Y_t)}
+% \end{equation}
+% This measure does not suffer from the fungibility of short-run definitions of debts and deficits. Table \ref{TabShutFgap} gives the computed fiscal gaps as a percent of the net present value of output for the nine combinations of values for the promised transfer $\bar{H}$ and the initial capital stock $k_{2,0}$.
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.3in}
+% \caption{\label{TabShutFgap}\textbf{Measures of the fiscal gap as percent of NPV(GDP)}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+%       & fgap 1 & fgap 2 & fgap 1 & fgap 2 & fgap 1 & fgap 2 \\
+%       & fgap 3 & fgap 4 & fgap 3 & fgap 4 & fgap 3 & fgap 4 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.05$} & 0.0037 & 0.0078 & 0.0034 & 0.0096 & 0.0033 & 0.0118 \\
+%                                       & 0.0033 & 0.0035 & 0.0030 & 0.0032 & 0.0028 & 0.0029 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.11$} & 0.0192 & 0.0373 & 0.0175 & 0.0427 & 0.0164 & 0.555 \\
+%                                       & 0.0168 & 0.0176 & 0.0152 & 0.0159 & 0.0140 & 0.0147 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.17$} & 0.0474 & 0.0876 & 0.0421 & 0.1041 & 0.0385 & 0.1171 \\
+%                                       & 0.0408 & 0.0426 & 0.0361 & 0.0378 & 0.0328 & 0.0344 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]Fiscal gap 1 uses the gross sure return rates $R_{t,t+s}$ from Table \ref{TabShutTermStruct} as the discount rates for NPV calculation. Fiscal gap 2 uses the current period gross return on capital $R_t$ from the model as the constant discount rate. Fiscal gap 3 uses the \citet{IMF:2009} method of an annual discount rate equal to 1 plus the average percent change in GDP plus 0.01 ($\approx 2.05$). And fiscal gap 4 uses the \citet{GokhaleSmetters:2007} method of an annual discount rate equal to 1 plus 0.0365 ($\approx 1.93$).}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% Another potential measure of the fiscal gap is to describe it as a percent of the current level of output rather than the net present value of output.
+% \begin{equation}\label{EqFgapb}
+%    \text{fiscal gap}_{2,t} = x_{2,t} \equiv \frac{NPV(\bar{H}) - NPV(H_t)}{Y_t}
+% \end{equation}
+% Table \ref{TabShutFgapb} gives the computed fiscal gaps as a percent of current output for the nine combinations of values for the promised transfer $\bar{H}$ and the initial capital stock $k_{2,0}$.
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.3in}
+% \caption{\label{TabShutFgapb}\textbf{Measures of the fiscal gap as percent of current GDP}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+%       & fgap 1 & fgap 2 & fgap 1 & fgap 2 & fgap 1 & fgap 2 \\
+%       & fgap 3 & fgap 4 & fgap 3 & fgap 4 & fgap 3 & fgap 4 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.05$} & 0.0235 & 0.0412 & 0.0222 & 0.0626 & 0.0210 & 0.0965 \\
+%                                       & 0.0080 & 0.0088 & 0.0071 & 0.0078 & 0.0065 & 0.0071 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.11$} & 0.0998 & 0.1609 & 0.0922 & 0.2173 & 0.0885 & 0.3686 \\
+%                                       & 0.0361 & 0.0391 & 0.0321 & 0.0347 & 0.0291 & 0.0315 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.17$} & 0.1864 & 0.3061 & 0.1746 & 0.4557 & 0.1646 & 0.5905 \\
+%                                       & 0.0781 & 0.0840 & 0.0690 & 0.0743 & 0.0625 & 0.0673 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]Fiscal gap 1 uses the gross sure return rates $R_{t,t+s}$ from Table \ref{TabShutTermStruct} as the discount rates for NPV calculation. Fiscal gap 2 uses the current period gross return on capital $R_t$ from the model as the constant discount rate. Fiscal gap 3 uses the \citet{IMF:2009} method of an annual discount rate equal to 1 plus the average percent change in GDP plus 0.01 ($\approx 2.05$). And fiscal gap 4 uses the \citet{GokhaleSmetters:2007} method of an annual discount rate equal to 1 plus 0.0365 ($\approx 1.93$).}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% A difficulty with this long-run measure of the fiscal gap is that the lives of households are shorter lived than the horizon over which the net present values must be calculated. For the net present values in \eqref{EqFgap} and \eqref{EqFgapb}, we must use discount factors derived separately from the households' discount factor. For the government's discount factor, we will use the price of an asset today in period $t$ that pays a fixed amount in $j$ periods from now.
+
+% Define $p_{t,j}$ as the price of an asset $B_{t,j}$ with a sure-return payment of one unit $j$ periods in the future. If these assets can be bought and sold each period, then a household could purchase an asset that pays off after the household is dead and sell it before they die. Because each of these assets must be held in zero net supply, they do not change the equilibrium policy functions described in Section \ref{SecModelShut}. The equations that characterized the prices $p_{t,j}$ for all $t$ and $j$ follow standard asset pricing theory.\footnote{We derive equation \eqref{EqPtj}, as well as some other assets of interest, in detail in the Technical Appendix.}
+% \begin{equation} \label{EqPtj}
+%    p_{t,j} = \begin{cases}
+%                 1 \quad\quad\quad\quad\quad\quad\quad\quad\:\text{if}\quad j = 0 \\
+%                 \beta\frac{E_t\left[u'\left(c_{2,t+1}\right)p_{t+1,j-1}\right]}{u'\left(c_{1,t}\right)} \quad\text{if}\quad j\geq 1
+%              \end{cases} \quad\forall t
+% \end{equation}
+% With the starting value of the sure-return price $p_{t,0}$ pinned down, the prices of the assets that mature in future periods can be solved for recursively using equation \eqref{EqPtj}.
+
+% Table \ref{TabShutTermStruct} shows the calculated sure-return prices and their corresponding discount rates. Each cell represents the computed prices and interest rates that correspond to a particular promised transfer value $\bar{H}$ and initial capital stock $k_{2,0}$. The first column in each cell displays the prices of the different maturity $s$ of sure return bond $p_{t,t+s}$ computed using recursive equation \eqref{EqPtj}. The second column of each cell is simply the inverse of the price or the gross return $R_{t,t+s}$ on the sure-return bond. The last two columns of each cell represent the annualized version of the gross return $R_{t,t+s}\text{APR}$ and the corresponding net interest rate $r_{t,t+s}\text{APR}$, respectively.
+
+% %\newpage
+% %\begin{landscape}
+% \begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% \caption{\label{TabShutTermStruct}\textbf{Term structure of prices and interest rates}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}l| >{\small}c >{\small}c >{\small}c >{\small}c| >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       & & \multicolumn{4}{c}{$k_{2,0}=0.11$} & \multicolumn{4}{c}{$k_{2,0}=0.14$} \\ \cline{3-10}
+%       &  &  &  & $R_{t,t+s}$ & $r_{t,t+s}$ &  &  & $R_{t,t+s}$ & $r_{t,t+s}$ \\
+%       & $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & APR & APR & $p_{t,t+s}$ & $R_{t,t+s}$ & APR & APR \\
+%       \hline
+%       \multirow{8}{*}{$\bar{H}=0.05$} & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 \\
+%                                       & 1 & 1.5556 & 0.6428 & 0.9854 & -0.0146 & 1.5897 & 0.6291 & 0.9847 & -0.0153 \\
+%                                       & 2 & 0.3115 & 3.2105 & 1.0396 & 0.0396 & 0.3466 & 2.8853 & 1.0360 & 0.0360 \\
+%                                       & 3 & 0.0385 & 25.9903 & 1.1147 & 0.1147 & 0.0441 & 22.6875 & 1.1097 & 0.1097 \\
+%                                       & 4 & 0.0088 & 113.9341 & 1.1710 & 0.1710 & 0.0096 & 104.0359 & 1.1675 & 0.1675 \\
+%                                       & 5 & 0.0049 & 202.6663 & 1.1937 & 0.1937 & 0.0063 & 159.0087 & 1.1841 & 0.1841 \\
+%                                       & 6 & 0.0014 & 722.2930 & 1.2453 & 0.2453 & 0.0025 & 396.0301 & 1.2206 & 0.2206 \\
+%       \hline
+%       \multirow{8}{*}{$\bar{H}=0.11$} & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 \\
+%                                       & 1 & 1.6771 & 0.5963 & 0.9829 & -0.0171 & 1.7186 & 0.5819 & 0.9821 & -0.0179 \\
+%                                       & 2 & 0.1543 & 6.4811 & 1.0643 & 0.0643 & 0.1793 & 5.5768 & 1.0590 & 0.0590 \\
+%                                       & 3 & 0.0074 & 134.2966 & 1.1774 & 0.1774 & 0.0092 & 108.7856 & 1.1692 & 0.1692 \\
+%                                       & 4 & 0.0072 & 138.6856 & 1.1787 & 0.1787 & 0.0077 & 129.7630 & 1.1761 & 0.1761 \\
+%                                       & 5 & 0.0029 & 344.5899 & 1.2150 & 0.2150 & 0.0032 & 308.9255 & 1.2106 & 0.2106 \\
+%                                       & 6 & 4.3 $\times 10^{-4}$ & 2.3 $\times 10^{3}$ & 1.2945 & 0.2945 & 5.0 $\times 10^{-4}$ & 2.0 $\times 10^{3}$ & 1.2883 & 0.2883 \\
+%       \hline
+%       \multirow{8}{*}{$\bar{H}=0.17$} & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 \\
+%                                       & 1 & 1.5848 & 0.6310 & 0.9848 & -0.0152 & 1.6811 & 0.5948 & 0.9828 & -0.0172 \\
+%                                       & 2 & 0.0092 & 108.2899 & 1.1690 & 0.1690 & 0.0156 & 64.0010 & 1.1487 & 0.1487 \\
+%                                       & 3 & 0.0010 & 970.3010 & 1.2577 & 0.2577 & 0.0031 & 322.3614 & 1.2123 & 0.2123 \\
+%                                       & 4 & 9.0 $\times 10^{-5}$ & 1.1 $\times 10^{4}$ & 1.3643 & 0.3643 & 0.0046 & 217.5026 & 1.1965 & 0.1965 \\
+%                                       & 5 & 1.3 $\times 10^{-5}$ & 7.8 $\times 10^{4}$ & 1.4556 & 0.4556 & 0.0010 & 981.4442 & 1.2581 & 0.2581 \\
+%                                       & 6 & 1.7 $\times 10^{-5}$ & 6.0 $\times 10^{4}$ & 1.4426 & 0.4426 & 5.6 $\times 10^{-5}$ & 1.8 $\times 10^{4}$ & 1.3855 & 0.3855 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} =(p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{APR} = (R_{t,t+s})^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{APR} = R_{t,t+s}\text{APR} - 1$. Full descriptions of the term structure of prices and interest rates for all calibrations and for up to $s=13$ is provided in the Technical Appendix.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+% %\end{landscape}
+
+% We can now rewrite the net present values in the two measures of the fiscal gap from \eqref{EqFgap} and \eqref{EqFgapb} in terms of the prices from \eqref{EqPtj}.
+% \begin{align}
+%    x_{1,t} &= \frac{\sum_{j=0}^\infty p_{t,t+j}\bar{H} - \sum_{j=0}^\infty p_{t,t+j}E\left[H_j\right]}{\sum_{j=0}^\infty p_{t,t+j}E\left[Y_j\right]} \label{EqFgap2} \\
+%    x_{2,t} &= \frac{\sum_{j=0}^\infty p_{t,t+j}\bar{H} - \sum_{j=0}^\infty p_{t,t+j}E\left[H_j\right]}{Y_t} \label{EqFgapb2}
+% \end{align}
+% Tables \ref{TabShutFgap} and \ref{TabShutFgapb} give the computed fiscal gaps for the nine different combinations of promised transfer $\bar{H}$ and initial capital stock $k_{2,0}$.
+
+% The first measure of the fiscal gap in each table, fgap 1, is calculated as in equations \eqref{EqFgap2} and \eqref{EqFgapb2} for the corresponding table using the sure-return prices from Table \ref{TabShutTermStruct} as discount factors. The second fiscal gap measure in each table, fgap 2, is calculated using a constant discount rate which is the current period risky return on capital $R_t$ taken from the model. For example, the risky return on capital in period $t$ is $R_t=1.4971$ in the middle cell in which $\bar{H}=0.11$ and $k_{2,0}=0.14$. The third fiscal gap measure, fgap 3, uses a constant discount rate taken from \citet[Table 6.4]{IMF:2009}. This study uses an annual discount factor of the growth rate in real GDP plus 1 percent to calculate the net present value of aging-related expeditures. This averages out among G-20 countries to be a discount rate of around 4 percent and for the U.S. is about 3.8 percent ($R_t \approx 3.1$). For the last measure of the fiscal gap, fgap 4, we use the constant discount rate from \citet{GokhaleSmetters:2007} who use an annual discount rate of 3.65 percent for their discount factors in their NPV calculation. This is equivalent to a 30-year gross discount rate of $R_t\approx 2.9$. The expectations for $H_t$ and $Y_t$ are simply the average values from the 3,000 simulations described in Section \ref{SecModelShutSim}.
+
+% In similar fashion to how the fiscal gap is a measure of risk in the economy, we can use the difference in the expected risky return on capital one period from now $E[R_{t+1}]$ and the riskless return on the sure-return bond maturing one period from now $R_{t,t+1}$ to calculate an equity premium. A large literature has tried to explain why the equity premium observed in the real world is so large.\footnote{Cite equity premium papers.} More recently, \citet{Barro:2009} has shown that incorporating rare disasters into an economic model produces risk premia and risk free rates that are similar to those observed in the data. In our model, we incorporate the rare disaster of an economic shutdown. As shown in Table \ref{TabShutEqPrem}, our model produces equity premia ranging from 6.9 percent to as high as 9.8 percent.
+
+% \begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% \caption{\label{TabShutEqPrem}\textbf{Components of the equity premium}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+%       & & 30-year & annual & 30-year & annual & 30-year & annual \\
+%       \hline
+%       \multirow{7}{*}{$\bar{H}=0.05$} & $E[R_{t+1}]$      & 8.2070 & 1.0361 & 7.5150 & 1.0334 & 7.0113 & 1.0313 \\
+%                                       & $\sigma(R_{t+1})$ & 23.3433 & n.a. & 21.3222 & n.a. & 19.8511 & n.a. \\
+%                                       & $R_{t,t+1}$       & 0.6428 & 0.9854 & 0.6291 & 0.9847 & 0.6177 & 0.9841 \\
+%                                       & Equity premium    & \multirow{2}{*}{7.5641} & \multirow{2}{*}{0.0742} & \multirow{2}{*}{6.8859} & \multirow{2}{*}{0.0713} & \multirow{2}{*}{6.3936} & \multirow{2}{*}{0.0690} \\
+%                                       & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+%                                       & Sharpe ratio & \multirow{2}{*}{0.3240} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3229} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3221} &  \multirow{2}{*}{n.a.} \\
+%                                       & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+%       \hline
+%       \multirow{7}{*}{$\bar{H}=0.11$} & $E[R_{t+1}]$      & 11.3042 & 1.0459 & 10.0769 & 1.0423 & 9.2241 & 1.0396 \\
+%                                       & $\sigma(R_{t+1})$ & 32.3859 & n.a. & 28.8049 & n.a. & 26.3140 & n.a. \\
+%                                       & $R_{t,t+1}$       & 0.5963 & 0.9829 & 0.5819 & 0.9821 & 0.5658 & 0.9812 \\
+%                                       & Equity premium    & \multirow{2}{*}{10.7080} & \multirow{2}{*}{0.0855} & \multirow{2}{*}{9.4950} & \multirow{2}{*}{0.0815} & \multirow{2}{*}{8.6582} & \multirow{2}{*}{0.0785} \\
+%                                       & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+%                                       & Sharpe ratio & \multirow{2}{*}{0.3306} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3296} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3290} & \multirow{2}{*}{n.a.} \\
+%                                       & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+%       \hline
+%       \multirow{7}{*}{$\bar{H}=0.17$} & $E[R_{t+1}]$      & 16.2082 & 1.0574 & 13.7520 & 1.0521 & 12.1889 & 1.0483 \\
+%                                       & $\sigma(R_{t+1})$ & 46.7126 & n.a. & 39.5389 & n.a. & 34.9735 & n.a. \\
+%                                       & $R_{t,t+1}$       & 0.6310 & 0.9848 & 0.5948 & 0.9828 & 0.5778 & 0.9819 \\
+%                                       & Equity premium    & \multirow{2}{*}{15.5772} & \multirow{2}{*}{0.0981} & \multirow{2}{*}{13.1572} & \multirow{2}{*}{0.0924} & \multirow{2}{*}{11.6112} & \multirow{2}{*}{0.0882} \\
+%                                       & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+%                                       & Sharpe ratio & \multirow{2}{*}{0.3335} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3328} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3320} & \multirow{2}{*}{n.a.} \\
+%                                       & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1} - \delta$. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The expected value and standard deviation of the gross risky one-period return $R_{t+1}$ are calculated as the average and standard deviation, respectively, across simulations. The annual equity premium is $(1+EP)^{1/30}-1$, where $EP$ is the 30-year equity premium from the model.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% We report the Sharpe ratio in Table \ref{TabShutEqPrem} as well as all of the components of the equity premium and the Sharpe ratio. For the expected risky return $E[R_{t+1}]$, the one-period sure return $R_{t,t+1}$, and the equity premium (the difference between the two), we report results for both one period from the model (30 years) as well as the annualized (one-year) version. Our Sharpe ratios between 0.32 and 0.33 are in line with common estimates from the data.
+
+
+% \section{Model with Regime Change}\label{SecModelRegm}
+
+% In this section, we make the consequence of a default on the promised transfer $\bar{H}$ to be a regime switch to a low-growth proportional transfer system rather than the autarky shut down described in Section \ref{SecModelShut}. We assume that when the government defaults on its promised transfer $w_t\leq\bar{H}$, the regime switches permanently to one in which the transfer is simply 80 percent of the wage each period $H_t = 0.8w_t$. Figure \ref{FigHtRegime} illustrates the rule for the transfer $H_t$ under regime 1 in which the transfer is  $\bar{H}$ unless wages are less than $\bar{H}$ and under regime 2 in which the transfer is permanently switched to the proportional transfer system $H_t=0.8w_t$.
+
+% \begin{figure}[htb]\centering \captionsetup{width=6.0in}
+%    \caption{\label{FigHtRegime}\textbf{Transfer program $H_t$ under regime 1 and regime 2}}
+%    \fbox{\resizebox{5.0in}{2.5in}{\includegraphics{FigHtRegime.pdf}}}
+% \end{figure}
+
+
+% \subsection{Household problem, firm problem, and market clearing}\label{SecModelRegmHFMC}
+
+% The characterization of the household problem remains the same as in equations \eqref{EqBC2}, \eqref{EqBC1}, and \eqref{EqEul} from Section \ref{SecModelShutHouse}. The only difference is in the definition of $H_t$ in those equations. With the new regime switching assumption, the transfer each period from the young to the old $H_t$ is defined as follows.
+% \begin{equation}\label{EqRegmHt}
+%    H_t = \begin{cases}
+%             \bar{H}\quad\quad\:\,\text{if}\quad w_s > \bar{H} \quad\text{for all}\quad\:\: s\leq t \\
+%             0.8w_t\quad\text{if}\quad w_s\leq\bar{H}\quad\text{for any}\quad s\leq t
+%          \end{cases}
+% \end{equation}
+% The change is reflected in the expectations of the young of consumption when old $c_{2,t+1}$ in the savings decision \eqref{EqEul}.
+
+% The firm's problem and the characterization of output, aggregate productivity shock, and optimal net real return on capital and real wage are the same as equations \eqref{EqModelProdFunc} through \eqref{EqModelRealWage} in Section \ref{SecModelShutFirm}. The market clearing conditions that must hold in each period are the same as \eqref{EqModelMClabor}, \eqref{EqModelMCcapital}, and \eqref{EqModelMCresconstr} from Section \ref{SecModelShutMktClr}
+
+
+% \subsection{Solution and calibration}\label{SecModelRegmSolCal}
+
+% A competitive equilibrium with a transfer program regime switch characterized in \eqref{EqRegmHt} is defined in the following way.
+
+% \vspace{7mm}
+% \end{spacing}
+% \hrule
+% \begin{definition}[\textbf{Competitive equilibrium}]\label{DefCompEqRegm}
+%    A competitive equilibrium in the overlapping generations model with $2$-period lived agents and promised government transfer of $\bar{H}$ that permanently switches to a proportional transfer of $0.8w_t$ if the government cannot collect $\bar{H}$ as in \eqref{EqRegmHt} is defined as consumption $c_{1,t}$ and $c_{2,t}$ and savings $k_{2,t+1}$ allocations and a real wage $w_t$ and real net interest rate $r_t$ each period such that:
+%    \begin{enumerate}
+%       \item households optimize according to \eqref{EqBC2}, \eqref{EqBC1} and \eqref{EqEul},
+%       \item firms optimize according to \eqref{EqModelRentRate} and \eqref{EqModelRealWage},
+%       \item markets clear according to \eqref{EqModelMClabor}, \eqref{EqModelMCcapital}, and \eqref{EqModelMCresconstr}.
+%    \end{enumerate}
+% \end{definition}
+% \hrule
+% \begin{spacing}{1.5}
+% \vspace{10mm}
+
+% Characterizing the equilibrium from Definition \ref{DefCompEqRegm} is simple because households in this model live for only two periods. If a period begins in the constant transfer regime $w_t>\bar{H}$ and $H_t=\bar{H}$, then the only difference from the model in Section \ref{SecModelShut} is that the young household's consumption and savings decision reflects the new possibility in expectation that next period's transfer could be $0.8w_{t+1}$ rather than $\bar{H}$,
+% \begin{equation}\label{EqRegmEulc1}
+%    \begin{split}
+%       &u'\bigl(c_{1,t}\bigr) = \beta E_{z_{t+1}|z_t}\Biggl[\Bigl(1 + \alpha e^{z_{t+1}}\bigl[(1-\alpha)e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr]^{\alpha-1} - \delta\Bigr)\times... \\
+%       &u'\biggl(\Bigl[1 + \alpha e^{z_{t+1}}\bigl([1-\alpha]e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr)^{\alpha-1} - \delta\Bigr]\bigl([1-\alpha]e^{z_t}k_{2,t}^\alpha-\bar{H}-c_{1,t}\bigr) + H_{t+1}\biggr)\Biggr]
+%    \end{split}
+% \end{equation}
+% where $H_{t+1}$ is defined by \eqref{EqRegmHt}. The only difference between equation \eqref{EqRegmEulc1} and equation \eqref{EqShutEulc1} is the definition of the last term representing $H_{t+1}$ and its implication on expectations.
+
+% Notice how this regime switch actually decreases the expected value of next period's transfer $H_{t+1}$ for the current period's young---$0.8w_t$ instead of $w_t$. Thus, the current period young will have more precautionary savings $k_{2,t+1}$ than their Section \ref{SecModelShut} economic shutdown predecessors. However, this implicit tax increase on the period $t+1$ old allows the economy to persist and accumulate utility for generations in the future rather than die.
+
+% Once the regime has permanently switched to the high tax rate proportional transfer program of $H_t = 0.8w_t$, allocations each period are determined by the following two equations,
+% \begin{gather}
+%    c_{2,t} = (1 + \alpha e^{z_t}k_{2,t}^{\alpha-1} - \delta)k_{2,t} + 0.8(1-\alpha)e^{z_{t}}k_{2,t}^\alpha \\
+%    \begin{split}
+%       u'\bigl(c_{1,t}\bigr) = \beta E_{z_{t+1}|z_t}\biggl[&\Bigl(1 + \alpha e^{z_{t+1}}k_{2,t+1}^{\alpha-1} - \delta\Bigr)\times... \\
+%       &\quad u'\Bigl(\bigl[1 + \alpha e^{z_{t+1}}k_{2,t+1}^{\alpha-1} - \delta\bigr]k_{2,t+1} + 0.8(1-\alpha)e^{z_{t+1}}k_{2,t+1}^\alpha\Bigr)\biggr]
+%    \end{split}
+% \end{gather}
+% where,
+% \begin{equation}\label{EqRegmBC1k}
+%    k_{2,t+1} = 0.2(1-\alpha)e^{z_t}k_{2,t}^\alpha - c_{1,t}
+% \end{equation}
+% and in which we have substituted in the expressions for $r_t$ and $w_t$ from \eqref{EqModelRentRate} and \eqref{EqModelRealWage}, respectively, and $H_t=0.8w_t$.
+
+% We calibrate the parameters of the model in the same way as in Table \ref{TabCalibrShut} for the economic shut down model with the exception of $\bar{H}$. We again calibrate $\bar{H}$ to be 32 percent of the median wage. However, we calculate the median wage from the time periods in the simulations before the regime switches (regime 1). Because the economy does not shut down any more, it is less risky in the long run. But the economy is actually more risky to the current period young in that the expected value of their transfer in the next period is decreased by a potential regime switch. Higher precautionary savings induces a higher median wage and a higher promised transfer $\bar{H}=0.119$ in order to equal 32 percent of the regime 1 median wage.
+
+% \begin{table}[htbp]\centering\captionsetup{width=5.4in}
+% \caption{\label{TabCalibrRegm}\textbf{Calibration of 2-period lived agent OLG model with promised transfer $\bar{H}$ and regime switching}}
+%     \begin{threeparttable}
+%     \begin{tabular}{>{\small}c >{\small}l >{\small}c}
+%         \hline\hline
+%         Parameter & \multicolumn{1}{c}{Source to match} & Value \\
+%         \hline
+%         $\beta$  & annual discount factor of 0.96 & 0.29 \\
+%         $\gamma$ & coefficient of relative risk aversion between 1.5 and 4.0 &  2     \\
+%         $\alpha$ & capital share of income                                   &  0.35  \\
+%         $\delta$ & annual capital depreciation of 0.05                       &  0.79  \\
+%         $\rho$   & AR(1) persistence of normally distributed shock to match  &  0.21  \\
+%                  & \quad annual persistence of 0.95                          &        \\
+%         $\mu$    & AR(1) long-run average shock level                        &  0     \\
+%         $\sigma$ & standard deviation of normally distributed shock to match &  1.55  \\
+%                  & \quad the annual standard deviation of real GDP of 0.49   &        \\
+%         $\bar{H}$ & set to be 32\% of the median real wage                   &  0.119 \\
+%         \hline\hline
+%     \end{tabular}
+%     \begin{tablenotes}
+%         \scriptsize{\item[]The Technical Appendix gives a detailed description of the calibration of all parameters.}
+%     \end{tablenotes}
+%     \end{threeparttable}
+% \end{table}
+
+% \noindent Figure \ref{FigPolFuncsRgm} shows the policy functions for $c_{1,t}$, $c_{2,t}$, $k_{2,t+1}$, $Y_t$, $w_t$, and $r_t$ in terms of the state $(k_{2,t},z_t)$. All six endogenous variables are monotonically increasing in the productivity shock $z_t$, and all except for the interest rate $r_t$ are monotonically increasing in the capital stock $k_{2,t}$.
+
+% \begin{figure}[htb]\centering \captionsetup{width=5in}
+%     \caption{\label{FigPolFuncsRgm}\textbf{Equilibrium policy functions with regime switching}}
+%     \fbox{\resizebox{5in}{6in}{\includegraphics{polfuncsrgm}}}
+% \end{figure}
+% \clearpage
+
+
+% \subsection{Simulation}\label{SecModelRegmSim}
+
+% Analogous to the simulation of the model with economic shut down from Section \ref{SecModelRegmSim}, we simulate the regime switching model 3,000 times with various combinations of values for the promised transfer $\bar{H}\in\{0.110,0.119\}$ and the initial capital stock $k_{2,0}\in\{0.14,0.18\}$. As shown in Table \ref{TabRegmInitVal}, our calibrated values of $\bar{H}=0.119$ and $k_{2,0}=0.18$ correspond to 32 percent of the median real wage in regime 1 and the median capital stock in regime 1, respectively. In each simulation we use an initial value of the productivity shock of its median value $z_0=\mu$.
+
+% \begin{table}[htbp]\centering\captionsetup{width=3.8in}
+% \caption{\label{TabRegmInitVal}\textbf{Initial values relative to median values from regime 1}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.18$} \\ \cline{2-5}
+%       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+%       & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.110$} & 0.3648 & 0.1728 & 0.3668 & 0.1729 \\
+%                                        & 0.3016 & 0.8100 & 0.2999 & 1.0411 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.119$} & 0.3720 & 0.1764 & 0.3717 & 0.1777 \\
+%                                        & 0.3199 & 0.7935 & 0.3201 & 1.0130 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before the regime switch (in regime 1).}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+% The lower right cell of Table \ref{TabRegmInitVal} is analogous to the middle cell of Table \ref{TabShutInitVal}. Notice that the median capital stock is higher in the regime switching economy ($k_{2,0}=0.18$ as compared to 0.14 in the shutdown economy). This is because young households have an increased risk in the second period of life under the possibility of a regime switch because their transfer will be lower in the case of a default on $\bar{H}$.
+
+% Using the calibrated parameters from Table \ref{TabCalibrRegm}, we simulate the regime switching model 3,000 times for the four different combinations of $\bar{H}$ and $k_{2,0}$. Table \ref{TabRegmSimStats} presents the descriptive statistics of how many periods the simulations take to hit the regime switch point of $w_t\leq\bar{H}$. Notice that the distribution of time until regime switch across simulations from the lower right cell of Table \ref{TabRegmSimStats} is almost identical to the middle cell in Table \ref{TabShutSimStats} from the shut down economy. Higher precautionary savings extends the time until a regime switch, but increased promised transfers reduce that time.
+
+% \begin{table}[htbp]\centering\captionsetup{width=3.8in}
+% \caption{\label{TabRegmSimStats}\textbf{Periods to regime switch simulation statistics}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.18$} \\ \cline{3-6}
+%       & & Periods & CDF & Periods & CDF \\
+%       \hline
+%       \multirow{4}{*}{$\bar{H}=0.110$} & min  & 1    & 0.3320 & 1    & 0.3190 \\
+%                                        & med  & 2    & 0.5327 & 2    & 0.5197 \\
+%                                        & mean & 3.52 & 0.6996 & 3.58 & 0.6983 \\
+%                                        & max  & 25   & 1.0000 & 25   & 1.0000 \\
+%       \hline
+%       \multirow{4}{*}{$\bar{H}=0.119$} & min  & 1    & 0.3570 & 1    & 0.3410 \\
+%                                        & med  & 2    & 0.5578 & 2    & 0.5470 \\
+%                                        & mean & 3.31 & 0.7046 & 3.38 & 0.7013 \\
+%                                        & max  & 24   & 1.0000 & 25   & 1.0000 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the regime switch condition. The ``CDF" column represents the percent of simulations that switch regimes in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+
+% \subsection{Fiscal gap and equity premium}\label{SecModelRegmFgapEP}
+
+% For the model with regime switching, we define the fiscal gap in the same two alternative ways as in \eqref{EqFgap} and \eqref{EqFgapb} from Section \ref{SecModelShutFgapEP}. The difference in the regime switching model is that the economy never shuts down. However, it is not clear whether the net present value of actual transfers $H_t$ should be greater than or less than the net present value of $\bar{H}$. $H_t$ will dip below $\bar{H}$, but it can also rise back above $\bar{H}$. Table \ref{TabRegmFgap} gives the computed fiscal gaps as a percent of the net present value of output as in \eqref{EqFgap} for the four combinations of values for the promised transfer $\bar{H}$ and the initial capital stock $k_{2,0}$.
+
+% \begin{table}[htbp]\centering\captionsetup{width=3.3in}
+% \caption{\label{TabRegmFgap}\textbf{Measures of the fiscal gap as percent of NPV(GDP)}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.18$} \\ \cline{2-5}
+%       & fgap 1 & fgap 2 & fgap 1 & fgap 2 \\
+%       & fgap 3 & fgap 4 & fgap 3 & fgap 4 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.110$} & 0.0144 & 0.0161 & 0.0132 & 0.0168 \\
+%                                        & 0.0096 & 0.0099 & 0.0086 & 0.0089 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.119$} & 0.0172 & 0.0190 & 0.0155 & 0.0197 \\
+%                                        & 0.0114 & 0.0117 & 0.0102 & 0.0106 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]Fiscal gap 1 uses the gross sure return rates $R_{t,t+s}$ from Table \ref{TabShutTermStruct} as the discount rates for NPV calculation. Fiscal gap 2 uses the current period gross return on capital $R_t$ from the model as the constant discount rate. Fiscal gap 3 uses the \citet{IMF:2009} method of an annual discount rate equal to 1 plus the average percent change in GDP plus 0.01 ($\approx 2.05$). And fiscal gap 4 uses the \citet{GokhaleSmetters:2007} method of an annual discount rate equal to 1 plus 0.0365 ($\approx 1.93$).}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% The other measure of the fiscal gap is to describe it as a percent of the current level of output rather than the net present value of output as in \eqref{EqFgapb}. Table \ref{TabRegmFgapb} gives the computed fiscal gaps as a percent of current output for the four combinations of values for the promised transfer $\bar{H}$ and the initial capital stock $k_{2,0}$.
+
+% \begin{table}[htbp]\centering\captionsetup{width=3.3in}
+% \caption{\label{TabRegmFgapb}\textbf{Measures of the fiscal gap as percent of current GDP}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+%       \hline\hline
+%       & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.18$} \\ \cline{2-5}
+%       & fgap 1 & fgap 2 & fgap 1 & fgap 2 \\
+%       & fgap 3 & fgap 4 & fgap 3 & fgap 4 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.110$} & 0.0998 & 0.1142 & 0.0956 & 0.1606 \\
+%                                        & 0.0218 & 0.0233 & 0.0192 & 0.0205 \\
+%       \hline
+%       \multirow{2}{*}{$\bar{H}=0.119$} & 0.1085 & 0.1308 & 0.0997 & 0.1894 \\
+%                                        & 0.0255 & 0.0273 & 0.0225 & 0.0240 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]Fiscal gap 1 uses the gross sure return rates $R_{t,t+s}$ from Table \ref{TabShutTermStruct} as the discount rates for NPV calculation. Fiscal gap 2 uses the current period gross return on capital $R_t$ from the model as the constant discount rate. Fiscal gap 3 uses the \citet{IMF:2009} method of an annual discount rate equal to 1 plus the average percent change in GDP plus 0.01 ($\approx 2.05$). And fiscal gap 4 uses the \citet{GokhaleSmetters:2007} method of an annual discount rate equal to 1 plus 0.0365 ($\approx 1.93$).}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% The discount factors used to calculate the net present values in the fiscal gap measures in Tables \ref{TabRegmFgap} and \ref{TabRegmFgapb} are calculated in the same way as described in Section \ref{SecModelShutFgapEP}. Table \ref{TabRegmTermStruct} shows the calculated sure-return prices and their corresponding discount rates for this regime switching economy. Each cell represents the computed prices and interest rates that correspond to a particular promised transfer value $\bar{H}$ and initial capital stock $k_{2,0}$.
+
+% %\newpage
+% %\begin{landscape}
+% \begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% \caption{\label{TabRegmTermStruct}\textbf{Term structure of prices and interest rates in regime switching economy}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c| >{\small}l| >{\small}c >{\small}c >{\small}c >{\small}c| >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       & & \multicolumn{4}{c}{$k_{2,0}=0.14$} & \multicolumn{4}{c}{$k_{2,0}=0.18$} \\ \cline{3-10}
+%       &  &  &  & $R_{t,t+s}$ & $r_{t,t+s}$ &  &  & $R_{t,t+s}$ & $r_{t,t+s}$ \\
+%       & $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & APR & APR & $p_{t,t+s}$ & $R_{t,t+s}$ & APR & APR \\
+%       \hline
+%       \multirow{8}{*}{$\bar{H}=0.110$} & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 \\
+%                                        & 1 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 2 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 3 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 4 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 5 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 6 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%       \hline
+%       \multirow{8}{*}{$\bar{H}=0.119$} & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 \\
+%                                        & 1 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 2 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 3 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 4 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 5 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%                                        & 6 & ? & ? & ? & ? & ? & ? & ? & ? \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} =(p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{APR} = (R_{t,t+s})^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{APR} = R_{t,t+s}\text{APR} - 1$. Full descriptions of the term structure of prices and interest rates for all calibrations and for up to $s=13$ is provided in the Technical Appendix.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+% %\end{landscape}
+
+% %We can now rewrite the net present values in the two measures of the fiscal gap from \eqref{EqFgap} and \eqref{EqFgapb} in terms of the prices from \eqref{EqPtj}.
+% %\begin{align}
+% %   x_{1,t} &= \frac{\sum_{j=0}^\infty p_{t,t+j}\bar{H} - \sum_{j=0}^\infty p_{t,t+j}E\left[H_j\right]}{\sum_{j=0}^\infty p_{t,t+j}E\left[Y_j\right]} \label{EqFgap2} \\
+% %   x_{2,t} &= \frac{\sum_{j=0}^\infty p_{t,t+j}\bar{H} - \sum_{j=0}^\infty p_{t,t+j}E\left[H_j\right]}{Y_t} \label{EqFgapb2}
+% %\end{align}
+% %Tables \ref{TabShutFgap} and \ref{TabShutFgapb} give the computed fiscal gaps for the nine different combinations of promised transfer $\bar{H}$ and initial capital stock $k_{2,0}$.
+
+% %The first measure of the fiscal gap in each table, fgap 1, is calculated as in equations \eqref{EqFgap2} and \eqref{EqFgapb2} for the corresponding table using the sure-return prices from Table \ref{TabShutTermStruct} as discount factors. The second fiscal gap measure in each table, fgap 2, is calculated using a constant discount rate which is the current period risky return on capital $R_t$ taken from the model. For example, the risky return on capital in period $t$ is $R_t=1.4971$ in the middle cell in which $\bar{H}=0.11$ and $k_{2,0}=0.14$. The third fiscal gap measure, fgap 3, uses a constant discount rate taken from \citet[Table 6.4]{IMF:2009}. This study uses an annual discount factor of the growth rate in real GDP plus 1 percent to calculate the net present value of aging-related expeditures. This averages out among G-20 countries to be a discount rate of around 4 percent and for the U.S. is about 3.8 percent ($R_t \approx 3.1$). For the last measure of the fiscal gap, fgap 4, we use the constant discount rate from \citet{GokhaleSmetters:2007} who use an annual discount rate of 3.65 percent for their discount factors in their NPV calculation. This is equivalent to a 30-year gross discount rate of $R_t\approx 2.9$. The expectations for $H_t$ and $Y_t$ are simply the average values from the 3,000 simulations described in Section \ref{SecModelShutSim}.
+
+% %In similar fashion to how the fiscal gap is a measure of risk in the economy, we can use the difference in the expected risky return on capital one period from now $E[R_{t+1}]$ and the riskless return on the sure-return bond maturing one period from now $R_{t,t+1}$ to calculate an equity premium. A large literature has tried to explain why the equity premium observed in the real world is so large.\footnote{Cite equity premium papers.} More recently, \citet{Barro:2009} has shown that incorporating rare disasters into an economic model produces risk premia and risk free rates that are similar to those observed in the data. In our model, we incorporate the rare disaster of an economic shutdown. As shown in Table \ref{TabShutEqPrem}, our model produces equity premia ranging from 6.9 percent to as high as 9.8 percent.
+
+% %\begin{table}[htbp]\centering\captionsetup{width=5.5in}
+% %\caption{\label{TabShutEqPrem}\textbf{Components of the equity premium}}
+% %   \begin{threeparttable}
+% %   \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+% %      \hline\hline
+% %      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+% %      & & 30-year & annual & 30-year & annual & 30-year & annual \\
+% %      \hline
+% %      \multirow{7}{*}{$\bar{H}=0.05$} & $E[R_{t+1}]$      & 8.2070 & 1.0361 & 7.5150 & 1.0334 & 7.0113 & 1.0313 \\
+% %                                      & $\sigma(R_{t+1})$ & 23.3433 & n.a. & 21.3222 & n.a. & 19.8511 & n.a. \\
+% %                                      & $R_{t,t+1}$       & 0.6428 & 0.9854 & 0.6291 & 0.9847 & 0.6177 & 0.9841 \\
+% %                                      & Equity premium    & \multirow{2}{*}{7.5641} & \multirow{2}{*}{0.0742} & \multirow{2}{*}{6.8859} & \multirow{2}{*}{0.0713} & \multirow{2}{*}{6.3936} & \multirow{2}{*}{0.0690} \\
+% %                                      & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+% %                                      & Sharpe ratio & \multirow{2}{*}{0.3240} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3229} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3221} &  \multirow{2}{*}{n.a.} \\
+% %                                      & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+% %      \hline
+% %      \multirow{7}{*}{$\bar{H}=0.11$} & $E[R_{t+1}]$      & 11.3042 & 1.0459 & 10.0769 & 1.0423 & 9.2241 & 1.0396 \\
+% %                                      & $\sigma(R_{t+1})$ & 32.3859 & n.a. & 28.8049 & n.a. & 26.3140 & n.a. \\
+% %                                      & $R_{t,t+1}$       & 0.5963 & 0.9829 & 0.5819 & 0.9821 & 0.5658 & 0.9812 \\
+% %                                      & Equity premium    & \multirow{2}{*}{10.7080} & \multirow{2}{*}{0.0855} & \multirow{2}{*}{9.4950} & \multirow{2}{*}{0.0815} & \multirow{2}{*}{8.6582} & \multirow{2}{*}{0.0785} \\
+% %                                      & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+% %                                      & Sharpe ratio & \multirow{2}{*}{0.3306} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3296} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3290} & \multirow{2}{*}{n.a.} \\
+% %                                      & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+% %      \hline
+% %      \multirow{7}{*}{$\bar{H}=0.17$} & $E[R_{t+1}]$      & 16.2082 & 1.0574 & 13.7520 & 1.0521 & 12.1889 & 1.0483 \\
+% %                                      & $\sigma(R_{t+1})$ & 46.7126 & n.a. & 39.5389 & n.a. & 34.9735 & n.a. \\
+% %                                      & $R_{t,t+1}$       & 0.6310 & 0.9848 & 0.5948 & 0.9828 & 0.5778 & 0.9819 \\
+% %                                      & Equity premium    & \multirow{2}{*}{15.5772} & \multirow{2}{*}{0.0981} & \multirow{2}{*}{13.1572} & \multirow{2}{*}{0.0924} & \multirow{2}{*}{11.6112} & \multirow{2}{*}{0.0882} \\
+% %                                      & $E[R_{t+1}]-R_{t,t+1}$ &  &  &  &  &  &  \\
+% %                                      & Sharpe ratio & \multirow{2}{*}{0.3335} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3328} & \multirow{2}{*}{n.a.} & \multirow{2}{*}{0.3320} & \multirow{2}{*}{n.a.} \\
+% %                                      & $\frac{E[R_{t+1}]-R_{t,t+1}}{\sigma(R_{t+1})}$ &  &  &  &  &  &  \\
+% %      \hline\hline
+% %   \end{tabular}
+% %   \begin{tablenotes}
+% %        \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1} - \delta$. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The expected value and standard deviation of the gross risky one-period return $R_{t+1}$ are calculated as the average and standard deviation, respectively, across simulations. The annual equity premium is $(1+EP)^{1/30}-1$, where $EP$ is the 30-year equity premium from the model.}
+% %   \end{tablenotes}
+% %   \end{threeparttable}
+% %\end{table}
+
+% %We report the Sharpe ratio in Table \ref{TabShutEqPrem} as well as all of the components of the equity premium and the Sharpe ratio. For the expected risky return $E[R_{t+1}]$, the one-period sure return $R_{t,t+1}$, and the equity premium (the difference between the two), we report results for both one period from the model (30 years) as well as the annualized (one-year) version. Our Sharpe ratios between 0.32 and 0.33 are in line with common estimates from the data.
+
+
+\section{Conclusion}\label{SecConclusion}
+
+
+\end{spacing}
+
+\bibliography{EKP2020}
+
+
+\newpage
+\renewcommand{\theequation}{T.\arabic{section}.\arabic{equation}}
+                                                 % redefine the command that creates the section number
+\renewcommand{\thesection}{T-\arabic{section}}   % redefine the command that creates the equation number
+
+\setcounter{equation}{0}                         % reset counter
+\setcounter{section}{0}                          % reset section number
+\section*{TECHNICAL APPENDIX}
+
+\setcounter{equation}{0}                         % reset counter
+\section{Description of calibration}\label{SecTAppCalib}
+
+  This section details our calibration of the parameter values listed in Table \ref{TabCalibr}. In our two-period-lived agent OG model, we assume that each period represents 30 years or, equivalently, a lifetime is 60 years. The model-period (30-year) discount factor $\beta$ is set to match the annual discount factor common in the RBC literature of $0.96$.
+  \begin{equation}\label{EqTAppCalib_beta}
+    \beta = (0.96)^{30}\approx 0.2939
+  \end{equation}
+  We set the coefficient of relative risk aversion at a midrange value of $\gamma=2$. This value lies in the midrange of values that have been used in the literature.\footnote{Estimates of the coefficient of relative risk aversion $\gamma$ mostly lie between 1 and 10. See \citet{MankiwZeldes:1991}, \citet{Blake:1996}, \citet{Campbell:1996}, \citet{Kocherlakota:1996}, \citet{BravConstantinidesGeczy:2002}, and \citet{MehraPrescott:1985}.} The capital share of income parameter is set to match the U.S. average $\alpha=0.35$, and the model-period (30-year) depreciation rate $\delta$ is set to match an annual depreciation rate of 5 percent.
+  \begin{equation}\label{EqTAppCalib_delta}
+    \delta = 1 - (1 - 0.05)^{30}\approx 0.7854
+  \end{equation}
+
+  The firms' production function in our model is the following,
+  \begin{equation}\tag{\ref{EqModelFirmProdFunc}}
+    Y_t = e^{z_t}K_t^\alpha L_t^{1-\alpha} \quad\forall t
+  \end{equation}
+  where labor $L_t$ is supplied inelastically and $z_t$ is current-period normally distributed component of total factor productivity. We assume that $z_t$ is an AR(1) process with normally distributed errors.
+  \begin{equation}\tag{\ref{EqModelFirmZAR1}}
+    \begin{split}
+      z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
+      &\text{where}\quad \rho\in[0,1), \quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim N(0,\sigma)
+    \end{split}
+  \end{equation}
+  This implies that the shock process $e^{z_t}$ is lognormally distributed $LN(\rho z_t + (1-\rho)\mu,\sigma)$. The RBC literature calibrates the parameters on the shock process \eqref{EqModelFirmZAR1} to $\rho=0.95$ and $\sigma = 0.4946$ for annual data.
+
+  For data in which one period is 30 years, we have to recalculate the analogous $\tilde{\rho}$ and $\tilde{\sigma}$.
+  \begin{equation*}\label{TAppCalEqZtpj}
+    \begin{split}
+      z_{t+1} &= \rho z_{t} + (1-\rho)\mu + \ve_{t+1} \\
+      z_{t+2} &= \rho z_{t+1} + (1-\rho)\mu + \ve_{t+2} \\
+              &= \rho^2 z_{t} + \rho(1-\rho)\mu + \rho\ve_{t+1} + (1-\rho)\mu + \ve_{t+2} \\
+      z_{t+3} &= \rho z_{t+2} + (1-\rho)\mu + \ve_{t+3} \\
+              &= \rho^3 z_{t} + \rho^2(1-\rho)\mu + \rho^2\ve_{t+1} + \rho(1-\rho)\mu + \rho\ve_{t+2} + (1-\rho)\mu + \ve_{t+3} \\
+              &\vdots \\
+      z_{t+j} &= \rho^{j}z_{t} + (1-\rho)\mu\sum_{s=1}^{j}\rho^{j-s} + \sum_{s=1}^{j}\rho^{j-s}\ve_{t+s}
+    \end{split}
+  \end{equation*}
+  With one period equal to thirty years $j=30$, the shock process in our paper should be:
+  \begin{equation}\label{TAppCalEqZ30}
+    z_{t+30} = \rho^{30}z_{t} + (1-\rho)\mu\sum_{s=1}^{30}\rho^{30-s} + \sum_{s=1}^{30}\rho^{30-s}\ve_{t+s}
+  \end{equation}
+  Then the persistence parameters in our one-period-equals-thirty-years model should be $\tilde{\rho}=\rho^{30}\approx 0.2146$. Define $\tilde{\ve}_{t+30}\equiv\sum_{s=1}^{30}\rho^{30-s}\ve_{t+s}$ as the summation term on the right-hand-side of \eqref{TAppCalEqZ30}. Then $\tilde{\ve}_{t+30}$ is distributed:
+  \begin{equation*}\label{TAppCalEqEps30dist}
+    \tilde{\ve}_{t+30}\sim N\Biggl(0,\left[\sum_{s=1}^{30}\rho^{30-s}\right]\sigma\Biggr)
+  \end{equation*}
+  Using this formula, the annual persistence parameter $\rho=0.95$, and the annual standard deviation parameter $\sigma=0.4946$, the implied thirty-year standard deviation is $\tilde{\sigma}\approx 1.5471$. So our shock process should be,
+  \begin{equation*}\label{TAppCalEqZ30cal}
+    z_t = \tilde{\rho}z_{t-1} + (1-\rho)\tilde{\mu} + \tilde{\ve}_t \quad\forall t \quad\text{where}\quad \tilde{\ve}\sim N(0,\tilde{\sigma})
+  \end{equation*}
+  where $\tilde{\rho}=0.2146$ and $\tilde{\sigma}=1.5471$. We arbitrarily choose $\mu=\tilde{\mu}=0$. However, we could have also chosen $\mu$ and the corresponding $\tilde{\mu}$ to his a median wage target.
+
+  Lastly, we set the size of the promised transfer $\bar{H}$ to be 32 percent of the median real wage. This level of transfers is meant to approximately match the average per capita real transfers in the United States to the average real wage in recent years. We get the median real wage by simulating a time series of the economy until it hits the shut down point, and we do this for 3,000 simulated time series. We take the median wage from those simulations. In order to reduce the effect of the initial values on the median, we take the simulation that lasted the longest number of periods before shutting down and remove the first 10 percent of the longest simulation's periods from each simulation for the calculation of the median.
+
+
+% \newpage
+% \setcounter{equation}{0}                         % reset counter
+% \section{Derivation of government discount factors}\label{TAppDF}
+
+% In this section, we derive the discount factors that the government uses in order to calculate the net present value of transfers $H_t$, promised transfers $\bar{H}$, and output $Y_t$ into the infinite future. The discount factors must be computed separately from the households' discount factor because the life of the policy variables outlasts the life of each household.
+
+% Our primary method of computing the discount factors is to use the term structure of period-$t$ prices of assets that give a sure return in the future. Because we are interested in discounting assets with conditional returns $H_t=\min\{w_t,\bar{H}\}$ and $Y_t$ in addition to a sure return $\bar{H}$, we need to define three different assets and three different prices. Define $p_{t,j}$ as the price of an asset $B_{t,j}$ that guarantees a payment of one unit $j$ periods in the future. Define $q_{t,j}$ as the price of an asset $D_{t,j}$ that guarantees a payment of $H_t=\min\{w_t,\bar{H}\}$ units $j$ periods in the future. And define $s_{t,j}$ as the price of an asset $F_{t,j}$ that guarantees a payment of $Y_t$ units $j$ periods in the future. If these assets can be bought and sold each period, then a household could purchase an asset that pays off after the household is dead and sell it before they die.
+
+% Because each of these assets must be held in zero net supply, they do not change the equilibrium policy functions described in Section \ref{SecModelShut}. The budget constraints in the households' problem become the following,
+% \begin{equation*}\label{TAppDFEqBC1}
+%    c_{1,t} + k_{2,t+1} \leq w_t - H_t - \sum_{j=0}^\infty p_{t,j}B_{t,j} - \sum_{j=0}^\infty q_{t,j}D_{t,j} - \sum_{j=0}^\infty s_{t,j}F_{t,j}
+% \end{equation*}
+% \begin{equation*}\label{TAppDFEqBC2}
+%    \begin{split}
+%       c_{2,t+1} \leq (1+r_{t+1}-&\delta)k_{2,t+1} + H_{t+1} + ... \\
+%       &\sum_{j=0}^\infty p_{t+1,j}B_{t,j+1} + \sum_{j=0}^\infty q_{t+1,j}D_{t,j+1} + \sum_{j=0}^\infty s_{t+1,j}F_{t,j+1}
+%    \end{split}
+% \end{equation*}
+% The equilibrium solutions for the prices on the assets that pay off in the current period are,
+% \begin{align}
+%    p_{t,0} &= 1 \label{TAppDFEqPt0} \\
+%    q_{t,0} &= H_t = \min\{w_t,\bar{H}\} \label{TAppDFEqQt0} \\
+%    s_{t,0} &= Y_t \label{TAppDFEqSt0}
+% \end{align}
+% The first order conditions for the households' optimal choices of $B_{t,j}$, $D_{t,j}$, and $F_{t,j}$, for all $j\geq 1$, give the following standard asset pricing Euler equations that pin down the prices $p_{t,j}$, $q_{t,j}$, and $s_{t,j}$ in recursive fashion.
+% \begin{align}
+%    p_{t,j} &= \beta\frac{E_t\left[u'\left(c_{2,t+1}\right)p_{t+1,j-1}\right]}{u'\left(c_{1,t}\right)} \quad\forall t \quad\text{and}\quad j\geq 1 \label{TAppDFEqPtj} \\
+%    q_{t,j} &= \beta\frac{E_t\left[u'\left(c_{2,t+1}\right)q_{t+1,j-1}\right]}{u'\left(c_{1,t}\right)} \quad\forall t \quad\text{and}\quad j\geq 1 \label{TAppDFEqQtj} \\
+%    s_{t,j} &= \beta\frac{E_t\left[u'\left(c_{2,t+1}\right)s_{t+1,j-1}\right]}{u'\left(c_{1,t}\right)} \quad\forall t \quad\text{and}\quad j\geq 1 \label{TAppDFEqStj}
+% \end{align}
+
+% We compute the prices of the sure return assets $p_{t,j}$, $q_{t,j}$, and $s_{t,j}$ by discretizing the state space and then approximating the exact integrals from the right-hand side of \eqref{TAppDFEqPtj}, \eqref{TAppDFEqQtj}, and \eqref{TAppDFEqStj} for each point in the discretized state space using polynomial interpolation.\footnote{The MatLab code for this computation is available upon request.}
+%    \begin{enumerate}
+%       \item We choose the nodes in the support of $k_{2,t}$ to be $N_k$ equally spaced points on a log scale between the minimum value recorded in the 2,000 simulations from Section \ref{SecModelShutSim} and the value of the 95th percentile of the simulations for the maximum. The log scale increases the accuracy of the discretized approximation because most of the realizations of $k_{2,t}$ in the simulations are concentrated in the lower end of the range. We set the number of nodes in the discretized support of $k_{2,t}$ to $N_k=151$.
+%       \item We choose $N_z$ nodes in the support of $z_t$ and calculate a Markov transition matrix for the discretized approximation of $z_t$ using Gaussian quadrature as described in \citet{TauchenHussey:1991} and computed using the implementation from \citet{Floden:2008}. We set $N_z=7$.
+%       \item The next step is to compute the exact solution for all the endogenous objects from Section \ref{SecModelShut} for all $N_k\times N_z = 1,057$ points in the state space: $c_{1,t}(k_{2,t},z_t)$, $c_{2,t}(k_{2,t},z_t)$, $k_{2,t+1}(k_{2,t},z_t)$, $Y_t(k_{2,t},z_t)$, $w_t(k_{2,t},z_t)$, and $r_t(k_{2,t},z_t)$.
+%       \item With the solutions for the endogenous objects from step (iii) we can solve for the prices of the assets that mature in the current period $p_{t,0}$, $q_{t,0}$, and $s_{t,0}$ for every value of the discretized state using equations \eqref{TAppDFEqPt0}, \eqref{TAppDFEqQt0}, and \eqref{TAppDFEqSt0}.
+%       \item Because we can express the one-period-ahead prices $p_{t+1,0}$, $q_{t+1,0}$, and $s_{t+1,0}$ from step (iv) as closed form functions of $k_{2,t+1}$ and $z_{t+1}$, we can solve exactly for the current period prices of the assets that mature one period from now $p_{t,1}$, $q_{t,1}$, and $s_{t,1}$ using equations \eqref{TAppDFEqPtj}, \eqref{TAppDFEqQtj}, and \eqref{TAppDFEqStj}.
+%       \item We solve for the rest of the $j$-period-ahead prices $p_{t,j}$, $q_{t,j}$, and $s_{t,j}$ recursively from equations \eqref{TAppDFEqPtj}, \eqref{TAppDFEqQtj}, and \eqref{TAppDFEqStj} using interpolation on the one-period-ahead version of the price function for the bond that matures in $j-1$ periods.
+%          \begin{enumerate}
+%             \item Because we don't have a closed form function for $p_{t+1,j-1}$, $q_{t,j-1}$, and $s_{t,j-1}$ for $j\geq 2$, we cannot compute the exact integral in the numerator of the right-hand-side of equations \eqref{TAppDFEqPtj}, \eqref{TAppDFEqQtj}, and \eqref{TAppDFEqStj}.
+%             \item We take a linear interpolation of the discretized functions $p_{t+1,j-1}$, $q_{t,j-1}$, and $s_{t,j-1}$ in the $k_{2,t+1}$ dimension from the policy function $k_{2,t+1}(k_{2,t},z_t)$.
+%             \item We then fit a polynomial in $z$ to the pricing functions $p_{t+1,j-1}$, $q_{t,j-1}$, and $s_{t,j-1}$ to match the nonzero nodes in the computed functions in the $z_{t+1}$ dimension. We use a quadratic polynomial approximation for values of $k_{2,t+1}$ that have only three nonzero nodes in the $z_{t+1}$ dimension, and we use a cubic polynomial to approximate all other price functions for a given $k_{2,t+1}$. The price functions are smooth enough that a cubic polynomial is sufficient to closely approximate them.
+%             \item We then integrate over the closed form solution for the marginal utility of consumption tomorrow and the polynomial approximation for the pricing function $\int_{z_{min>0}}^{z_{max}}\text{Prob}(z_{t+1}|z_t)u'(c_{2,t+1})p_{t+1.j-1}dz_{t+1}$. We set the upper bound of the support of $z_{t+1}$ over which we integrate equal to the largest node in the discretized support of $z$ because the probability of higher realizations of $z$ is very close to zero. We set the lower bound of the support of $z_{t+1}$ over which we integrate equal to the largest node in the price function that is equal to zero. This is approximately equivalent to integrating over all z for which prices are positive.
+%          \end{enumerate}
+%       \item We continue recursively computing prices $p_{t,j+1}$, $q_{t,j+1}$, and $s_{t,j+1}$, until they get close to zero. In our case, we compute prices for $j=0,1,2,...9$. Tables \ref{TabTAppTerm11} through \ref{TabTAppTerm33} list the values for the prices $p_{t,j}$ for each maturity of asset for our 9 different calibrations described in Section \ref{SecModelShutSim}.
+%    \end{enumerate}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm11}\textbf{Term structure of prices and interest rates: $\bar{H}=0.05$, $k_{2,0}=0.11$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.5556                  &   0.6428               & 0.9854 & -0.0146 \\
+%       2  & 0.3115                  &   3.2105               & 1.0396 &  0.0396 \\
+%       3  & 0.0385                  &  25.9903               & 1.1147 &  0.1147 \\
+%       4  & 0.0088                  & 113.9341               & 1.1710 &  0.1710 \\
+%       5  & 0.0049                  & 202.6663               & 1.1937 &  0.1937 \\
+%       6  & 0.0014                  & 722.2930               & 1.2453 &  0.2453 \\
+%       7  & 2.8695 $\times 10^{-4}$ & 3.4849 $\times 10^{3}$ & 1.3124 &  0.3124 \\
+%       8  & 1.3004 $\times 10^{-4}$ & 7.6900 $\times 10^{3}$ & 1.3475 &  0.3475 \\
+%       9  & 3.0166 $\times 10^{-5}$ & 3.3150 $\times 10^{4}$ & 1.4148 &  0.4148 \\
+%       10 & 7.6699 $\times 10^{-6}$ & 1.3038 $\times 10^{5}$ & 1.4808 &  0.4808 \\
+%       11 & 2.2726 $\times 10^{-6}$ & 4.4003 $\times 10^{5}$ & 1.5421 &  0.5421 \\
+%       12 & 8.3032 $\times 10^{-7}$ & 1.2044 $\times 10^{6}$ & 1.5947 &  0.5947 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm12}\textbf{Term structure of prices and interest rates: $\bar{H}=0.05$, $k_{2,0}=0.14$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.5897                  &   0.6291               & 0.9847 & -0.0153 \\
+%       2  & 0.3466                  &   2.8853               & 1.0360 &  0.0360 \\
+%       3  & 0.0441                  &  22.6875               & 1.1097 &  0.1097 \\
+%       4  & 0.0096                  & 104.0359               & 1.1675 &  0.1675 \\
+%       5  & 0.0063                  & 159.0087               & 1.1841 &  0.1841 \\
+%       6  & 0.0025                  & 396.0301               & 1.2206 &  0.2206 \\
+%       7  & 6.8826 $\times 10^{-4}$ & 1.4529 $\times 10^{3}$ & 1.2747 &  0.2747 \\
+%       8  & 1.7310 $\times 10^{-4}$ & 5.7770 $\times 10^{3}$ & 1.3347 &  0.3347 \\
+%       9  & 5.1573 $\times 10^{-5}$ & 1.9390 $\times 10^{4}$ & 1.3897 &  0.3897 \\
+%       10 & 1.1606 $\times 10^{-5}$ & 8.6162 $\times 10^{4}$ & 1.4605 &  0.4605 \\
+%       11 & 3.4871 $\times 10^{-6}$ & 2.8677 $\times 10^{5}$ & 1.5203 &  0.5203 \\
+%       12 & 1.0859 $\times 10^{-6}$ & 9.2093 $\times 10^{5}$ & 1.5805 &  0.5805 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm13}\textbf{Term structure of prices and interest rates: $\bar{H}=0.05$, $k_{2,0}=0.17$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.6190                  &   0.6177               & 0.9841 & -0.0159 \\
+%       2  & 0.3782                  &   2.6440               & 1.0329 &  0.0329 \\
+%       3  & 0.0493                  &  20.2780               & 1.1055 &  0.1055 \\
+%       4  & 0.0099                  & 100.0359               & 1.1661 &  0.1661 \\
+%       5  & 0.0063                  & 159.6110               & 1.1842 &  0.1842 \\
+%       6  & 0.0024                  & 423.1373               & 1.2233 &  0.2233 \\
+%       7  & 4.0991 $\times 10^{-4}$ & 2.4395 $\times 10^{3}$ & 1.2969 &  0.2969 \\
+%       8  & 1.7858 $\times 10^{-4}$ & 5.5996 $\times 10^{3}$ & 1.3333 &  0.3333 \\
+%       9  & 4.6981 $\times 10^{-5}$ & 2.1285 $\times 10^{4}$ & 1.3940 &  0.3940 \\
+%       10 & 8.6992 $\times 10^{-6}$ & 1.1495 $\times 10^{5}$ & 1.4746 &  0.4746 \\
+%       11 & 2.7552 $\times 10^{-6}$ & 3.6295 $\times 10^{5}$ & 1.5322 &  0.5322 \\
+%       12 & 1.1390 $\times 10^{-6}$ & 8.7793 $\times 10^{5}$ & 1.5780 &  0.5780 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm21}\textbf{Term structure of prices and interest rates: $\bar{H}=0.11$, $k_{2,0}=0.11$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.6771                  &   0.5963               & 0.9829 & -0.0171 \\
+%       2  & 0.1543                  &   6.4811               & 1.0643 &  0.0643 \\
+%       3  & 0.0074                  & 134.2966               & 1.1774 &  0.1774 \\
+%       4  & 0.0072                  & 138.6856               & 1.1787 &  0.1787 \\
+%       5  & 0.0029                  & 344.5899               & 1.2150 &  0.2150 \\
+%       6  & 4.3310 $\times 10^{-4}$ & 2.3089 $\times 10^{3}$ & 1.2945 &  0.2945 \\
+%       7  & 3.9482 $\times 10^{-5}$ & 2.5328 $\times 10^{4}$ & 1.4021 &  0.4021 \\
+%       8  & 2.7294 $\times 10^{-5}$ & 3.6638 $\times 10^{4}$ & 1.4195 &  0.4195 \\
+%       9  & 9.0193 $\times 10^{-6}$ & 1.1087 $\times 10^{5}$ & 1.4729 &  0.4729 \\
+%       10 & 1.1851 $\times 10^{-6}$ & 8.4381 $\times 10^{5}$ & 1.5759 &  0.5759 \\
+%       11 & 1.3306 $\times 10^{-7}$ & 7.5152 $\times 10^{6}$ & 1.6951 &  0.6951 \\
+%       12 & 9.5400 $\times 10^{-8}$ & 1.0482 $\times 10^{7}$ & 1.7140 &  0.7140 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm22}\textbf{Term structure of prices and interest rates: $\bar{H}=0.11$, $k_{2,0}=0.14$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.7186                  &   0.5819               & 0.9821 & -0.0179 \\
+%       2  & 0.1793                  &   5.5768               & 1.0590 &  0.0590 \\
+%       3  & 0.0092                  & 108.7856               & 1.1692 &  0.1692 \\
+%       4  & 0.0077                  & 129.7630               & 1.1761 &  0.1761 \\
+%       5  & 0.0032                  & 308.9255               & 1.2106 &  0.2106 \\
+%       6  & 5.0106 $\times 10^{-4}$ & 1.9958 $\times 10^{3}$ & 1.2883 &  0.2883 \\
+%       7  & 4.1821 $\times 10^{-5}$ & 2.3911 $\times 10^{4}$ & 1.3994 &  0.3994 \\
+%       8  & 2.8161 $\times 10^{-5}$ & 3.5510 $\times 10^{4}$ & 1.4180 &  0.4180 \\
+%       9  & 1.0005 $\times 10^{-5}$ & 9.9946 $\times 10^{4}$ & 1.4678 &  0.4678 \\
+%       10 & 1.3691 $\times 10^{-6}$ & 7.3040 $\times 10^{5}$ & 1.5684 &  0.5684 \\
+%       11 & 1.2989 $\times 10^{-7}$ & 7.6990 $\times 10^{6}$ & 1.6965 &  0.6965 \\
+%       12 & 1.0361 $\times 10^{-7}$ & 9.6515 $\times 10^{6}$ & 1.7093 &  0.7093 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm23}\textbf{Term structure of prices and interest rates: $\bar{H}=0.11$, $k_{2,0}=0.17$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.7673                  &   0.5658               & 0.9812 & -0.0188 \\
+%       2  & 0.2137                  &   4.6801               & 1.0528 &  0.0528 \\
+%       3  & 0.0118                  &  84.9122               & 1.1596 &  0.1596 \\
+%       4  & 0.0085                  & 117.2211               & 1.1721 &  0.1721 \\
+%       5  & 0.0038                  & 266.5164               & 1.2046 &  0.2046 \\
+%       6  & 5.9449 $\times 10^{-4}$ & 1.6821 $\times 10^{3}$ & 1.2809 &  0.2809 \\
+%       7  & 4.4991 $\times 10^{-5}$ & 2.2227 $\times 10^{4}$ & 1.3960 &  0.3960 \\
+%       8  & 3.3257 $\times 10^{-5}$ & 3.0069 $\times 10^{4}$ & 1.4102 &  0.4102 \\
+%       9  & 1.2022 $\times 10^{-5}$ & 8.3183 $\times 10^{4}$ & 1.4588 &  0.4588 \\
+%       10 & 1.6211 $\times 10^{-6}$ & 6.1686 $\times 10^{5}$ & 1.5596 &  0.5596 \\
+%       11 & 1.4999 $\times 10^{-7}$ & 6.6671 $\times 10^{6}$ & 1.6884 &  0.6884 \\
+%       12 & 1.1393 $\times 10^{-7}$ & 8.7771 $\times 10^{6}$ & 1.7039 &  0.7039 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm31}\textbf{Term structure of prices and interest rates: $\bar{H}=0.17$, $k_{2,0}=0.11$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                        &   1                    & 1      &  0      \\
+%       1  & 1.5848                   &   0.6310               & 0.9848 & -0.0152 \\
+%       2  & 0.0092                   & 108.2899               & 1.1690 &  0.1690 \\
+%       3  & 0.0010                   & 970.3013               & 1.2577 &  0.2577 \\
+%       4  & 8.9671 $\times 10^{-5}$  & 1.1152 $\times 10^{4}$ & 1.3643 &  0.3643 \\
+%       5  & 1.2850 $\times 10^{-5}$  & 7.7820 $\times 10^{4}$ & 1.4556 &  0.4556 \\
+%       6  & 1.6796 $\times 10^{-5}$  & 5.9539 $\times 10^{4}$ & 1.4426 &  0.4426 \\
+%       7  & 9.4392 $\times 10^{-7}$  & 1.0594 $\times 10^{6}$ & 1.5879 &  0.5879 \\
+%       8  & 1.1858 $\times 10^{-7}$  & 8.4330 $\times 10^{6}$ & 1.7016 &  0.7016 \\
+%       9  & 1.1900 $\times 10^{-7}$  & 8.4034 $\times 10^{6}$ & 1.7014 &  0.7014 \\
+%       10 & 1.1339 $\times 10^{-8}$  & 8.8189 $\times 10^{7}$ & 1.8401 &  0.8401 \\
+%       11 & 1.3094 $\times 10^{-9}$  & 7.6368 $\times 10^{8}$ & 1.9774 &  0.9774 \\
+%       12 & 5.7012 $\times 10^{-10}$ & 1.7540 $\times 10^{9}$ & 2.0330 &  1.0330 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm32}\textbf{Term structure of prices and interest rates: $\bar{H}=0.17$, $k_{2,0}=0.14$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.6811                  &   0.5948               & 0.9828 & -0.0172 \\
+%       2  & 0.0156                  &  64.0010               & 1.1487 &  0.1487 \\
+%       3  & 0.0031                  & 322.3614               & 1.2123 &  0.2123 \\
+%       4  & 0.0046                  & 217.5026               & 1.1965 &  0.1965 \\
+%       5  & 0.0010                  & 981.4442               & 1.2581 &  0.2581 \\
+%       6  & 5.6471 $\times 10^{-5}$ & 1.7708 $\times 10^{4}$ & 1.3855 &  0.3855 \\
+%       7  & 2.4281 $\times 10^{-5}$ & 4.1184 $\times 10^{4}$ & 1.4250 &  0.4250 \\
+%       8  & 1.0641 $\times 10^{-5}$ & 9.3977 $\times 10^{4}$ & 1.4648 &  0.4648 \\
+%       9  & 8.4137 $\times 10^{-7}$ & 1.1885 $\times 10^{6}$ & 1.5940 &  0.5940 \\
+%       10 & 1.6832 $\times 10^{-7}$ & 5.9411 $\times 10^{6}$ & 1.6819 &  0.6819 \\
+%       11 & 1.0340 $\times 10^{-7}$ & 9.6715 $\times 10^{6}$ & 1.7094 &  0.7094 \\
+%       12 & 8.0409 $\times 10^{-9}$ & 1.2436 $\times 10^{8}$ & 1.8613 &  0.8613 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+
+% \begin{table}[htbp]\centering\captionsetup{width=4.2in}
+% \caption{\label{TabTAppTerm33}\textbf{Term structure of prices and interest rates: $\bar{H}=0.17$, $k_{2,0}=0.17$}}
+%    \begin{threeparttable}
+%    \begin{tabular}{>{\small}c >{\small}c >{\small}c >{\small}c >{\small}c}
+%       \hline\hline
+%       $s$ & $p_{t,t+s}$ & $R_{t,t+s}$ & $R_{t,t+s}$ APR & $r_{t,t+s}$ APR \\
+%       \hline
+%       0  & 1                       &   1                    & 1      &  0      \\
+%       1  & 1.7308                  &   0.5778               & 0.9819 & -0.0181 \\
+%       2  & 0.0359                  &  27.8392               & 1.1173 &  0.1173 \\
+%       3  & 0.0038                  & 263.0105               & 1.2041 &  0.2041 \\
+%       4  & 0.0049                  & 203.9569               & 1.1939 &  0.1939 \\
+%       5  & 0.0011                  & 890.2539               & 1.2541 &  0.2541 \\
+%       6  & 6.0795 $\times 10^{-5}$ & 1.6449 $\times 10^{4}$ & 1.3821 &  0.3821 \\
+%       7  & 2.5424 $\times 10^{-5}$ & 3.9332 $\times 10^{4}$ & 1.4228 &  0.4228 \\
+%       8  & 1.1716 $\times 10^{-5}$ & 8.5355 $\times 10^{4}$ & 1.4601 &  0.4601 \\
+%       9  & 9.5619 $\times 10^{-7}$ & 1.0458 $\times 10^{6}$ & 1.5873 &  0.5873 \\
+%       10 & 1.6125 $\times 10^{-7}$ & 6.2016 $\times 10^{6}$ & 1.6843 &  0.6843 \\
+%       11 & 1.1130 $\times 10^{-7}$ & 8.9845 $\times 10^{6}$ & 1.7052 &  0.7052 \\
+%       12 & 1.4073 $\times 10^{-8}$ & 7.1056 $\times 10^{7}$ & 1.8269 &  0.8269 \\
+%       \hline\hline
+%    \end{tabular}
+%    \begin{tablenotes}
+%         \scriptsize{\item[]The gross sure return $R_{t,t+s} = (p_{t,t+s})^{-1}$ is the inverse of the sure return bond price. $R_{t,t+s}$ APR is the annualized gross sure return, where $R_{t,t+s}\text{ APR}= R_{t,t+s}^{1/30}$. The net annualized sure return is simply $r_{t,t+s}\text{ APR}=R_{t,t+s}\text{ APR}-1$.}
+%    \end{tablenotes}
+%    \end{threeparttable}
+% \end{table}
+% \clearpage
+
+\newpage
+\section{Comments and Notes}\label{TAppCommentsNotes}
+
+\begin{itemize}
+  \item Interesting papers on debt and rare events: \citet{RebeloEtAl:2019}, \citet{ReinhartEtAl:2015}
+  \item Equity premium puzzle explanations
+  \begin{itemize}
+    \item General: \citet{DeLongMagin:2009}, \citet{FarhiGourio:2019}
+    \item Prospect theory by Kahneman and Tversky
+    \item the role of personal debt
+    \item the importance of credit risk and liquidity: \citet{Gourio:2013}
+    \item the impact of government regulation
+    \item consideration of taxes
+    \item rare events/disasters: see references in \citet{TsaiWachter:2015}, including \citet{Barro:2009}, \citet{Gourio:2012}
+  \end{itemize}
+  \item Our current calibration does not match the NBER paper because I am not sure I like the way we calculated the median (see last paragraph of Technical Appendix \ref{SecTAppCalib}.).
+  %    \item I am worried about our sure-return prices $p_{t,j}$ being incorrectly specified. We are imposing a net zero supply constraint among the current period young to pin down the current period prices of the different maturities. But we haven't imposed the nonnegativity constraint on consumption for $p_{t,j}$ as we have with $q_{t,j}$ and $s_{t,j}$. That is, we haven't priced in the chance that the sellers of the sure-return bonds default on them. But maybe that is O.K. because we are using $p_{t,j}$ to calculate the net present value of $\bar{H}$ into the infinite future. The $p_{t,j}$ prices are based on myopic expectations.
+  %    \item Our paper is a conservative proof of concept in that it does not have any demographic dynamics and it does not have government debt (budget is balanced every period). Although we could think of the promise to pay $\bar{H}$ as a debt. Both demographic dynamics and government debt increase the probability of shutdown.
+  %    \item What language do we use: ``shutdown" or ``fiscal limit"?
+  %    \item Our paper abstracts from money, so it does not have the monetary and fiscal interaction described in \citet{SargentWallace:1981}, \citet{Cochrane:2011}, \citet{LeeperWalker:2011}, \citet{DavigLeeperWalker:2010,DavigLeeperWalker:2011}, and \citet{DavigLeeper:2011a,DavigLeeper:2011b}.
+  %    \item Does Ricardian equivalence hold in this model? Agents have rational expectations, and they smooth consumption. But the government runs a balanced budget in each period. So this question might be irrelevant. However, the government is taking from the young in period $t$ and then transferring the resources back to them when old. I think this might break Ricardian equivalence. It might be non-Ricardian because the young are borrowing constrained. Changes in $\bar{H}$ change consumption policy functions.
+  %    \item Fix Figure \ref{FigPolFuncs} axis scale label on $r_t$ graph so it does not overlap with the title.
+  %    \item In describing the transfer program, justify lump sum transfers as approximating a degree of fiscal inertia or fiscal stickiness. Policy stickiness could either speed up the  expected time until the economy hits its fiscal limit, or it could delay policy responses after hitting the limit which make outcomes worse. Papers that incorporate policy stickiness into stochastic OLG models are \citet{AuerbachHassett:1992,AuerbachHassett:2001,AuerbachHassett:2002,AuerbachHassett:2007} and \citet{HassettMetcalf:1999}. \citet{AlesinaDrazen:1991} discuss the foundations of fiscal stickiness.
+  %    \item We assume a fiscal limit of $w_t\leq\bar{H}$, which implies $c_{1,t}=0$. We could have just as well chosen a fiscal limit of some positive and small $c_{1,t}>0$.
+  %    \item \citet{LeeperWalker:2011} suggest that one measure of the fiscal limit could be the point at which raising taxes to fund old-age benefits takes a country beyond the peak of its Laffer curve. \citet{TrabandtUhlig:2009} estimate how close countries are the the peak of their Laffer curves.
+  %    \item List of papers that focus ``on important intergenerational and distributional consequences of fiscal stress and fiscal limits": \citet{AuerbachKotlikoff:1987}, \citet{KotlikoffSmettersWalliser:1998a,KotlikoffSmettersWalliser:1998b,KotlikoffSmettersWalliser:2007}, \citet{Imrohoroglu2Joines:1995,Imrohoroglu2Joines:1999}, \citet{HuggettVentura:1999}, \citet{CooleySoares:1999}, \citet{DeNardiImrohorogluSargent:1999}, \citet{AltigAuerbachKotlikoffSmettersWalliser:2001}, \citet{SmettersWalliser:2004}, and \citet{NishiyamaSmetters:2007}.
+  %    \item In our model, households have rational expectations and incorporate the possibility of government default into their expectations.
+  %    \item Comments from seminar
+  %       \begin{itemize}
+  %          \item Todd Walker suggested \citet{Barro:2009} as a good paper that looks at how rare disasters affect asset prices. We should check if our paper replicates these results.
+  %          \item Todd also correctly recognized that if we are looking at a fiscal limit in which the economy does not die $c_{1,t}>0$, then we have to specify what the government does after the fiscal limit in order for households to have expectations into the future. One option is $H_t = \min\{w_t+\ve,\bar{H}\}$, where $\ve$ is some subsistence level of consumption. The economy would never shut down, but we could do one long simulation and count what percent of the periods does the government default.
+  %          \item Harald suggested that we show some impulse response functions, but the non-stochastic steady state is not so relevant. I wonder if the stochastic steady state is relevant.
+  %          \item Charles Wyplosz suggested that growth in the model would be important.
+  %       \end{itemize}
+\end{itemize}
+
+
+\end{document}
