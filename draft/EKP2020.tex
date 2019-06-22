@@ -152,10 +152,10 @@
     \end{equation}
     where the capital share of income is given by $\alpha\in(0,1)$. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
     \begin{equation}\label{EqModelFirmZAR1}
-       \begin{split}
-          z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
-          &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim N(0,\sigma^2)
-       \end{split}
+      \begin{split}
+        z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
+        &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim N(0,\sigma)
+      \end{split}
     \end{equation}
     The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
     \begin{equation}\label{EqModelFirmProfMax}
@@ -342,6 +342,20 @@
       \end{tablenotes}
       \end{threeparttable}
   \end{table}
+
+  In our simulations we study a first layer of the parameter space by simulating combinations of different values of government transfer $\bar{H}\in[0.00, 0.05, 0.11, 0.17]$ and different values of initial wealth $k_{2,0}\in[0.11, 0.14, 0.17]$. We first study the behavior of the economy with these combinations of $\bar{H}$ and $k_{2,0}$ when the total factor productivity value $A_t\equiv e^{z_t}$ is distributed lognormally as described in \eqref{EqModelFirmZAR1} with the range of $A_t$ being $(0,\infty)$. This range of TFP shocks includes very small values close to zero, albeit with low probability, that can create fiscal insolvency when $\bar{H}>0$.
+
+  We then study those same combinations of $\bar{H}$ and $k_{2,0}$, but we assume a truncated support of the total factor productivity process $A_t\in[A_{min},\infty)$, where $A_{min}>0$. We implement this truncated TFP process by assuming that the shocks to the $z_t$ process are truncated normal $TrN()$ with mean 0, standard deviation $\sigma$, and lower bound cutoff $\ve_{t,min}$.\footnote{The truncated normal distribution $TrN(0,\sigma, \ve_{t,min})$ is the non-truncated normal distribution with mean 0 and standard deviation $\sigma$ that is then truncated at $\ve_{t,min}$ and rescaled to sum to 1. Technical Appendix \ref{SecTAppTrNdist} has a description of this distribution.}
+  \begin{equation}\label{EqSimsZAR1_trunc}
+    \begin{split}
+      z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
+      &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim TrN(0,\sigma, \ve_{t,min}) \\
+      &\text{and}\quad \ve_{t,min} = \ln(A_{min}) - \rho z_{t-1} - (1 - \rho)\mu
+    \end{split}
+  \end{equation}
+
+  We use these two alternative scenarios of $A_{min}=0$ versus $A_{min}=0.75$ to study how the properties of the economy change when there are more negative states of the world $A_{min}=0$ versus fewer negative states of the world $A_{min}=0.75$. The economy described by \citet{Blanchard:2019} is a case in which many negative states of the economy are assumed away. Many of the conclusions of \citet{Blanchard:2019} depend critically on these assumptions of relative safety. We show below that the properties of the economy and the costs of government promises change dramatically when the economy is faced with the possibility of more formidable negative shocks.
+
 
   \begin{table}[htbp]\centering\captionsetup{width=5.3in}
   \caption{\label{TabInitVal_A0}\textbf{Initial values relative to median values: $A_{min}=0.00$ and $z_0=0.0$}}
@@ -571,6 +585,8 @@
     \end{threeparttable}
   \end{table}
 
+  \clearpage
+
 
 \section{Conclusion}\label{SecConclusion}
 
@@ -641,6 +657,13 @@
   where $\tilde{\rho}=0.2146$ and $\tilde{\sigma}=1.5471$. We arbitrarily choose $\mu=\tilde{\mu}=0$. However, we could have also chosen $\mu$ and the corresponding $\tilde{\mu}$ to his a median wage target.
 
   Lastly, we set the size of the promised transfer $\bar{H}$ to be 32 percent of the median real wage. This level of transfers is meant to approximately match the average per capita real transfers in the United States to the average real wage in recent years. We get the median real wage by simulating a time series of the economy until it hits the shut down point, and we do this for 3,000 simulated time series. We take the median wage from those simulations. In order to reduce the effect of the initial values on the median, we take the simulation that lasted the longest number of periods before shutting down and remove the first 10 percent of the longest simulation's periods from each simulation for the calculation of the median.
+
+
+\newpage
+\setcounter{equation}{0}                         % reset counter
+\section{Truncated Normal Distribution}\label{SecTAppTrNdist}
+
+  Put a description of the properties of the truncated normal distribution here and how it interacts with the total factor productivity process.
 
 
 \newpage
