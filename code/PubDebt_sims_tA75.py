@@ -11,7 +11,7 @@ import numpy as np
 # import multiprocessing
 import scipy.stats as sts
 import pickle
-import PubDebt_funcs as funcs
+import PubDebt_funcs_tau as funcs
 
 import os
 
@@ -87,18 +87,22 @@ delta_an = 0.05
 delta = 1 - ((1 - delta_an) ** yrs_in_per)
 
 # Aggregate shock z parameters
-rho_an = 0.95
-rho = rho_an ** yrs_in_per
+rho_qtr = 0.8077
+# rho_qtr = 0.6762
+# rho_an = 0.95  # This one is too big
+rho = rho_qtr ** (yrs_in_per * 4)
 mu_an = 0.0
-sigma_an = 0.4946
+sigma_qtr = 0.0114
+# sigma_qtr = 0.0083
+# sigma_an = 0.4946  # This was the original wrong too big one
 rho_sum = 0.0
 rho2_sum = 0.0
-for y_ind in range(yrs_in_per):
-    rho_sum += rho_an ** y_ind
-    rho2_sum += rho_an ** (2 * y_ind)
-sigma = np.sqrt(rho2_sum * (sigma_an ** 2))
+for y_ind in range(yrs_in_per * 4):
+    rho_sum += rho_qtr ** y_ind
+    rho2_sum += rho_qtr ** (2 * y_ind)
+sigma = np.sqrt(rho2_sum * (sigma_qtr ** 2))
 mu = mu_an * rho_sum
-A_min = 0.0
+A_min = 0.75
 if A_min == 0.0:
     z_min = -np.inf
 elif (A_min > 0.0) and (A_min < np.exp(mu)):
@@ -108,8 +112,8 @@ elif A_min >= np.exp(mu):
     raise ValueError(err_msg)
 
 # Set government parameters and initial values
-Hbar_vec = np.array([0.0, 0.05, 0.11, 0.17])
-Hbar_size = Hbar_vec.shape[0]
+tau_vec = np.array([0.00, 0.11, 0.20, 0.25])
+tau_size = tau_vec.shape[0]
 k20_vec = np.array([0.11, 0.14, 0.17])
 k20_size = k20_vec.shape[0]
 z0 = mu
@@ -159,7 +163,6 @@ dict_endog   =
 ------------------------------------------------------------------------
 '''
 start_time = timeit.default_timer()
-GameOver_arr = np.zeros((Hbar_size, k20_size, S, T))
 unif_mat = \
     sts.uniform.rvs(loc=0, scale=1, size=((S, T - 1)),
                     random_state=rand_seed)
@@ -172,69 +175,62 @@ for t_ind in range(1, T):
     zt_mat[:, t_ind] = (rho * zt_mat[:, t_ind - 1] + (1 - rho) * mu +
                         eps_t_vec)
 
-c1t_arr = np.zeros_like(GameOver_arr)
-c2t_arr = np.zeros_like(GameOver_arr)
-Ht_arr = np.zeros_like(GameOver_arr)
-wt_arr = np.zeros_like(GameOver_arr)
-rt_arr = np.zeros_like(GameOver_arr)
-k2t_arr = np.zeros_like(GameOver_arr)
-rbart_arr = np.zeros_like(GameOver_arr)
-rbart_an_arr = np.zeros_like(GameOver_arr)
+c1t_arr = np.zeros((tau_size, k20_size, S, T))
+c2t_arr = np.zeros_like(c1t_arr)
+Ht_arr = np.zeros_like(c1t_arr)
+wt_arr = np.zeros_like(c1t_arr)
+rt_arr = np.zeros_like(c1t_arr)
+k2t_arr = np.zeros_like(c1t_arr)
+rbart_arr = np.zeros_like(c1t_arr)
+rbart_an_arr = np.zeros_like(c1t_arr)
 for k_ind in range(k20_size):
     k2t_arr[:, k_ind, :, 0] = k20_vec[k_ind]
 
-for H_ind in range(Hbar_size):
-    k2tp1_args = (n_vec, c_min, K_min, Hbar_vec[H_ind], beta, gamma,
+for tau_ind in range(tau_size):
+    k2tp1_args = (n_vec, c_min, K_min, tau_vec[tau_ind], beta, gamma,
                   alpha, delta, mu, rho, sigma, A_min, yrs_in_per)
     for k_ind in range(k20_size):
         for S_ind in range(S):
-            GameOver = False
             t_ind = 0
-            while (t_ind < T - 1) and not GameOver:
-                print('H_ind=', H_ind, ',k_ind=', k_ind,
+            while t_ind < T - 1:
+                print('tau_ind=', tau_ind, ',k_ind=', k_ind,
                       ',S_ind=', S_ind, ',t_ind=', t_ind)
-                k2t = k2t_arr[H_ind, k_ind, S_ind, t_ind]
+                k2t = k2t_arr[tau_ind, k_ind, S_ind, t_ind]
                 zt = zt_mat[S_ind, t_ind]
-                (k2tp1, c1t, Ht, c2t, wt, rt, rbart, rbart_an,
-                    GameOver) = funcs.get_k2tp1(k2t, zt, k2tp1_args)
-                k2t_arr[H_ind, k_ind, S_ind, t_ind + 1] = k2tp1
-                c1t_arr[H_ind, k_ind, S_ind, t_ind] = c1t
-                Ht_arr[H_ind, k_ind, S_ind, t_ind] = Ht
-                c2t_arr[H_ind, k_ind, S_ind, t_ind] = c2t
-                wt_arr[H_ind, k_ind, S_ind, t_ind] = wt
-                rt_arr[H_ind, k_ind, S_ind, t_ind] = rt
-                rbart_arr[H_ind, k_ind, S_ind, t_ind] = rbart
-                rbart_an_arr[H_ind, k_ind, S_ind, t_ind] = rbart_an
-                if GameOver:
-                    GameOver_arr[H_ind, k_ind, S_ind, t_ind:] = GameOver
+                k2tp1, c1t, Ht, c2t, wt, rt, rbart, rbart_an = \
+                    funcs.get_k2tp1(k2t, zt, k2tp1_args)
+                k2t_arr[tau_ind, k_ind, S_ind, t_ind + 1] = k2tp1
+                c1t_arr[tau_ind, k_ind, S_ind, t_ind] = c1t
+                Ht_arr[tau_ind, k_ind, S_ind, t_ind] = Ht
+                c2t_arr[tau_ind, k_ind, S_ind, t_ind] = c2t
+                wt_arr[tau_ind, k_ind, S_ind, t_ind] = wt
+                rt_arr[tau_ind, k_ind, S_ind, t_ind] = rt
+                rbart_arr[tau_ind, k_ind, S_ind, t_ind] = rbart
+                rbart_an_arr[tau_ind, k_ind, S_ind, t_ind] = rbart_an
                 t_ind += 1
 
 elapsed_time = timeit.default_timer() - start_time
 print('Elapsed time=', elapsed_time)
-GameOver_p1 = \
-    np.append(np.zeros((Hbar_size, k20_size, S, 1), dtype=bool),
-              GameOver_arr[:, :, :, 1:], axis=3)
 zt_arr = np.tile(zt_mat.reshape((1, 1, S, T)),
-                 (Hbar_size, k20_size, 1, 1))
-Kt_arr = (1 - GameOver_p1) * k2t_arr
-Yt_arr = (1 - GameOver_p1) * funcs.get_Y(Kt_arr, n_vec, zt_arr, alpha)
-Ct_arr = (1 - GameOver_p1) * funcs.get_C(c1t_arr, c2t_arr)
+                 (tau_size, k20_size, 1, 1))
+Kt_arr = k2t_arr
+Yt_arr = funcs.get_Y(Kt_arr, n_vec, zt_arr, alpha)
+Ct_arr = funcs.get_C(c1t_arr, c2t_arr)
 dict_params = \
     {'yrs_in_per': yrs_in_per, 'beta_an': beta_an, 'beta': beta,
      'gamma': gamma, 'c_min': c_min, 'K_min': K_min, 'n_vec': n_vec,
      'alpha': alpha, 'delta_an': delta_an, 'delta': delta,
-     'rho_an': rho_an, 'rho': rho, 'mu': mu, 'sigma_an': sigma_an,
-     'sigma': sigma, 'Hbar_vec': Hbar_vec, 'k20_vec': k20_vec,
-     'Hbar_size': Hbar_size, 'k20_size': k20_size, 'z0': z0, 'T': T,
-     'S': S, 'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
+     'rho_an': rho_qtr, 'rho': rho, 'mu': mu, 'sigma_an': sigma_qtr,
+     'sigma': sigma, 'tau_vec': tau_vec, 'tau_size': tau_size,
+     'k20_vec': k20_vec, 'k20_size': k20_size, 'z0': z0, 'T': T, 'S': S,
+     'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
 dict_endog = \
     {'unif_mat': unif_mat, 'zt_mat': zt_mat, 'c1t_arr': c1t_arr,
      'c2t_arr': c2t_arr, 'Ht_arr': Ht_arr, 'wt_arr': wt_arr,
      'rt_arr': rt_arr, 'rbart_arr': rbart_arr,
      'rbart_an_arr': rbart_an_arr, 'k2t_arr': k2t_arr, 'Kt_arr': Kt_arr,
-     'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr, 'GameOver_arr': GameOver_arr,
-     'elapsed_time': elapsed_time}
+     'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr, 'elapsed_time': elapsed_time}
 
 results_sims = {'dict_params': dict_params, 'dict_endog': dict_endog}
-outputfile = os.path.join(output_dir, 'results_sims.pkl')
+outputfile = os.path.join(output_dir, 'results_sims_tA75.pkl')
 pickle.dump(results_sims, open(outputfile, 'wb'))

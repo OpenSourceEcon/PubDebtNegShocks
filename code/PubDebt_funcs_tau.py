@@ -126,6 +126,13 @@ def get_Ht(Hbar, w, n1, c_min, K_min):
 
 
 @jit
+def get_Htaut(w, n1, tau):
+    Ht = tau * w * n1
+
+    return Ht
+
+
+@jit
 def get_Hbar_err(zt, *args):
     k2t, n_vec, c_min, K_min, Hbar, alpha = args
     n_1 = n_vec[0]
@@ -157,31 +164,13 @@ def get_zstar(k2t, ztm1, args):
 
 @jit
 def get_c2t(k2t, zt, args):
-    n_vec, c_min, K_min, Hbar, alpha, delta = args
+    n_vec, c_min, K_min, tau, alpha, delta = args
     n_1, n_2 = n_vec
     wt = get_w(k2t, n_vec, zt, alpha)
     rt = get_r(k2t, n_vec, zt, alpha, delta)
-    c2t = wt * n_2 + (1 + rt) * k2t + get_Ht(Hbar, wt, n_1, c_min,
-                                             K_min)
+    c2t = wt * n_2 + (1 + rt) * k2t + get_Htaut(wt, n_1, tau)
 
     return c2t
-
-
-@jit
-def get_EZ_pref(c, alpha, a):
-    '''
-    Compute Epstein-Zin (1989) preferences
-
-    Inputs:
-        c = (array like), consumption values
-        alpha = scalar in (0,1)
-        scalar >= 0
-
-    returns util
-    '''
-    c = ((c ** alpha) - 1) / alpha + a * (c - 1)
-
-    return util
 
 
 @jit
@@ -277,12 +266,11 @@ def LN_pdf(xvals, mu, sigma):
 
 @jit
 def get_1pr_MU_c2_pdf(Atp1, *args):
-    (k2tp1, zt, n_vec, c_min, K_min, Hbar, gamma, alpha, delta, mu, rho,
+    (k2tp1, zt, n_vec, c_min, K_min, tau, gamma, alpha, delta, mu, rho,
         sigma, A_min_cdf) = args
     ztp1 = np.log(Atp1)
     z_mu = rho * zt + (1 - rho) * mu
-    # ztp1 = rho * zt + (1 - rho) * mu + eps
-    c2tp1_args = (n_vec, c_min, K_min, Hbar, alpha, delta)
+    c2tp1_args = (n_vec, c_min, K_min, tau, alpha, delta)
     c2tp1 = get_c2t(k2tp1, ztp1, c2tp1_args)
     rtp1 = get_r(k2tp1, n_vec, ztp1, alpha, delta)
     MU_c2tp1 = get_MUc(c2tp1, gamma)
@@ -294,12 +282,12 @@ def get_1pr_MU_c2_pdf(Atp1, *args):
 
 @jit
 def get_MU_c2_pdf(Atp1, *args):
-    (k2tp1, zt, n_vec, c_min, K_min, Hbar, gamma, alpha, delta, mu, rho,
+    (k2tp1, zt, n_vec, c_min, K_min, tau, gamma, alpha, delta, mu, rho,
         sigma, A_min_cdf) = args
     ztp1 = np.log(Atp1)
     z_mu = rho * zt + (1 - rho) * mu
     # ztp1 = rho * zt + (1 - rho) * mu + eps
-    c2tp1_args = (n_vec, c_min, K_min, Hbar, alpha, delta)
+    c2tp1_args = (n_vec, c_min, K_min, tau, alpha, delta)
     c2tp1 = get_c2t(k2tp1, ztp1, c2tp1_args)
     MU_c2tp1 = get_MUc(c2tp1, gamma)
     MU_c2tp1_pdf = MU_c2tp1 * (LN_pdf(Atp1, z_mu, sigma) /
@@ -326,11 +314,11 @@ def get_U_c2_pdf(Atp1, *args):
 
 @jit
 def get_Eul_err(k2tp1, *args):
-    (k2t, zt, n_vec, c_min, K_min, Hbar, beta, gamma, alpha, delta, mu,
-        rho, sigma, A_min) = args
+    (k2t, zt, n_vec, c_min, K_min, Ht, tau, beta, gamma, alpha, delta,
+        mu, rho, sigma, A_min) = args
     n1, n2 = n_vec
     wt = get_w(k2t, n_vec, zt, alpha)
-    c1 = wt * n1 - k2tp1 - Hbar
+    c1 = wt * n1 - k2tp1 - Ht
     # print('c1', c1)
     MU_c1 = get_MUc(c1, gamma)
     mu_ztp1 = rho * zt + (1 - rho) * mu
@@ -339,7 +327,7 @@ def get_Eul_err(k2tp1, *args):
     elif A_min > 0.0:
         A_min_cdf = sts.norm.cdf(np.log(A_min), loc=mu_ztp1,
                                  scale=sigma)
-    muc2_args = (k2tp1, zt, n_vec, c_min, K_min, Hbar, gamma, alpha,
+    muc2_args = (k2tp1, zt, n_vec, c_min, K_min, tau, gamma, alpha,
                  delta, mu, rho, sigma, A_min_cdf)
     (Exp_1pr_MU_c2, _) = intgr.quad(get_1pr_MU_c2_pdf, A_min, np.inf,
                                     args=muc2_args)
@@ -381,53 +369,42 @@ def get_k2tp1(k2t, zt, args):
     '''
     --------------------------------------------------------------------
     Solve for k2tp1
-    c1t + k2tp1 = wt * n1 - min(Hbar, w1 * n1)
+    c1t + k2tp1 = wt * n1 - tau * w1 * n1
     --------------------------------------------------------------------
     --------------------------------------------------------------------
     '''
-    (n_vec, c_min, K_min, Hbar, beta, gamma, alpha, delta, mu, rho,
+    (n_vec, c_min, K_min, tau, beta, gamma, alpha, delta, mu, rho,
         sigma, A_min, yrs_in_per) = args
     n_1, n_2 = n_vec
     wt = get_w(k2t, n_vec, zt, alpha)
-    Ht = get_Ht(Hbar, wt, n_1, c_min, K_min)
+    Ht = get_Htaut(wt, n_1, tau)
     rt = get_r(k2t, n_vec, zt, alpha, delta)
     c2t = wt * n_2 + (1 + rt) * k2t + Ht
-    if Hbar >= wt * n_1 - c_min - K_min:
-        print('Game over: Hbar > wt * n1 - c_min - K_min')
-        GameOver = True
-        k2tp1 = K_min
-        c1t = c_min
-    elif Hbar < wt * n_1 - c_min - K_min:
-        # k2tp1_init = 0.5 * (wt * n1 - cmin - Hbar) + 0.5 * K_min
-        k2tp1_max = wt * n_1 - c_min - Hbar
-        if (k2tp1_max - K_min < 0.01) and (k2tp1_max - K_min > 0):
-            print('Almost game over: k2tp1_max - K_min too small.')
-            GameOver = False
-            k2tp1 = 0.5 * K_min + 0.5 * k2tp1_max
-            c1t = wt * n_1 - k2tp1 - Hbar
-        elif k2tp1_max - K_min <= 0.0:
-            err_msg = 'Problem in get_k2tp1(): k2tp1_max - K_min <= 0.'
+    # k2tp1_init = 0.5 * (wt * n1 - cmin - Hbar) + 0.5 * K_min
+    k2tp1_max = wt * n_1 - c_min - Ht
+    if (k2tp1_max - K_min < 0.01) and (k2tp1_max - K_min > 0):
+        print('Too small maximization range: ' +
+              'k2tp1_max - K_min too small.')
+        k2tp1 = 0.5 * K_min + 0.5 * k2tp1_max
+        c1t = wt * n_1 - k2tp1 - Ht
+    else:
+        k_args = (k2t, zt, n_vec, c_min, K_min, Ht, tau, beta, gamma, alpha,
+                  delta, mu, rho, sigma, A_min)
+        # print('K_min=', K_min, ', k2tp1_max=', k2tp1_max)
+        results = opt.root_scalar(get_Eul_err, args=k_args, method='brenth',
+                                  bracket=[K_min, k2tp1_max])
+        # k2tp1 = results.root
+        # results = opt.minimize_scalar(get_neg_lf_util,
+        #                               bounds=(K_min, k2tp1_max),
+        #                               method='bounded', args=k_args)
+        k2tp1 = results.root
+        # k2tp1 = results.x
+        c1t = wt * n_1 - k2tp1 - Ht
+        # if not results.success:
+        if not results.converged:
+            # err_msg = 'Root finder did not solve in get_Eul_err().'
+            err_msg = 'Minimization did not solve in get_neg_lf_util().'
             raise ValueError(err_msg)
-        elif k2tp1_max - K_min >= 0.01:
-            GameOver = False
-            k_args = (k2t, zt, n_vec, c_min, K_min, Hbar, beta, gamma,
-                      alpha, delta, mu, rho, sigma, A_min)
-            # print('K_min=', K_min, ', k2tp1_max=', k2tp1_max)
-            results = opt.root_scalar(get_Eul_err, args=k_args,
-                                      method='brenth',
-                                      bracket=[K_min, k2tp1_max])
-            # k2tp1 = results.root
-            # results = opt.minimize_scalar(get_neg_lf_util,
-            #                               bounds=(K_min, k2tp1_max),
-            #                               method='bounded', args=k_args)
-            k2tp1 = results.root
-            # k2tp1 = results.x
-            c1t = wt * n_1 - k2tp1 - Hbar
-            # if not results.success:
-            if not results.converged:
-                # err_msg = 'Root finder did not solve in get_Eul_err().'
-                err_msg = 'Minimization did not solve in get_neg_lf_util().'
-                raise ValueError(err_msg)
 
     # Compute price of riskless one-period bond
     MU_c1 = get_MUc(c1t, gamma)
@@ -437,7 +414,7 @@ def get_k2tp1(k2t, zt, args):
     elif A_min > 0.0:
         A_min_cdf = sts.norm.cdf(np.log(A_min), loc=mu_ztp1,
                                  scale=sigma)
-    muc2_args = (k2tp1, zt, n_vec, c_min, K_min, Hbar, gamma, alpha,
+    muc2_args = (k2tp1, zt, n_vec, c_min, K_min, tau, gamma, alpha,
                  delta, mu, rho, sigma, A_min_cdf)
     (Exp_MU_c2, _) = intgr.quad(get_MU_c2_pdf, A_min, np.inf,
                                 args=muc2_args)
@@ -445,4 +422,4 @@ def get_k2tp1(k2t, zt, args):
     rbar_t = (1 / pbar_t) - 1
     rbar_t_an = ((1 / pbar_t) ** (1 / yrs_in_per)) - 1
 
-    return k2tp1, c1t, Ht, c2t, wt, rt, rbar_t, rbar_t_an, GameOver
+    return k2tp1, c1t, Ht, c2t, wt, rt, rbar_t, rbar_t_an
