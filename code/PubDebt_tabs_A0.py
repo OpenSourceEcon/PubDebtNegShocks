@@ -73,23 +73,46 @@ GameOver_p1b = GameOver_p1 == 1
 
 # Table 5.2
 med_wt_Hk = np.zeros((Hbar_size, k20_size))
-med_k2t_Hk = np.zeros((Hbar_size, k20_size))
-t0_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-min_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-med_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-max_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-t0_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-min_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-med_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-max_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
+med_k2t_Hk = np.zeros_like(med_wt_Hk)
+t0_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+min_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+med_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rbart_Hk = np.zeros_like(med_wt_Hk)
+avg_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_Rbart_Hk = np.zeros_like(med_wt_Hk)
+avg_Rbart_an_Hk = np.zeros_like(med_wt_Hk)
+max_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rt_Hk = np.zeros_like(med_wt_Hk)
+avg_rt_an_Hk = np.zeros_like(med_wt_Hk)
+avg_Rt_Hk = np.zeros_like(med_wt_Hk)
+avg_Rt_an_Hk = np.zeros_like(med_wt_Hk)
+std_Rt_Hk = np.zeros_like(med_wt_Hk)
+std_Rt_an_Hk = np.zeros_like(med_wt_Hk)
+avg_eqprem_Hk = np.zeros_like(med_wt_Hk)
+avg_eqprem_an_Hk = np.zeros_like(med_wt_Hk)
+avg_shrp_Hk = np.zeros_like(med_wt_Hk)
+avg_shrp_an_Hk = np.zeros_like(med_wt_Hk)
+t0_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+min_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+med_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+max_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
 for H_ind in range(Hbar_size):
     for k_ind in range(k20_size):
         wt_Hk = wt_arr[H_ind, k_ind, :, 1:]
         k2t_Hk = k2t_arr[H_ind, k_ind, :, 1:]
-        rbart_an_Hk = rbart_an_arr[H_ind, k_ind, :, 1:]
+        rt_Hk = rt_arr[H_ind, k_ind, :, 1:]
+        rt_an_Hk = (1 + rt_Hk) ** (1 / yrs_in_per) - 1
         GameOver_p1Hk = GameOver_p1b[H_ind, k_ind, :, 1:]
+        avg_rt_Hk[H_ind, k_ind] = rt_Hk[~GameOver_p1Hk].mean()
+        avg_Rt_Hk[H_ind, k_ind] = 1 + avg_rt_Hk[H_ind, k_ind]
+        std_Rt_Hk[H_ind, k_ind] = (1 + rt_Hk[~GameOver_p1Hk]).std()
+        avg_rt_an_Hk[H_ind, k_ind] = rt_an_Hk[~GameOver_p1Hk].mean()
+        avg_Rt_an_Hk[H_ind, k_ind] = 1 + avg_rt_an_Hk[H_ind, k_ind]
+        std_Rt_an_Hk[H_ind, k_ind] = \
+            (1 + rt_an_Hk[~GameOver_p1Hk]).std()
+        rbart_Hk = rbart_arr[H_ind, k_ind, :, 1:]
+        rbart_an_Hk = rbart_an_arr[H_ind, k_ind, :, 1:]
         med_wt_Hk[H_ind, k_ind] = np.median(wt_Hk[~GameOver_p1Hk])
         med_k2t_Hk[H_ind, k_ind] = np.median(k2t_Hk[~GameOver_p1Hk])
         t0_rbart_an_Hk[H_ind, k_ind] = rbart_an_arr[H_ind, k_ind, 0, 0]
@@ -109,8 +132,13 @@ for H_ind in range(Hbar_size):
             ((rbart_an_Hk[~GameOver_p1Hk] <=
               med_rbart_an_Hk[H_ind, k_ind]).sum() /
              len(rbart_an_Hk[~GameOver_p1Hk]))
+        avg_rbart_Hk[H_ind, k_ind] = \
+            rbart_Hk[~GameOver_p1Hk].mean()
         avg_rbart_an_Hk[H_ind, k_ind] = \
             rbart_an_Hk[~GameOver_p1Hk].mean()
+        avg_Rbart_Hk[H_ind, k_ind] = 1 + avg_rbart_Hk[H_ind, k_ind]
+        avg_Rbart_an_Hk[H_ind, k_ind] = \
+            1 + avg_rbart_an_Hk[H_ind, k_ind]
         avg_rbartcdf_an_Hk[H_ind, k_ind] = \
             ((rbart_an_Hk[~GameOver_p1Hk] <=
               avg_rbart_an_Hk[H_ind, k_ind]).sum() /
@@ -121,6 +149,17 @@ for H_ind in range(Hbar_size):
             ((rbart_an_Hk[~GameOver_p1Hk] <=
               max_rbart_an_Hk[H_ind, k_ind]).sum() /
              len(rbart_an_Hk[~GameOver_p1Hk]))
+        avg_eqprem_Hk[H_ind, k_ind] = (avg_Rt_Hk[H_ind, k_ind] -
+                                       avg_Rbart_Hk[H_ind, k_ind])
+        avg_eqprem_an_Hk[H_ind, k_ind] = (avg_Rt_an_Hk[H_ind, k_ind] -
+                                          avg_Rbart_an_Hk[H_ind, k_ind])
+        avg_shrp_Hk[H_ind, k_ind] = \
+            ((avg_Rt_Hk[H_ind, k_ind] - avg_Rbart_Hk[H_ind, k_ind]) /
+             std_Rt_Hk[H_ind, k_ind])
+        avg_shrp_an_Hk[H_ind, k_ind] = \
+            ((avg_Rt_an_Hk[H_ind, k_ind] -
+              avg_Rbart_an_Hk[H_ind, k_ind]) /
+             std_Rt_an_Hk[H_ind, k_ind])
 
 med_Hbar_wtmed_Hk = np.tile(Hbar_vec.reshape((Hbar_size, 1)),
                             (1, k20_size)) / med_wt_Hk
@@ -257,6 +296,40 @@ cdf_matrices = (t0_rbartcdf_an_Hk, min_rbartcdf_an_Hk,
 textabs.print_latex_tab_riskl(Hbar_vec, k20_vec, rate_matrices,
                               cdf_matrices)
 
+# Create equity premium table
+
+print('avg_Rt_Hk')
+print(avg_Rt_Hk)
+print('std_Rt_Hk')
+print(std_Rt_Hk)
+print('avg_Rbart_Hk')
+print(avg_Rbart_Hk)
+print('avg_eqprem_Hk')
+print(avg_eqprem_Hk)
+print('avg_shrp_Hk')
+print(avg_shrp_Hk)
+
+print('avg_Rt_an_Hk')
+print(avg_Rt_an_Hk)
+print('std_Rt_an_Hk')
+print(std_Rt_an_Hk)
+print('avg_Rbart_an_Hk')
+print(avg_Rbart_an_Hk)
+print('avg_eqprem_an_Hk')
+print(avg_eqprem_an_Hk)
+print('avg_shrp_an_Hk')
+print(avg_shrp_an_Hk)
+
+per_matrices = (avg_Rt_Hk * 100, std_Rt_Hk * 100, avg_Rbart_Hk * 100,
+                avg_eqprem_Hk * 100,
+                avg_shrp_Hk)
+an_matrices = (avg_Rt_an_Hk * 100, std_Rt_an_Hk * 100,
+               avg_Rbart_an_Hk * 100, avg_eqprem_an_Hk * 100,
+               avg_shrp_an_Hk)
+textabs.print_latex_tab_eqprem(Hbar_vec, k20_vec, per_matrices,
+                               an_matrices)
+
+
 dict_tabs = \
     {'med_wt_Hk': med_wt_Hk, 'med_k2t_Hk': med_k2t_Hk,
      'med_Hbar_wtmed_Hk': med_Hbar_wtmed_Hk,
@@ -268,13 +341,24 @@ dict_tabs = \
      't0_rbart_an_Hk': t0_rbart_an_Hk,
      'min_rbart_an_Hk': min_rbart_an_Hk,
      'med_rbart_an_Hk': med_rbart_an_Hk,
+     'avg_rbart_Hk': avg_rbart_Hk,
      'avg_rbart_an_Hk': avg_rbart_an_Hk,
+     'avg_Rbart_Hk': avg_Rbart_Hk,
+     'avg_Rbart_an_Hk': avg_Rbart_an_Hk,
      'max_rbart_an_Hk': max_rbart_an_Hk,
+     'avg_rt_Hk': avg_rt_Hk,
+     'avg_rt_an_Hk': avg_rt_an_Hk,
+     'avg_Rt_Hk': avg_Rt_Hk,
+     'avg_Rt_an_Hk': avg_Rt_an_Hk,
+     'std_Rt_Hk': std_Rt_Hk, 'std_Rt_an_Hk': std_Rt_an_Hk,
      't0_rbartcdf_an_Hk': t0_rbartcdf_an_Hk,
      'min_rbartcdf_an_Hk': min_rbartcdf_an_Hk,
      'med_rbartcdf_an_Hk': med_rbartcdf_an_Hk,
      'avg_rbartcdf_an_Hk': avg_rbartcdf_an_Hk,
-     'max_rbartcdf_an_Hk': max_rbartcdf_an_Hk}
+     'max_rbartcdf_an_Hk': max_rbartcdf_an_Hk,
+     'avg_eqprem_Hk': avg_eqprem_Hk,
+     'avg_eqprem_an_Hk': avg_eqprem_an_Hk,
+     'avg_shrp_Hk': avg_shrp_Hk, 'avg_shrp_an_Hk': avg_shrp_an_Hk}
 results_tabs = {'dict_params': dict_params, 'dict_endog': dict_endog,
                 'dict_stats': dict_tabs}
 

@@ -55,7 +55,7 @@ dict_stats        =
 dict_results      =
 ------------------------------------------------------------------------
 '''
-outputfile = os.path.join(output_dir, 'results_sims_A75.pkl')
+outputfile = os.path.join(output_dir, 'results_sims_A0.pkl')
 results_sims = pickle.load(open(outputfile, 'rb'))
 
 dict_params = results_sims['dict_params']
@@ -73,37 +73,42 @@ GameOver_p1b = GameOver_p1 == 1
 
 # Table 5.2
 med_wt_Hk = np.zeros((Hbar_size, k20_size))
-med_k2t_Hk = np.zeros((Hbar_size, k20_size))
-t0_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-min_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-med_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_rbart_Hk = np.zeros((Hbar_size, k20_size))
-avg_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_Rbart_Hk = np.zeros((Hbar_size, k20_size))
-avg_Rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-max_rbart_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_rt_Hk = np.zeros((Hbar_size, k20_size))
-avg_rt_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_Rt_Hk = np.zeros((Hbar_size, k20_size))
-avg_Rt_an_Hk = np.zeros((Hbar_size, k20_size))
-std_Rt_Hk = np.zeros((Hbar_size, k20_size))
-std_Rt_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_eqprem_Hk = np.zeros((Hbar_size, k20_size))
-avg_eqprem_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_shrp_Hk = np.zeros((Hbar_size, k20_size))
-avg_shrp_an_Hk = np.zeros((Hbar_size, k20_size))
-t0_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-min_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-med_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-avg_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
-max_rbartcdf_an_Hk = np.zeros((Hbar_size, k20_size))
+med_k2t_Hk = np.zeros_like(med_wt_Hk)
+t0_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+min_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+med_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rbart_Hk = np.zeros_like(med_wt_Hk)
+avg_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_Rbart_Hk = np.zeros_like(med_wt_Hk)
+avg_Rbart_an_Hk = np.zeros_like(med_wt_Hk)
+max_rbart_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rt_Hk = np.zeros_like(med_wt_Hk)
+avg_rt_an_Hk = np.zeros_like(med_wt_Hk)
+avg_Rt_Hk = np.zeros_like(med_wt_Hk)
+avg_Rt_an_Hk = np.zeros_like(med_wt_Hk)
+std_Rt_Hk = np.zeros_like(med_wt_Hk)
+std_Rt_an_Hk = np.zeros_like(med_wt_Hk)
+avg_eqprem_Hk = np.zeros_like(med_wt_Hk)
+avg_eqprem_an_Hk = np.zeros_like(med_wt_Hk)
+avg_shrp_Hk = np.zeros_like(med_wt_Hk)
+avg_shrp_an_Hk = np.zeros_like(med_wt_Hk)
+t0_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+min_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+med_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+avg_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
+max_rbartcdf_an_Hk = np.zeros_like(med_wt_Hk)
 for H_ind in range(Hbar_size):
     for k_ind in range(k20_size):
+        if GameOver_p1b[H_ind, k_ind, :, 1:].sum() == (T - 1) * S:
+            GameOver_p1Hk = np.append(np.zeros((S, 1), dtype=bool),
+                                      np.ones((S, T - 2), dtype=bool),
+                                      axis=1)
+        else:
+            GameOver_p1Hk = GameOver_p1b[H_ind, k_ind, :, 1:]
         wt_Hk = wt_arr[H_ind, k_ind, :, 1:]
         k2t_Hk = k2t_arr[H_ind, k_ind, :, 1:]
         rt_Hk = rt_arr[H_ind, k_ind, :, 1:]
         rt_an_Hk = (1 + rt_Hk) ** (1 / yrs_in_per) - 1
-        GameOver_p1Hk = GameOver_p1b[H_ind, k_ind, :, 1:]
         avg_rt_Hk[H_ind, k_ind] = rt_Hk[~GameOver_p1Hk].mean()
         avg_Rt_Hk[H_ind, k_ind] = 1 + avg_rt_Hk[H_ind, k_ind]
         std_Rt_Hk[H_ind, k_ind] = (1 + rt_Hk[~GameOver_p1Hk]).std()
@@ -362,5 +367,5 @@ dict_tabs = \
 results_tabs = {'dict_params': dict_params, 'dict_endog': dict_endog,
                 'dict_stats': dict_tabs}
 
-outputfile = os.path.join(output_dir, 'results_tabs_A75.pkl')
+outputfile = os.path.join(output_dir, 'results_tabs_A0_b.pkl')
 pickle.dump(results_tabs, open(outputfile, 'wb'))

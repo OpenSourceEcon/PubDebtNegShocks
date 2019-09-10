@@ -87,14 +87,21 @@ delta_an = 0.05
 delta = 1 - ((1 - delta_an) ** yrs_in_per)
 
 # Aggregate shock z parameters
-rho_an = 0.95
-rho = rho_an ** yrs_in_per
-mu = 0.0
-sigma_an = 0.4946
+rho_qtr = 0.8077
+# rho_qtr = 0.6762
+# rho_an = 0.95  # This one is too big
+rho = rho_qtr ** (yrs_in_per * 4)
+mu_an = 0.0
+sigma_qtr = 0.0114
+# sigma_qtr = 0.0083
+# sigma_an = 0.4946  # This was the original wrong too big one
 rho_sum = 0.0
-for y_ind in range(yrs_in_per):
-    rho_sum += rho_an ** (2 * y_ind)
-sigma = np.sqrt(rho_sum * (sigma_an ** 2))
+rho2_sum = 0.0
+for y_ind in range(yrs_in_per * 4):
+    rho_sum += rho_qtr ** y_ind
+    rho2_sum += rho_qtr ** (2 * y_ind)
+sigma = np.sqrt(rho2_sum * (sigma_qtr ** 2))
+mu = mu_an * rho_sum
 A_min = 0.0
 if A_min == 0.0:
     z_min = -np.inf
@@ -111,33 +118,8 @@ k20_vec = np.array([0.11, 0.14, 0.17])
 k20_size = k20_vec.shape[0]
 z0 = mu
 
-# S = 3000, z0 = mu
-# Hbar_vec = np.array([0.185, 0.231, 0.245])
-# k20_vec = np.array([0.065, 0.073, 0.084])
-# med_Hbar_wtmed_Hk
-# [[0.26241019 0.25851832 0.25318696]
-#  [0.33001387 0.32044735 0.30198341]
-#  [0.32534951 0.33159872 0.32585898]]
-# med_k20_k2tmed_Hk
-# [[0.63879003 0.70861932 0.79049128]
-#  [0.98279373 0.99273373 1.06730495]
-#  [0.96700002 1.31156736 1.24619018]]
-
-# S = 3000, z0 = mu
-# Hbar_vec = np.array([0.230, 0.231, 0.232])
-# k20_vec = np.array([0.072, 0.073, 0.074])
-# med_Hbar_wtmed_Hk
-# [[0.31842877 0.32147903 0.31764133]
-#  [0.32217722 0.32044735 0.32217161]
-#  [0.32226563 0.32154969 0.32006163]]
-# med_k20_k2tmed_Hk
-# [[0.98140084 1.01419673 0.98842879]
-#  [1.01700646 0.99273373 1.02023919]
-#  [1.05366095 1.02747083 1.01430987]]
-
-
-T = 100
-S = 3000
+T = 50
+S = 200
 rand_seed = 25
 
 '''
@@ -244,7 +226,7 @@ dict_params = \
     {'yrs_in_per': yrs_in_per, 'beta_an': beta_an, 'beta': beta,
      'gamma': gamma, 'c_min': c_min, 'K_min': K_min, 'n_vec': n_vec,
      'alpha': alpha, 'delta_an': delta_an, 'delta': delta,
-     'rho_an': rho_an, 'rho': rho, 'mu': mu, 'sigma_an': sigma_an,
+     'rho_an': rho_qtr, 'rho': rho, 'mu': mu, 'sigma_an': sigma_qtr,
      'sigma': sigma, 'Hbar_vec': Hbar_vec, 'k20_vec': k20_vec,
      'Hbar_size': Hbar_size, 'k20_size': k20_size, 'z0': z0, 'T': T,
      'S': S, 'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
