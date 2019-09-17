@@ -60,16 +60,13 @@
 \begin{document}
 
 \begin{titlepage}
-\title{Negative Shocks, Public Debt, and Interest Rates \thanks{This research benefited from support from the \href{https://www.oselab.org/}{Open Source Economics Laboratory} at the University of Chicago. All Python code and documentation for the computational model is available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
+\title{A Note on Negative Shocks, Public Debt, and Interest Rates \thanks{This research benefited from support from the \href{https://www.oselab.org/}{Open Source Economics Laboratory} at the University of Chicago. All Python code and documentation for the computational model is available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
 }
 \author{
   Richard W. Evans\footnote{University of Chicago, M.A. Program in Computational Social Science, McGiffert House, Room 208, Chicago, IL 60637, (773) 702-9169, \href{mailto:rwevans@uchicago.edu}{rwevans@uchicago.edu}.}
-  \and
-  Laurence J. Kotlikoff\footnote{Boston University, Department of Economics, 270 Bay State Road, Boston, Massachusetts 02215, \href{mailto:kotlikoff@gmail.com}{kotlikoff@gmail.com}.}
-  \and
-  Kerk L. Phillips\footnote{Congressional Budget Office, Macroeconomic Analysis Division, Fiscal Studies Unit, \href{mailto:kerk.phillips@cbo.gov}{kerk.phillips@cbo.gov}.}}
-\date{June 2019 \\
-  \scriptsize{(version 19.06.b)}}
+  }
+\date{{\footnotesize{September 2019}} \\
+  {\scriptsize{(version 19.09.a)}}}
 \maketitle
 \vspace{-9mm}
 \begin{abstract}
@@ -115,32 +112,33 @@
 
     A unit measure of identical consumer-worker households is born each period. A Household lives for exactly two periods indexed by $s=1,2$. They supply a unit of labor inelastically in both the young and old period of life $n_1>0$ and $n_2\geq 0$ in all periods $t$.
 
-    In the first period of life, consumer-worker households choose how to divide their net labor income between age-$1$ consumption $c_{1,t}$ and capital investment (savings) with the firms $k_{2,t+1}$. The objective of a household is maximize utility subject to a period budget constraint and two nonnegativity constraints,
+    In the first period of life, consumer-worker households choose how to divide their net labor income between age-$1$ consumption $c_{1,t}$ and capital investment (savings) with the firms $k_{2,t+1}$. The objective of a household is to maximize Epstein-Zin-Weil utility subject to a period budget constraint and two nonnegativity constraints.\footnote{See \citet{EpsteinZin:2013} and \citet{Weil:1990}.}
     \begin{align}
-      &\max_{c_{1,t},k_{2,t+1},c_{2,t+1}}\: u(c_{1,t}) + \beta E_t\left[u(c_{2,t+1})\right] \quad \forall t \label{EqHHmaxUtil} \\
-      &\quad\text{where}\quad u(c_{s,t}) = \frac{(c_{s,t})^{1-\gamma} - 1}{1-\gamma} \quad\text{for}\quad s=1,2 \label{EqHHutilCRRA} \\
-      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} = w_t n_1 - H_t \label{EqHHbc1} \\
-      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + w_{t+1}n_2 + H_{t+1} \label{EqHHbc2} \\
-      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqHHnonneg}
+      &\max_{c_{1,t},k_{2,t+1},c_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigr(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \label{EqHHmaxUtil} \\
+      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} = w_t n_1 + x_1 - H_t \label{EqHHbc1} \\
+      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \label{EqHHbc2} \\
+      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} > 0 \label{EqHHnonneg}
     \end{align}
-    Let new households have no initial capital $k_{1,t} = 0$. Note that the nonnegativity constraints on consumption $c_{1,t}$ and $c_{2,t+1}$ are strict inequalities. Nonpositive consumption is not defined in the utility function \eqref{EqHHutilCRRA}. Furthermore, we also do not allow the government transfer program to zero out the consumption and savings of the young, as shown in Section \ref{SecModelGovt} equation \eqref{EqGovt_Ht}. Finally, the strict inequality on savings $k_{2,t+1}>0$ comes from the market clearing condition \eqref{EqModelMC_K}, that negative capital stock $K_t<0$ is not defined in the production function \eqref{EqModelFirmProdFunc}, and that zero capital stock $K_t=0$ would results in zero output $Y_t=0$ from \eqref{EqModelFirmProdFunc}, zero wage $w_t=0$ from \eqref{EqModelFirm_FOCL}, and therefore zero first period consumption $c_{1,t}=0$ from \eqref{EqHHbc1}.
+    The variables $w_t$ and $r_t$ are the wage and interest rate, respectively. And we follow \citet{Blanchard:2019} in including a potential exogenous transfer unrelated to the intergenerational transfer $H_t$ in the first period of life $x_1$ and in the second period of life $x_2$. These solvency preserving income transfers are one of the key drivers of the results from \cite{Blanchard:2019}.
+
+    Let new households have no initial capital $k_{1,t} = 0$. Note that the nonnegativity constraints on consumption $c_{1,t}$ and $c_{2,t+1}$ are strict inequalities in equilibrium due to the Inada conditions on the period utility functions. Furthermore, we also do not allow the government transfer program to zero out the consumption and savings of the young, as shown in Section \ref{SecModelGovt} equation \eqref{EqGovt_Ht}. Finally, the strict inequality on savings $k_{2,t+1}>0$ is also an equilibrium condition that comes from the market clearing condition \eqref{EqModelMC_K}, that negative capital stock $K_t<0$ is not defined in the production function \eqref{EqModelFirmProdFunc}, and that zero capital stock $K_t=0$ would result in zero output $Y_t=0$ from \eqref{EqModelFirmProdFunc}, zero wage $w_t=0$ from \eqref{EqModelFirm_FOCL}, and an infinite interest rate $r_t=\infty$ from \eqref{EqModelFirm_FOCK}.
 
     Consumption in the second period of life is characterized by the second period budget constraint.
     \begin{equation}\tag{\ref{EqHHbc2}}
-       c_{2,t+1} = (1+r_{t+1})k_{2,t+1} + w_{t+1}n_2 + H_{t+1} \quad\forall t
+      c_{2,t+1} = (1+r_{t+1})k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \quad\forall t
     \end{equation}
     Note that the nonnegativity constraint on old-age consumption $c_{2,t+1}$ will never bind because everything on the right-hand-side of \eqref{EqHHbc2} is weakly positive. Consumption in the first period of life $c_{1,t}$ and savings in the first period of life $k_{2,t+1}$ are jointly determined by the first period budget constraint \eqref{EqHHbc1} and by the Euler equation that characterizes the optimal young $s=1$ consumption-savings decision that maximizes lifetime utility \eqref{EqHHmaxUtil} subject to constraints \eqref{EqHHbc1}, \eqref{EqHHbc2}, and \eqref{EqHHnonneg}.
-    \begin{equation}\label{EqHHEul_cs}
-       u'\bigl(c_{1,t}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl(c_{2,t+1}\bigr)\Bigr]
+    \begin{equation}\label{EqHHEul_c1}
+      \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[(1 + r_{t+1})\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
     \end{equation}
 
-    By substituting the age $s=1$ and $s=2$ budget constraints \eqref{EqHHbc1} and \eqref{EqHHbc2} into the household Euler equation \eqref{EqHHEul_cs}, we can see that the characterizing equation for savings $k_{2,t+1}$ is one equation with one unknown.
-    \begin{equation}\label{EqHHEul_ks}
-      u'\bigl(w_t n_1 - H_t- k_{2,t+1}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl([1 + r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + H_{t+1}\bigr)\Bigr]
+    By substituting the age $s=1$ and $s=2$ budget constraints \eqref{EqHHbc1} and \eqref{EqHHbc2} into the household Euler equation \eqref{EqHHEul_c1}, we can see that the characterizing equation for savings $k_{2,t+1}$ is one equation with one unknown.
+    \begin{equation}\label{EqHHEul_k2}
+      \frac{1-\beta}{w_t n_1 + x_1 - H_t - k_{2,t+1}} = \beta\frac{E_t\Bigl[(1 + r_{t+1})\bigl([1+r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl([1+r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1}\bigr)^{1-\gamma}\Bigr]} \quad\forall t
     \end{equation}
-    Equation \eqref{EqHHEul_ks} shows that the functional solution for household savings $k_{2,t+1}$ every period is a stationary function $\psi(\cdot)$ of the time path of transfers and prices over the lifetime of the household.
+    Equation \eqref{EqHHEul_k2} shows that the functional solution for household savings $k_{2,t+1}$ every period is a stationary function $\psi(\cdot)$ of the time path of transfers and prices over the lifetime of the household.
     \begin{equation}\label{EqHH_psi}
-      k_{2,t+1} = \psi\bigl(H_t, H_{t+1} w_t, w_{t+1}, r_{t+1}\bigr)
+      k_{2,t+1} = \psi\bigl(H_t, H_{t+1}, w_t, w_{t+1}, r_{t+1}\bigr)
     \end{equation}
 
 
@@ -148,23 +146,23 @@
 
     A unit measure of identical perfectly competitive firms exist in this economy that hire aggregate labor $L_t$ at wage $w_t$ and rent aggregate capital $K_t$ at rental rate $r_t$ every period in order to produce consumption good $Y_t$ according to a Cobb-Douglas production function,
     \begin{equation}\label{EqModelFirmProdFunc}
-       Y_t = F(K_t, L_t) = A_t K_t^\alpha L_t^{1-\alpha} \quad\forall t
+       Y_t = F(K_t, L_t, z_t) = A_t\Bigl[(\alpha)^\frac{1}{\ve}(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)^\frac{1}{\ve}(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t
     \end{equation}
-    where the capital share of income is given by $\alpha\in(0,1)$. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
+    where the capital share of income is given by $\alpha\in(0,1)$ and $\ve>0$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
     \begin{equation}\label{EqModelFirmZAR1}
       \begin{split}
-        z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
-        &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim N(0,\sigma)
+        z_t &= \rho z_{t-1} + (1-\rho)\mu + \epsilon_t \\
+        &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \epsilon_t \sim N(0,\sigma)
       \end{split}
     \end{equation}
     The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
     \begin{equation}\label{EqModelFirmProfMax}
-      \max_{K_t, L_t}\:Pr_t = A_t K_t^\alpha L_t^{1-\alpha} - w_t L_t - (r_t + \delta)K_t \quad\forall t
+      \max_{K_t, L_t}\:Pr_t = F(K_t, L_t, z_t) - w_t L_t - (r_t + \delta)K_t \quad\forall t
     \end{equation}
     where $\delta$ is the per-period depreciation rate of capital. Profit maximization implies that the real wage and real rental rate are determined by the standard first order conditions for the firm.
     \begin{gather}
-      r_t = \alpha e^{z_t}\left(\frac{L_t}{K_t}\right)^{1-\alpha} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
-      w_t = (1-\alpha)e^{z_t}\left(\frac{K_t}{L_t}\right)^\alpha \quad\forall t \label{EqModelFirm_FOCL}
+      r_t = (A_t)^\frac{\ve-1}{\ve}\left[\alpha\frac{Y_t}{K_t}\right]^\frac{1}{\ve} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
+      w_t = (A_t)^\frac{\ve-1}{\ve}\left[(1-\alpha)\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCL}
     \end{gather}
 
     Because the interest rate $r_t$ in \eqref{EqModelFirm_FOCK} is not defined when the capital stock is zero $K_t=0$ and because the wage $w_t$ in \eqref{EqModelFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, we know that both values must be strictly positive $K_t, L_t>0$.
@@ -174,23 +172,23 @@
 
     We model a simple balanced budget public transfer program that takes an amount from the young each period $H_t$ and gives that same amount to the old each period, as shown in the young and old budget constraints.
     \begin{gather}
-      c_{1,t} + k_{2,t+1} = w_t n_1 - H_t \quad\forall t \tag{\ref{EqHHbc1}} \\
-      c_{2,t} = \bigl(1+r_t\bigr)k_{2,t} + w_t n_2 + H_t \quad\forall t \tag{\ref{EqHHbc2}}
+      c_{1,t} + k_{2,t+1} = w_t n_1 + x_1 - H_t \quad\forall t \tag{\ref{EqHHbc1}} \\
+      c_{2,t} = \bigl(1+r_t\bigr)k_{2,t} + w_t n_2 + x_2 + H_t \quad\forall t \tag{\ref{EqHHbc2}}
     \end{gather}
     In contrast to the way the old-age ($s=2$) budget constraint \eqref{EqHHbc2} is displayed in Section \ref{SecModelHH}, we show the budget constraints here for a young household and old household both in period $t$ (two separate individuals). The government budget is made up entirely of this transfer program, and the budget is always balanced because the government revenue taken from the young in period $H_t$ is always equal to the transfers to the old $H_t$ in all periods $t$.
 
-    In most periods, the government promises that the transfer will be $\bar{H}\geq 0$. However, in the case that $\bar{H}>0$, there could exist states of the economy such that $\bar{H}\geq w_t n_1$. In these cases, net labor income is less than or equal to zero, so the strict inequalities on $c_{1,t}$ and $k_{2,t+1}$ in \eqref{EqHHnonneg} must be violated. To avoid negative consumption, we require that the most the government can take from the young in any period is all their income up to some arbitrarily small minimum consumption $c_{min}>0$ and an arbitrarily small amount of savings $K_{min}>0$.
+    In most periods, the government promises that the transfer will be $\bar{H}\geq 0$. However, in the case that $\bar{H}>0$, there could exist states of the economy such that $\bar{H}\geq w_t n_1 + x_1$. In these cases, net labor income is less than or equal to zero, so the strict inequalities on $c_{1,t}$ and $k_{2,t+1}$ in \eqref{EqHHnonneg} must be violated. To avoid negative consumption, we require that the most the government can take from the young in any period is all their income up to some arbitrarily small minimum consumption $c_{min}>0$ and an arbitrarily small amount of savings $K_{min}>0$.
     \begin{equation}\label{EqGovt_Ht}
       \begin{split}
         H_t &\equiv
           \begin{cases}
-            \bar{H} \qquad\qquad\qquad\qquad\:\:\,\text{if}\quad w_t n_1 \geq \bar{H} + c_{min} + K_{min} \\
-            w_t n_1 - c_{min} - K_{min} \quad\text{if}\quad w_t n_1 < \bar{H} + c_{min} + K_{min}
+            \bar{H} \qquad\qquad\qquad\qquad\qquad\:\:\:\,\text{if}\quad w_t n_1 \geq \bar{H} - x_1 + c_{min} + K_{min} \\
+            w_t n_1 + x_1 - c_{min} - K_{min} \quad\text{if}\quad w_t n_1 < \bar{H} - x_1 + c_{min} + K_{min}
           \end{cases} \quad\forall t \\
-          &= \min\left(\bar{H}, w_t n_1 - c_{min} - K_{min}\right) \quad\forall t
+          &= \min\left(\bar{H}, w_t n_1 + x_1 - c_{min} - K_{min}\right) \quad\forall t
       \end{split}
     \end{equation}
-    This rule states that the government implements a balanced budget transfer program from the young to the old every period. And for $\bar{H}>0$, once the wage dips low enough, the government can no longer take $\bar{H}$ from the young. In this case, the government takes all that it can from the young $H_t = w_t n_1 - c_{min} - K_{min}<\bar{H}$ and transfers that amount to the old. The young are left with consumption and savings equal to the minimum $c_{1,t}=c_{min}$ and $k_{2,t+1}=K_{min}$, and the economy shuts down and devolves into autarky.
+    This rule states that the government implements a balanced budget transfer program from the young to the old every period. And for $\bar{H}>0$, once the wage dips low enough, the government can no longer take $\bar{H}$ from the young. In this case, the government takes all that it can from the young $H_t = w_t n_1 + x_1 - c_{min} - K_{min}<\bar{H}$ and transfers that amount to the old. The young are left with consumption and savings equal to the minimum $c_{1,t}=c_{min}$ and $k_{2,t+1}=K_{min}$, and the economy shuts down and devolves into autarky.
 
 
   \subsection{Market clearing}\label{SecModelShutMktClr}
@@ -218,7 +216,7 @@
     \begin{definition}[\textbf{Functional stationary equilibrium}]\label{DefEqlb}
       A non-autarkic functional stationary equilibrium in the two-period-lived overlapping generations model with exogenous labor supply and aggregate shocks is defined by stationary price functions $r(k,z)$ and $w(k,z)$ and a stationary savings function $k'=\psi(k,z)$ for all current state wealth $k$ and total factor productivity component $z$ such that:
       \begin{enumerate}
-        \item households optimize according to \eqref{EqHHbc1} and \eqref{EqHHbc2}, and \eqref{EqHHEul_cs}
+        \item households optimize according to \eqref{EqHHbc1} and \eqref{EqHHbc2}, and \eqref{EqHHEul_c1}
         \item firms optimize according to \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL},
         \item markets clear according to \eqref{EqModelMC_L} and \eqref{EqModelMC_K}.
       \end{enumerate}
@@ -230,52 +228,54 @@
 
     We can solve for the stationary price functions analytically by substituting the market clearing conditions \eqref{EqModelMC_L} and \eqref{EqModelMC_K} into the firms' respective first order conditions \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL}.
     \begin{gather}
-      r_t\equiv r\bigl(k_{2,t}, z_t\bigr) = \alpha e^{z_t}\left(\frac{n_1 + n_2}{k_{2,t}}\right)^{1-\alpha} - \delta \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_r} \\
-      w_t\equiv w\bigl(k_{2,t}, z_t\bigr) = (1-\alpha)e^{z_t}\left(\frac{k_{2,t}}{n_1 + n_2}\right)^\alpha \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_w}
+      r_t\equiv r\bigl(k_{2,t}, z_t\bigr) = (e^{z_t})^\frac{\ve-1}{\ve}\left[\alpha\frac{F(k_{2,t},n_1+n_2,z_t)}{k_{2,t}}\right]^\frac{1}{\ve} - \delta \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_r} \\
+      w_t\equiv w\bigl(k_{2,t}, z_t\bigr) = (e^{z_t})^\frac{\ve-1}{\ve}\left[(1-\alpha)\frac{F(k_{2,t},n_1+n_2,z_t)}{n_1+n_2}\right]^\frac{1}{\ve} \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_w}
     \end{gather}
     We can also solve analytically for the equilibrium expression for the transfer each period $H_t$ as a function of the wealth of the current-period old $k_{2,t}$ and the value of the normally distributed component $z_t$ of the total factor productivity process (as well as the parameters of the promised transfer amount $\bar{H}$ and minimum values of young age consumption $c_{min}$ and aggregate capital $K_{min}$)  by substituting the equilibrium wage expression \eqref{EqModelEqlb_w} into the expression for $H_t$ \eqref{EqGovt_Ht}.
     \begin{equation}\label{EqModelEqlb_H}
-      H_t \equiv H\bigl(k_{2,t}, z_t\bigr) = min\Bigl(\bar{H}, w(k_{2,t},z_t)n_1 - c_{min} - K_{min}\Bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
+      H_t \equiv H\bigl(k_{2,t}, z_t\bigr) = \min\Bigl(\bar{H}, w(k_{2,t},z_t)n_1 + x_1 - c_{min} - K_{min}\Bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
     \end{equation}
 
-    Finally, if we substitute the equilibrium expressions for prices $r(k,z)$ and $w(k,z)$ and the transfer $H(k,z)$ from \eqref{EqModelEqlb_r}, \eqref{EqModelEqlb_w}, and \eqref{EqModelEqlb_H} into the household Euler equation \eqref{EqHHEul_ks} and resulting policy function \eqref{EqHH_psi}, it is clear that the equilibrium savings function $k'=\psi(k,z)$ is a function of the wealth of the current-period old and the value $z_t$ of the normally distributed component of total factor productivity,
+    Finally, if we substitute the equilibrium expressions for prices $r(k,z)$ and $w(k,z)$ and the transfer $H(k,z)$ from \eqref{EqModelEqlb_r}, \eqref{EqModelEqlb_w}, and \eqref{EqModelEqlb_H} into the household Euler equation \eqref{EqHHEul_k2} and resulting policy function \eqref{EqHH_psi}, it is clear that the equilibrium savings function $k'=\psi(k,z)$ is a function of the wealth of the current-period old $k_{2,t}$ and the value $z_t$ of the normally distributed component of total factor productivity,
     \begin{equation}\label{EqModelEqlb_Eul}
       \begin{split}
-        &u'\Bigl(w(k_{2,t},z_t) n_1 - H(k_{2,t},z_t) - k_{2,t+1}\Bigr) = \\
+        &\frac{1-\beta}{w(k_{2,t},z_t) n_1 + x_1 - H(k_{2,t},z_t) - k_{2,t+1}} = \\
         & \quad\beta\int_{z_{t+1}}\biggl[\bigl(1+r(k_{2,t+1},z_{t+1})\bigr)\times \\
-        &\qquad\qquad\qquad u'\Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)\times \\
+        &\qquad\qquad\qquad \Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)^{-\gamma}\times \\
+        &\qquad\qquad\qquad\qquad\qquad f\bigl(z_{t+1}|\rho z_t + (1 - \rho)\mu, \sigma\bigr)\biggr]dz_{t+1} \:\div \\
+        & \quad\int_{z_{t+1}}\biggl[\Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)^{1-\gamma}\times \\
         &\qquad\qquad\qquad\qquad\qquad f\bigl(z_{t+1}|\rho z_t + (1 - \rho)\mu, \sigma\bigr)\biggr]dz_{t+1} \\
         &\qquad\qquad\qquad\qquad\qquad\qquad\qquad \forall z_t, z_{t+1} \quad\text{and}\quad k_{2,t}, k_{2,t+1}>0
       \end{split}
     \end{equation}
     \begin{equation}\label{EqModelEqlb_psi}
-      k_{2,t+1} = \psi\bigl(k_{2,t},z_t\bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
+      k_{2,t+1} = \psi\bigl(k_{2,t},z_t\bigr)>0 \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
     \end{equation}
     where $f(z_{t+1}|\rho z_t + (1-\rho)\mu,\sigma)$ is the probability density function of $z_{t+1}$ distributed normally with mean $\rho z_t + (1-\rho)\mu$ and standard deviation $\sigma$.
 
 
   \subsection{One-period riskless bonds}\label{SecModelRiskless}
 
-    In this section, we derive the return on a riskless bond. We make the simplifying assumption that the riskless bonds are zero absolute supply. However, this characterization can be generalized to cases in which the riskless bonds have exogenous or endogenous positive supply. Because of our zero-supply assumption on the riskless bond, we can separate its derivation from the characterization of the household problem in Section \ref{SecModelHH}. These zero-supply riskless bonds do not influence the rest of the economy. They simply represent another measure of the level of risk present in each period of the economy.
+    In this section, we derive the return on a riskless bond. We make the simplifying assumption that the riskless bonds are zero absolute supply. However, this characterization can be generalized to cases in which the riskless bonds have exogenous positive supply. Because of our zero-supply assumption on the riskless bond, we can separate its derivation from the characterization of the household problem in Section \ref{SecModelHH}. These zero-supply riskless bonds do not influence the rest of the economy. They simply represent another measure of the level of risk present in each period of the economy.
 
     Assume that households have two potential instruments for saving. A household can invest income with the production sector $k_{2,t+1}$ and earn a stochastic risky return next period of $r_t$ and they can buy $b_{2,t+1}$ units of a one-period riskless bond  for price $p_t$ that returns exactly $b_{2,t+1}$ when old. It is clear that old-age households will have no demand for these bonds.
 
     The maximization problem for a generic household can be characterized as choosing risky savings $k_{2,t+1}$ and riskless savings $b_{2,t+1}$ to maximize lifetime utility subject to budget constraints.
     \begin{align}
-      &\max_{k_{2,t+1},b_{2,t+1}}\: u(c_{1,t}) + \beta E_t\left[u(c_{2,t+1})\right] \quad \forall t \label{EqModelRiskMaxUtil} \\
-      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} + p_t b_{2,t+1} = w_t n_1 - H_t \label{EqModelRisk_bc1} \\
-      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + b_{2,t+1} + w_{t+1}n_2 + H_{t+1} \label{EqModelRisk_bc2} \\
+      &\max_{k_{2,t+1},b_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigl(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \label{EqModelRiskMaxUtil} \\
+      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} + p_t b_{2,t+1} = w_t n_1 + x_1 - H_t \label{EqModelRisk_bc1} \\
+      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + b_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \label{EqModelRisk_bc2} \\
       &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqModelRisk_nonneg}
     \end{align}
     The optimality condition for risky savings $k_{2,t+1}$ is the same Euler equation as in Section \ref{SecModelHH}.
-    \begin{equation}\tag{\ref{EqHHEul_cs}}
-       u'\bigl(c_{1,t}\bigr) = \beta E_t\Bigl[\bigl(1+r_{t+1}\bigr)u'\bigl(c_{2,t+1}\bigr)\Bigr]
+    \begin{equation}\tag{\ref{EqHHEul_c1}}
+       \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[(1 + r_{t+1})\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
     \end{equation}
-    The Euler equation for riskless savinge $b_{2,t+1}$ if the following,
+    The Euler equation for riskless savings $b_{2,t+1}$ is the following,
     \begin{equation}\label{EqModelRisk_rbart}
       \begin{split}
-        \frac{1}{1 + \bar{r}_t} \equiv p_t = \beta\frac{E_t\Bigl[u'\bigl(c_{2,t+1}\bigr)\Bigr]}{u'\bigl(c_{1,t}\bigr)} \quad \forall t \\
-        \Rightarrow\quad \bar{r}_t = \frac{u'\bigl(c_{1,t}\bigr)}{\beta E_t\Bigl[u'\bigl(c_{2,t+1}\bigr)\Bigr]} - 1 \quad\forall t
+        \frac{1}{1 + \bar{r}_t} \equiv p_t = \left(\frac{\beta}{1-\beta}\right)\frac{c_{1,t}E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]} \quad \forall t \\
+        \Rightarrow\quad \bar{r}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{c_{1,t}E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]} - 1 \quad\forall t
       \end{split}
     \end{equation}
     where the price of the riskless bond $p_t$ is defined as the reciprocal of the gross riskless return $1 + \bar{r}_t$. The optimality conditions of the production sector are the same as in Section \ref{SecModelFirm}.
@@ -950,7 +950,7 @@
 
 \end{spacing}
 
-\bibliography{EKP2020}
+\bibliography{Evans2020}
 
 
 \newpage
