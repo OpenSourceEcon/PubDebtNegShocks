@@ -66,7 +66,7 @@
   Richard W. Evans\footnote{University of Chicago, M.A. Program in Computational Social Science, McGiffert House, Room 208, Chicago, IL 60637, (773) 702-9169, \href{mailto:rwevans@uchicago.edu}{rwevans@uchicago.edu}.}
   }
 \date{{\footnotesize{September 2019}} \\
-  {\scriptsize{(version 19.09.a)}}}
+  {\scriptsize{(version 19.09.c)}}}
 \maketitle
 \vspace{-9mm}
 \begin{abstract}
@@ -146,9 +146,9 @@
 
     A unit measure of identical perfectly competitive firms exist in this economy that hire aggregate labor $L_t$ at wage $w_t$ and rent aggregate capital $K_t$ at rental rate $r_t$ every period in order to produce consumption good $Y_t$ according to a Cobb-Douglas production function,
     \begin{equation}\label{EqModelFirmProdFunc}
-       Y_t = F(K_t, L_t, z_t) = A_t\Bigl[(\alpha)^\frac{1}{\ve}(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)^\frac{1}{\ve}(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t
+       Y_t = F(K_t, L_t, z_t) = A_t\Bigl[\alpha(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t
     \end{equation}
-    where the capital share of income is given by $\alpha\in(0,1)$ and $\ve>0$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
+    where the capital share of income is given by $\alpha\in(0,1)$ and $\ve>0$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process. Two important special parameterizations are the unit elasticity case $\ve=1$ in which the limit of \eqref{EqModelFirmProdFunc} is the Cobb-Douglas production function and the perfectly elastic case $\ve=\infty$ in which the production function is linear in $K_t$ and $L_t$ (perfect substitutes).
     \begin{equation}\label{EqModelFirmZAR1}
       \begin{split}
         z_t &= \rho z_{t-1} + (1-\rho)\mu + \epsilon_t \\
@@ -161,8 +161,8 @@
     \end{equation}
     where $\delta$ is the per-period depreciation rate of capital. Profit maximization implies that the real wage and real rental rate are determined by the standard first order conditions for the firm.
     \begin{gather}
-      r_t = (A_t)^\frac{\ve-1}{\ve}\left[\alpha\frac{Y_t}{K_t}\right]^\frac{1}{\ve} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
-      w_t = (A_t)^\frac{\ve-1}{\ve}\left[(1-\alpha)\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCL}
+      r_t = \alpha(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{K_t}\right]^\frac{1}{\ve} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
+      w_t = (1 - \alpha)(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCL}
     \end{gather}
 
     Because the interest rate $r_t$ in \eqref{EqModelFirm_FOCK} is not defined when the capital stock is zero $K_t=0$ and because the wage $w_t$ in \eqref{EqModelFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, we know that both values must be strictly positive $K_t, L_t>0$.
@@ -274,8 +274,8 @@
     The Euler equation for riskless savings $b_{2,t+1}$ is the following,
     \begin{equation}\label{EqModelRisk_rbart}
       \begin{split}
-        \frac{1}{1 + \bar{r}_t} \equiv p_t = \left(\frac{\beta}{1-\beta}\right)\frac{c_{1,t}E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]} \quad \forall t \\
-        \Rightarrow\quad \bar{r}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{c_{1,t}E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]} - 1 \quad\forall t
+        \frac{1}{1 + \bar{r}_t} \equiv p_t = \left(\frac{\beta}{1-\beta}\right)\frac{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]} \quad \forall t \\
+        \Rightarrow\quad \bar{r}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]} - 1 \quad\forall t
       \end{split}
     \end{equation}
     where the price of the riskless bond $p_t$ is defined as the reciprocal of the gross riskless return $1 + \bar{r}_t$. The optimality conditions of the production sector are the same as in Section \ref{SecModelFirm}.

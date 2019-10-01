@@ -6,14 +6,10 @@ Hbar and k20, assuming z0=mu
 '''
 
 # Import packages
-import timeit
 import numpy as np
-# import multiprocessing
-import scipy.stats as sts
 import pickle
-import PubDebt_funcs as funcs
-import PubDebt_parameters as params
-import matplotlib.pyplot as plt
+import PubDebt_funcs_2 as funcs
+# import PubDebt_parameters as params
 
 import os
 
@@ -67,16 +63,78 @@ S          = integer >= 1, number of simulations
 rand_seed  = integer > 0, random seed for simulation
 ------------------------------------------------------------------------
 '''
-p = params.parameters()
+# Household parameters
+yrs_in_per = 25
+beta_an = 0.96
+beta = beta_an ** yrs_in_per
+gamma = 2.2
+c_min = 1e-5
+K_min = 1e-5
+n1 = 1.0
+n2 = 0.0
+nvec = np.array([n1, n2])
+
+# Firm parameters
+alpha = 0.33
+epsilon = 1.0
+delta_an = 0.05
+delta = 1 - ((1 - delta_an) ** yrs_in_per)
+
+# Aggregate shock z parameters
+rho_an = 0.95
+rho = rho_an ** yrs_in_per
+mu_an = 0.0
+sigma_an = 0.4946
+rho_sum = 0.0
+rho2_sum = 0.0
+for y_ind in range(yrs_in_per):
+    rho_sum += rho_an ** y_ind
+    rho2_sum += rho_an ** (2 * y_ind)
+sigma = np.sqrt(rho2_sum * (sigma_an ** 2))
+mu = mu_an * rho_sum
+A_min = 0.0
+if A_min == 0.0:
+    z_min = -np.inf
+elif (A_min > 0.0) and (A_min < np.exp(mu)):
+    z_min = np.log(A_min)
+elif A_min >= np.exp(mu):
+    err_msg = 'Parameter Error: A_min >= e ** (mu)'
+    raise ValueError(err_msg)
+
+# Set government parameters, transfer parameters, and initial values
+Hbar_vec = np.array([0.0, 0.05, 0.11, 0.17])
+Hbar_size = Hbar_vec.shape[0]
+Hbar = Hbar_vec[0]
+k20_vec = np.array([0.11, 0.14, 0.17])
+k20_size = k20_vec.shape[0]
+k20 = k20_vec[0]
+x1_size = 3
+w1n1_avg = 0.1
+x1_vec = np.linspace(0.0, w1n1_avg, x1_size)
+x1 = x1_vec[0]
+x2 = 0.0
+z0 = mu
+tau = None
+
+# Set simulation parameters
+T = 20
+S = 3000
+rand_seed = 25
+
+# p = params.parameters()
+mod_args = \
+    (yrs_in_per, beta_an, beta, gamma, c_min, K_min, n1, n2, nvec,
+     alpha, epsilon, delta_an, delta, rho_an, rho, mu_an, sigma_an,
+     sigma, mu, A_min, z_min, Hbar_vec, Hbar_size, Hbar, k20_vec,
+     k20_size, k20, x1_size, w1n1_avg, x1_vec, x1, x2, z0, tau, T, S)
 
 (H_ind, k_ind, x1_ind, S_ind, zt_vec, default_vec, c1t_vec, c2t_vec,
     Ht_vec, wt_vec, rt_vec, k2t_vec, rbart_vec, rbart_an_vec,
-    EulErr_vec,
-    elapsed_time) = funcs.sim_timepath(p, rand_seed=p.rand_seed)
+    EulErr_vec, elapsed_time) = funcs.sim_timepath(mod_args,
+                                                   rand_seed=rand_seed)
 
 # Print computation time
 funcs.print_time(elapsed_time, 'Single time path')
-
 
 '''
 ------------------------------------------------------------------------
@@ -178,14 +236,14 @@ dict_endog   =
 # Kt_arr = (1 - GameOver_p1) * k2t_arr
 # Yt_arr = (1 - GameOver_p1) * funcs.get_Y(Kt_arr, n_vec, zt_arr, alpha)
 # Ct_arr = (1 - GameOver_p1) * funcs.get_C(c1t_arr, c2t_arr)
-# dict_params = \
-#     {'yrs_in_per': yrs_in_per, 'beta_an': beta_an, 'beta': beta,
-#      'gamma': gamma, 'c_min': c_min, 'K_min': K_min, 'n_vec': n_vec,
-#      'alpha': alpha, 'delta_an': delta_an, 'delta': delta,
-#      'rho_an': rho_an, 'rho': rho, 'mu': mu, 'sigma_an': sigma_an,
-#      'sigma': sigma, 'Hbar_vec': Hbar_vec, 'k20_vec': k20_vec,
-#      'Hbar_size': Hbar_size, 'k20_size': k20_size, 'z0': z0, 'T': T,
-#      'S': S, 'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
+dict_params = \
+    {'yrs_in_per': yrs_in_per, 'beta_an': beta_an, 'beta': beta,
+     'gamma': gamma, 'c_min': c_min, 'K_min': K_min, 'nvec': nvec,
+     'alpha': alpha, 'delta_an': delta_an, 'delta': delta,
+     'rho_an': rho_an, 'rho': rho, 'mu': mu, 'sigma_an': sigma_an,
+     'sigma': sigma, 'Hbar_vec': Hbar_vec, 'k20_vec': k20_vec,
+     'Hbar_size': Hbar_size, 'k20_size': k20_size, 'z0': z0, 'T': T,
+     'S': S, 'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
 dict_endog = \
     {'H_ind': H_ind, 'k_ind': k_ind, 'x1_ind': x1_ind, 'S_ind': S_ind,
      'zt_vec': zt_vec, 'default_vec': default_vec, 'c1t_vec': c1t_vec,
@@ -201,8 +259,8 @@ dict_endog = \
 #      'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr, 'GameOver_arr': GameOver_arr,
 #      'elapsed_time': elapsed_time}
 
-results_sims = {'p': p, 'dict_endog': dict_endog}
-outputfile = os.path.join(output_dir, 'results_sims.pkl')
+results_sims = {'dict_params': dict_params, 'dict_endog': dict_endog}
+outputfile = os.path.join(output_dir, 'results_sims_2.pkl')
 pickle.dump(results_sims, open(outputfile, 'wb'))
 
 print(EulErr_vec)
