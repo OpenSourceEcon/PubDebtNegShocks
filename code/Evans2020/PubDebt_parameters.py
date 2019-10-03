@@ -56,13 +56,15 @@ class parameters:
             raise ValueError(err_msg)
 
         # Set government parameters, transfer parameters, and initial values
-        self.Hbar_vec = np.array([0.0, 0.05, 0.11, 0.17])
+        self.Hbar_vec = np.array([0.0, 0.05])
+        # self.Hbar_vec = np.array([0.0, 0.05, 0.11, 0.17])
         self.Hbar_size = self.Hbar_vec.shape[0]
         self.Hbar = self.Hbar_vec[0]
-        self.k20_vec = np.array([0.11, 0.14, 0.17])
+        self.k20_vec = np.array([0.11, 0.14])
+        # self.k20_vec = np.array([0.11, 0.14, 0.17])
         self.k20_size = self.k20_vec.shape[0]
         self.k20 = self.k20_vec[0]
-        self.x1_size = 3
+        self.x1_size = 2
         self.w1n1_avg = 0.1
         self.x1_vec = np.linspace(0.0, self.w1n1_avg, self.x1_size)
         self.x1 = self.x1_vec[0]
@@ -72,5 +74,5 @@ class parameters:
 
         # Set simulation parameters
         self.T = 20
-        self.S = 3000
+        self.S = 10
         self.rand_seed = 25

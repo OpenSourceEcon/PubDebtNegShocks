@@ -34,3 +34,4 @@ dist/*
 *.zip
 *.ipynb_checkpoints*
 *.cache*
+*dask-worker-space*

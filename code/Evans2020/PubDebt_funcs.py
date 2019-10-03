@@ -21,7 +21,6 @@ Define functions
 '''
 
 
-@numba.jit(forceobj=True)
 def print_time(seconds, type):
     '''
     --------------------------------------------------------------------
@@ -70,7 +69,6 @@ def print_time(seconds, type):
               str(secs) + ' sec')
 
 
-@numba.jit(forceobj=True)
 def trunc_norm_draws(unif_vals, mu, sigma, cut_lb=None, cut_ub=None):
     '''
     --------------------------------------------------------------------
@@ -140,7 +138,6 @@ def trunc_norm_draws(unif_vals, mu, sigma, cut_lb=None, cut_ub=None):
     return tnorm_draws
 
 
-@numba.jit(forceobj=True)
 def get_Y(k2t, zt, p):
     '''
     --------------------------------------------------------------------
@@ -178,14 +175,12 @@ def get_Y(k2t, zt, p):
     return Yt
 
 
-@numba.jit(forceobj=True)
 def get_C(c1t, c2t):
     C = c1t + c2t
 
     return C
 
 
-@numba.jit(forceobj=True)
 def get_w(k2t, zt, p):
     Lt = p.nvec.sum()
     At = np.exp(zt)
@@ -202,7 +197,6 @@ def get_w(k2t, zt, p):
     return wt
 
 
-@numba.jit(forceobj=True)
 def get_r(k2t, zt, p):
     Kt = k2t
     At = np.exp(zt)
@@ -219,7 +213,6 @@ def get_r(k2t, zt, p):
     return rt
 
 
-@numba.jit(forceobj=True)
 def get_Ht(wt, p):
     default = False
     if p.tau is None:
@@ -236,7 +229,6 @@ def get_Ht(wt, p):
     return Ht, default
 
 
-@numba.jit(forceobj=True)
 def get_Hbar_err(zt, *args):
     '''
     This function is the error function that solves for the current
@@ -250,7 +242,6 @@ def get_Hbar_err(zt, *args):
     return Hbar_err
 
 
-@numba.jit(forceobj=True)
 def get_zstar(k2t, ztm1, p):
     z_init = 1.5 * p.mu
     z_mu = p.rho * ztm1 + (1 - p.rho) * p.mu
@@ -270,7 +261,6 @@ def get_zstar(k2t, ztm1, p):
     return z_star, eps_star, A_star, prob_shut
 
 
-@numba.jit(forceobj=True)
 def get_c2t(k2t, zt, p):
     wt = get_w(k2t, zt, p)
     rt = get_r(k2t, zt, p)
@@ -280,7 +270,6 @@ def get_c2t(k2t, zt, p):
     return c2t
 
 
-@numba.jit(forceobj=True)
 def get_MUc_CRRA(c, gamma):
     '''
     --------------------------------------------------------------------
@@ -336,7 +325,6 @@ def get_MUc_CRRA(c, gamma):
     return MUc
 
 
-@numba.jit(forceobj=True)
 def get_c1mgam(c, gamma):
     '''
     --------------------------------------------------------------------
@@ -487,7 +475,6 @@ def get_c2tp1_1mgam_pdf(Atp1, *args):
     return c2tp1_1mgam_pdf
 
 
-@numba.jit(forceobj=True)
 def get_ExpMU_c2tp1_k(k2tp1, zt, args):
     (A_min_cdf, p) = args
     Ex_args = (k2tp1, zt, A_min_cdf, p)
@@ -500,7 +487,6 @@ def get_ExpMU_c2tp1_k(k2tp1, zt, args):
     return MU
 
 
-@numba.jit(forceobj=True)
 def get_ExpMU_c2_b(k2tp1, zt, args):
     (A_min_cdf, p) = args
     Ex_args = (k2tp1, zt, A_min_cdf, p)
@@ -513,39 +499,6 @@ def get_ExpMU_c2_b(k2tp1, zt, args):
     return MU
 
 
-# @jit
-# def get_MU_c2_pdf(Atp1, *args):
-#     (k2tp1, zt, n_vec, c_min, K_min, tau, gamma, alpha, delta, mu, rho,
-#         sigma, A_min_cdf) = args
-#     ztp1 = np.log(Atp1)
-#     z_mu = rho * zt + (1 - rho) * mu
-#     # ztp1 = rho * zt + (1 - rho) * mu + eps
-#     c2tp1_args = (n_vec, c_min, K_min, tau, alpha, delta)
-#     c2tp1 = get_c2t(k2tp1, ztp1, c2tp1_args)
-#     MU_c2tp1 = get_MUc(c2tp1, gamma)
-#     MU_c2tp1_pdf = MU_c2tp1 * (LN_pdf(Atp1, z_mu, sigma) /
-#                                (1 - A_min_cdf))
-
-#     return MU_c2tp1_pdf
-
-
-# @jit
-# def get_U_c2_pdf(Atp1, *args):
-#     (k2tp1, zt, n_vec, c_min, K_min, Hbar, gamma, alpha, delta, mu, rho,
-#         sigma, A_min_cdf) = args
-#     ztp1 = np.log(Atp1)
-#     z_mu = rho * zt + (1 - rho) * mu
-#     # ztp1 = rho * zt + (1 - rho) * mu + eps
-#     c2tp1_args = (n_vec, c_min, K_min, Hbar, alpha, delta)
-#     c2tp1 = get_c2t(k2tp1, ztp1, c2tp1_args)
-#     # print(c2tp1)
-#     U_c2tp1 = get_MUc(c2tp1, gamma)
-#     U_c2tp1_pdf = U_c2tp1 * LN_pdf(Atp1, z_mu, sigma) / (1 - A_min_cdf)
-
-#     return U_c2tp1_pdf
-
-
-@numba.jit(forceobj=True)
 def get_Eul_err(k2tp1, *args):
     (k2t, zt, Ht, p) = args
     wt = get_w(k2t, zt, p)
@@ -564,7 +517,6 @@ def get_Eul_err(k2tp1, *args):
     return Eul_err
 
 
-# @numba.jit(forceobj=True)
 def get_k2tp1(k2t, zt, p):
     '''
     --------------------------------------------------------------------
@@ -619,25 +571,24 @@ def get_k2tp1(k2t, zt, p):
                 #            'get_neg_lf_util().')
                 raise ValueError(err_msg)
 
-        # Compute price of riskless one-period bond
-        MU_c1 = get_MUc_CRRA(c1t, 1.0)
-        mu_ztp1 = p.rho * zt + (1 - p.rho) * p.mu
-        if p.A_min == 0.0:
-            A_min_cdf = 0.0
-        elif p.A_min > 0.0:
-            A_min_cdf = sts.norm.cdf(np.log(p.A_min), loc=mu_ztp1,
-                                     scale=p.sigma)
-        Ex_args = (A_min_cdf, p)
-        Exp_MU_c2tp1 = get_ExpMU_c2_b(k2tp1, zt, Ex_args)
-        pbar_t = (p.beta / (1 - p.beta)) * (Exp_MU_c2tp1 / MU_c1)
-        rbar_t = (1 / pbar_t) - 1
-        rbar_t_an = ((1 / pbar_t) ** (1 / p.yrs_in_per)) - 1
+    # Compute price of riskless one-period bond
+    MU_c1 = get_MUc_CRRA(c1t, 1.0)
+    mu_ztp1 = p.rho * zt + (1 - p.rho) * p.mu
+    if p.A_min == 0.0:
+        A_min_cdf = 0.0
+    elif p.A_min > 0.0:
+        A_min_cdf = sts.norm.cdf(np.log(p.A_min), loc=mu_ztp1,
+                                 scale=p.sigma)
+    Ex_args = (A_min_cdf, p)
+    Exp_MU_c2tp1 = get_ExpMU_c2_b(k2tp1, zt, Ex_args)
+    pbar_t = (p.beta / (1 - p.beta)) * (Exp_MU_c2tp1 / MU_c1)
+    rbar_t = (1 / pbar_t) - 1
+    rbar_t_an = ((1 / pbar_t) ** (1 / p.yrs_in_per)) - 1
 
     return (k2tp1, c1t, Ht, c2t, wt, rt, rbar_t, rbar_t_an, default,
             Eul_err)
 
 
-@numba.jit(forceobj=True)
 def sim_timepath(
     p, H_ind=None, k_ind=None, x1_ind=None, S_ind=None, zt_vec=None,
     rand_seed=None
@@ -681,7 +632,7 @@ def sim_timepath(
     default = False
     t_ind = 0
     while (t_ind < p.T) and not default:
-        print('H_ind=', H_ind, ',k_ind=', k_ind,
+        print('H_ind=', H_ind, ',k_ind=', k_ind, ',x1_ind=', x1_ind,
               ',S_ind=', S_ind, ',t_ind=', t_ind)
         k2t = k2t_vec[t_ind]
         zt = zt_vec[t_ind]

@@ -6,14 +6,15 @@ Hbar and k20, assuming z0=mu
 '''
 
 # Import packages
-import timeit
+import time
 import numpy as np
-# import multiprocessing
 import scipy.stats as sts
+import multiprocessing
+from dask import delayed
+from dask.distributed import Client
 import pickle
 import PubDebt_funcs as funcs
 import PubDebt_parameters as params
-import matplotlib.pyplot as plt
 
 import os
 
@@ -69,13 +70,12 @@ rand_seed  = integer > 0, random seed for simulation
 '''
 p = params.parameters()
 
-(H_ind, k_ind, x1_ind, S_ind, zt_vec, default_vec, c1t_vec, c2t_vec,
-    Ht_vec, wt_vec, rt_vec, k2t_vec, rbart_vec, rbart_an_vec,
-    EulErr_vec,
-    elapsed_time) = funcs.sim_timepath(p, rand_seed=p.rand_seed)
-
-# Print computation time
-funcs.print_time(elapsed_time, 'Single time path')
+# Set up parallel processing
+max_cores = multiprocessing.cpu_count()
+print('Cores available on this machine =', max_cores)
+num_workers = min(max_cores, p.S)
+print('Number of workers =', num_workers)
+client = Client(processes=False)
 
 
 '''
@@ -117,92 +117,101 @@ dict_params  =
 dict_endog   =
 ------------------------------------------------------------------------
 '''
-# start_time = timeit.default_timer()
-# GameOver_arr = np.zeros((Hbar_size, k20_size, x1_size, S, T))
-# unif_mat = \
-#     sts.uniform.rvs(loc=0, scale=1, size=((S, T - 1)),
-#                     random_state=rand_seed)
-# zt_mat = np.zeros((S, T))
-# zt_mat[:, 0] = z0
-# for t_ind in range(1, T):
-#     cut_lb_vec = z_min - rho * zt_mat[:, t_ind - 1] - (1 - rho) * mu
-#     eps_t_vec = funcs.trunc_norm_draws(unif_mat[:, t_ind - 1], 0, sigma,
-#                                        cut_lb_vec)
-#     zt_mat[:, t_ind] = (rho * zt_mat[:, t_ind - 1] + (1 - rho) * mu +
-#                         eps_t_vec)
+start_time = time.process_time()
+default_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, p.T))
+unif_mat = \
+    sts.uniform.rvs(loc=0, scale=1, size=((p.S, p.T - 1)),
+                    random_state=p.rand_seed)
+zt_mat = np.zeros((p.S, p.T))
+zt_mat[:, 0] = p.z0
+for t_ind in range(1, p.T):
+    cut_lb_vec = (p.z_min - p.rho * zt_mat[:, t_ind - 1] -
+                  (1 - p.rho) * p.mu)
+    eps_t_vec = funcs.trunc_norm_draws(unif_mat[:, t_ind - 1], 0,
+                                       p.sigma, cut_lb_vec)
+    zt_mat[:, t_ind] = (p.rho * zt_mat[:, t_ind - 1] +
+                        (1 - p.rho) * p.mu + eps_t_vec)
 
-# c1t_arr = np.zeros_like(GameOver_arr)
-# c2t_arr = np.zeros_like(GameOver_arr)
-# Ht_arr = np.zeros_like(GameOver_arr)
-# wt_arr = np.zeros_like(GameOver_arr)
-# rt_arr = np.zeros_like(GameOver_arr)
-# k2t_arr = np.zeros_like(GameOver_arr)
-# rbart_arr = np.zeros_like(GameOver_arr)
-# rbart_an_arr = np.zeros_like(GameOver_arr)
-# for k_ind in range(k20_size):
-#     k2t_arr[:, k_ind, :, 0] = k20_vec[k_ind]
+c1t_arr = np.zeros_like(default_arr)
+c2t_arr = np.zeros_like(default_arr)
+Ht_arr = np.zeros_like(default_arr)
+wt_arr = np.zeros_like(default_arr)
+rt_arr = np.zeros_like(default_arr)
+k2t_arr = np.zeros_like(default_arr)
+rbart_arr = np.zeros_like(default_arr)
+rbart_an_arr = np.zeros_like(default_arr)
+EulErr_arr = np.zeros_like(default_arr)
+PathTime_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S))
+S_ind_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S))
+for k_ind in range(p.k20_size):
+    k2t_arr[:, k_ind, :, :, 0] = p.k20_vec[k_ind]
 
-# for H_ind in range(Hbar_size):
-#     k2tp1_args = (n_vec, c_min, K_min, Hbar_vec[H_ind], beta, gamma,
-#                   alpha, delta, mu, rho, sigma, A_min, yrs_in_per)
-#     for k_ind in range(k20_size):
-#         for S_ind in range(S):
-#             GameOver = False
-#             t_ind = 0
-#             while (t_ind < T - 1) and not GameOver:
-#                 print('H_ind=', H_ind, ',k_ind=', k_ind,
-#                       ',S_ind=', S_ind, ',t_ind=', t_ind)
-#                 k2t = k2t_arr[H_ind, k_ind, S_ind, t_ind]
-#                 zt = zt_mat[S_ind, t_ind]
-#                 (k2tp1, c1t, Ht, c2t, wt, rt, rbart, rbart_an,
-#                     GameOver) = funcs.get_k2tp1(k2t, zt, k2tp1_args)
-#                 k2t_arr[H_ind, k_ind, S_ind, t_ind + 1] = k2tp1
-#                 c1t_arr[H_ind, k_ind, S_ind, t_ind] = c1t
-#                 Ht_arr[H_ind, k_ind, S_ind, t_ind] = Ht
-#                 c2t_arr[H_ind, k_ind, S_ind, t_ind] = c2t
-#                 wt_arr[H_ind, k_ind, S_ind, t_ind] = wt
-#                 rt_arr[H_ind, k_ind, S_ind, t_ind] = rt
-#                 rbart_arr[H_ind, k_ind, S_ind, t_ind] = rbart
-#                 rbart_an_arr[H_ind, k_ind, S_ind, t_ind] = rbart_an
-#                 if GameOver:
-#                     GameOver_arr[H_ind, k_ind, S_ind, t_ind:] = GameOver
-#                 t_ind += 1
+for H_ind in range(p.Hbar_size):
+    p.Hbar = p.Hbar_vec[H_ind]
+    for k_ind in range(p.k20_size):
+        p.k20 = p.k20_vec[k_ind]
+        for x1_ind in range(p.x1_size):
+            p.x1 = p.x1_vec[x1_ind]
+            simulations = []
+            for S_ind in range(p.S):
+                # (H_ind, k_ind, x1_ind, S_ind, zt_vec, default_vec,
+                #     c1t_vec, c2t_vec, Ht_vec, wt_vec, rt_vec, k2t_vec,
+                #     rbart_vec, rbart_an_vec, EulErr_vec, path_time) = \
+                timepaths_s = delayed(funcs.sim_timepath)(
+                    p, H_ind=H_ind, k_ind=k_ind, x1_ind=x1_ind,
+                    S_ind=S_ind, zt_vec=zt_mat[S_ind, :],
+                    rand_seed=p.rand_seed)
+                simulations.append(timepaths_s)
 
-# elapsed_time = timeit.default_timer() - start_time
-# print('Elapsed time=', elapsed_time)
-# GameOver_p1 = \
-#     np.append(np.zeros((Hbar_size, k20_size, S, 1), dtype=bool),
-#               GameOver_arr[:, :, :, 1:], axis=3)
-# zt_arr = np.tile(zt_mat.reshape((1, 1, S, T)),
-#                  (Hbar_size, k20_size, 1, 1))
-# Kt_arr = (1 - GameOver_p1) * k2t_arr
-# Yt_arr = (1 - GameOver_p1) * funcs.get_Y(Kt_arr, n_vec, zt_arr, alpha)
-# Ct_arr = (1 - GameOver_p1) * funcs.get_C(c1t_arr, c2t_arr)
-# dict_params = \
-#     {'yrs_in_per': yrs_in_per, 'beta_an': beta_an, 'beta': beta,
-#      'gamma': gamma, 'c_min': c_min, 'K_min': K_min, 'n_vec': n_vec,
-#      'alpha': alpha, 'delta_an': delta_an, 'delta': delta,
-#      'rho_an': rho_an, 'rho': rho, 'mu': mu, 'sigma_an': sigma_an,
-#      'sigma': sigma, 'Hbar_vec': Hbar_vec, 'k20_vec': k20_vec,
-#      'Hbar_size': Hbar_size, 'k20_size': k20_size, 'z0': z0, 'T': T,
-#      'S': S, 'A_min': A_min, 'z_min': z_min, 'rand_seed': rand_seed}
+            simulations = delayed(simulations).compute()
+            for S_ind in range(p.S):
+                S_ind_arr[H_ind, k_ind, x1_ind, S_ind] = \
+                    simulations[S_ind][3]  # original S_ind
+                default_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][5]  # default_vec
+                c1t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][6]  # c1t_vec
+                c2t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][7]  # c2t_vec
+                Ht_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][8]  # Ht_vec
+                wt_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][9]  # wt_vec
+                rt_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][10]  # rt_vec
+                k2t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][11][:-1]  # k2t_vec[:-1]
+                rbart_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][12]  # rbart_vec
+                rbart_an_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][13]  # rbart_an_vec
+                EulErr_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
+                    simulations[S_ind][14]  # EulErr_vec
+                PathTime_arr[H_ind, k_ind, x1_ind, S_ind] = \
+                    simulations[S_ind][15]  # path_time
+
+# Print computation time
+total_time = time.process_time() - start_time
+funcs.print_time(total_time, 'All cases-simulations')
+
+default_p1 = \
+    np.append(np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, 1),
+                       dtype=bool), default_arr[:, :, :, :, 1:], axis=4)
+zt_arr = np.tile(zt_mat.reshape((1, 1, 1, p.S, p.T)),
+                 (p.Hbar_size, p.k20_size, p.x1_size, 1, 1))
+Kt_arr = (1 - default_p1) * k2t_arr
+Yt_arr = (1 - default_p1) * funcs.get_Y(Kt_arr, zt_arr, p)
+Ct_arr = (1 - default_p1) * funcs.get_C(c1t_arr, c2t_arr)
 dict_endog = \
-    {'H_ind': H_ind, 'k_ind': k_ind, 'x1_ind': x1_ind, 'S_ind': S_ind,
-     'zt_vec': zt_vec, 'default_vec': default_vec, 'c1t_vec': c1t_vec,
-     'c2t_vec': c2t_vec, 'Ht_vec': Ht_vec, 'wt_vec': wt_vec,
-     'rt_vec': rt_vec, 'k2t_vec': k2t_vec, 'rbart_vec': rbart_vec,
-     'rbart_an_vec': rbart_an_vec, 'EulErr_vec': EulErr_vec,
-     'elapsed_time': elapsed_time}
-# dict_endog = \
-#     {'unif_mat': unif_mat, 'zt_mat': zt_mat, 'c1t_arr': c1t_arr,
-#      'c2t_arr': c2t_arr, 'Ht_arr': Ht_arr, 'wt_arr': wt_arr,
-#      'rt_arr': rt_arr, 'rbart_arr': rbart_arr,
-#      'rbart_an_arr': rbart_an_arr, 'k2t_arr': k2t_arr, 'Kt_arr': Kt_arr,
-#      'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr, 'GameOver_arr': GameOver_arr,
-#      'elapsed_time': elapsed_time}
+    {'unif_mat': unif_mat, 'zt_mat': zt_mat, 'c1t_arr': c1t_arr,
+     'c2t_arr': c2t_arr, 'Ht_arr': Ht_arr, 'wt_arr': wt_arr,
+     'rt_arr': rt_arr, 'rbart_arr': rbart_arr,
+     'rbart_an_arr': rbart_an_arr, 'k2t_arr': k2t_arr,
+     'EulErr_arr': EulErr_arr, 'PathTime_arr': PathTime_arr,
+     'Kt_arr': Kt_arr, 'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr,
+     'default_arr': default_arr, 'S_ind_arr': S_ind_arr,
+     'total_time': total_time}
 
 results_sims = {'p': p, 'dict_endog': dict_endog}
 outputfile = os.path.join(output_dir, 'results_sims.pkl')
 pickle.dump(results_sims, open(outputfile, 'wb'))
-
-print(EulErr_vec)
