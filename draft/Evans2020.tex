@@ -65,8 +65,8 @@
 \author{
   Richard W. Evans\footnote{University of Chicago, M.A. Program in Computational Social Science, McGiffert House, Room 208, Chicago, IL 60637, (773) 702-9169, \href{mailto:rwevans@uchicago.edu}{rwevans@uchicago.edu}.}
   }
-\date{{\footnotesize{September 2019}} \\
-  {\scriptsize{(version 19.09.c)}}}
+\date{{\footnotesize{November 2019}} \\
+  {\scriptsize{(version 19.11.a)}}}
 \maketitle
 \vspace{-9mm}
 \begin{abstract}
@@ -962,6 +962,239 @@
 \setcounter{section}{0}                          % reset section number
 \section*{TECHNICAL APPENDIX}
 
+
+\setcounter{equation}{0}                         % reset counter
+\section{Blanchard (2019) model and calibration}\label{SecTAppBlanch}
+
+  This section shows how the \citet{Blanchard:2019} model is a nested case of the model described in the body of this paper, and it derives and computes some of the results from \citet{Blanchard:2019}.
+
+
+  \subsection{Households}\label{SecTAppBlanchHH}
+
+    \citet{Blanchard:2019} assumes that a unit measure of identical households is born each period and live for two periods. A household supplies a unit of labor inelastically when young $n_{1,t}=1$ for all $t$ and does not work when old $n_{2,t}=0$ for all $t$. Young households have lump sum amount $\bar{H}$ taken from them and given to the current period old each period. Young households also receive an endowment $x_1$ each period. This endowment comes exogenously from some other economy and does not figure into this economy's government budget constraint. Households choose how much to consume each period $c_{1,t}$ and $c_{2,t+1}$ and how much to save in terms of risky savings $k_{2,t+1}$ and riskless bonds $b_{2,t+1}$. The household maximization problem is the following,
+    \begin{align}
+      &\max_{k_{2,t+1},b_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigl(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \tag{\ref{EqHHmaxUtil}} \\
+      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} + p_t b_{2,t+1} = w_t + x_1 - \bar{H} \label{EqTAppBlanch_bc1} \\
+      &\quad\text{and}\quad c_{2,t+1} = R_{t+1}k_{2,t+1} + b_{2,t+1} + \bar{H} \label{EqTAppBlanch_bc2} \\
+      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqModelRisk_nonneg}
+    \end{align}
+    where $R_t$ is the gross return on risky savings, $w_t$ is the wage on the unit of inelastically supplied labor by the young, and $p_t$ is the price per unit of the riskless bond. The resulting Euler equation for optimal risky savings $k_{2,t+1}$ is the following.
+    \begin{equation}\label{EqTAppBlanch_Eul_c1}
+      \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[R_{t+1}\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
+    \end{equation}
+    And the resulting Euler equation for optimal riskless savings $b_{2,t+1}$ is the following.
+    \begin{equation}\label{EqTAppBlanch_Eul_b2}
+      \begin{split}
+        \frac{1}{\bar{R}_t} \equiv p_t = \left(\frac{\beta}{1-\beta}\right)\frac{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]} \quad \forall t \\
+        \Rightarrow\quad \bar{R}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}\quad\forall t
+      \end{split}
+    \end{equation}
+
+    Substituting the period budget constraints \eqref{EqTAppBlanch_bc1} and \eqref{EqTAppBlanch_bc2} into the two Euler equations \eqref{EqTAppBlanch_Eul_c1} and \eqref{EqTAppBlanch_Eul_b2}, we can show that optimal risky savings $k_{2,t+1}$ and riskless savings $b_{2,t+1}$ are functions $\psi(\cdot)$ and $\phi(\cdot)$, respectively, of the time paths of transfers and prices over the lifetime of the household,
+    \begin{align}
+      k_{2,t+1} &= \psi\bigl(\bar{H}, w_t, R_{t+1}\bigr) \quad\forall t \label{EqTAppBlanch_psi} \\
+      b_{2,t+1} &= \phi\bigl(\bar{H}, w_t, R_{t+1}\bigr) \quad\forall t \label{EqTAppBlanch_phi}
+    \end{align}
+    where $R_{t+1}$ is in the expectations operator.
+
+    Implicit in \citet{Blanchard:2019} is the assumption of, generally, an exogenous supply of riskless bonds that is nonnegative $B_t\geq 0$ for all $t$. However, this model specifically assumes a zero supply of riskless bonds $B_t=0$. So the general version of our riskless bond market clearing condition is the following.
+    \begin{equation}\label{EqModelMC_B_gen}
+      b_{2,t} = B_t \quad\forall t
+    \end{equation}
+    With the zero supply assumption $B_t = 0$, the household demand for riskless bonds is zero in equilibrium through the market clearing condition,
+    \begin{equation}\label{EqModelMC_B_zero}
+      b_{2,t} = 0 \quad\forall t
+    \end{equation}
+    all the other endogenous variables are determined by the equilibrium described without the riskless bonds, and the riskless return $\bar{R}_t$ is characterized by Euler equation \eqref{EqTAppBlanch_Eul_b2}.
+
+
+  \subsection{Firms}
+
+    A unit measure of identical perfectly competitive firms exist in this economy that hire aggregate labor $L_t$ at wage $w_t$ and rent aggregate capital $K_t$ at rental rate $r_t$ every period in order to produce consumption good $Y_t$ according to a Cobb-Douglas production function,
+    \begin{equation}\tag{\ref{EqModelFirmProdFunc}}
+       Y_t = F(K_t, L_t, z_t) = A_t\Bigl[\alpha(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t
+    \end{equation}
+    where the capital share of income is given by $\alpha\in(0,1)$ and $\ve>0$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t \equiv e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process. Two important special parameterizations are the unit elasticity case $\ve=1$ in which the limit of \eqref{EqModelFirmProdFunc} is the Cobb-Douglas production function and the perfectly elastic case $\ve=\infty$ in which the production function is linear in $K_t$ and $L_t$ (perfect substitutes).
+    \begin{equation}\label{EqModelFirmZAR1}
+      \begin{split}
+        z_t &= \rho z_{t-1} + (1-\rho)\mu + \epsilon_t \\
+        &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \epsilon_t \sim N(0,\sigma)
+      \end{split}
+    \end{equation}
+    The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
+    \begin{equation}\label{EqModelFirmProfMax}
+      \max_{K_t, L_t}\:Pr_t = F(K_t, L_t, z_t) - w_t L_t - R_t K_t \quad\forall t
+    \end{equation}
+    where this equation implies full depreciation of capital each period $\delta=1$. Profit maximization implies that the real wage and real rental rate are determined by the standard first order conditions for the firm.
+    \begin{gather}
+      R_t = \alpha(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{K_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCK} \\
+      w_t = (1 - \alpha)(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCL}
+    \end{gather}
+
+    Because the risky interest rate $R_t$ in \eqref{EqModelFirm_FOCK} is not defined when the capital stock is zero $K_t=0$ and because the wage $w_t$ in \eqref{EqModelFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, we know that both values must be strictly positive $K_t, L_t>0$.
+
+    \citet{Blanchard:2019} looks at two cases of the production function. Perfect substitutes ($\ve=\infty$) is the simplest case in which the production function simplifies to the following linear function of $K_t$ and $L_t$ and the first order conditions become independent of $K_t$ and $L_t$ and simply functions of $\alpha$ and $A_t$.
+    \begin{align}
+      Y_t &= A_t\bigl[\alpha K_t + (1 - \alpha)L_t\bigr] \quad\forall t \label{EqTAppBlanch_ProdFunc_infty} \\
+      R_t &= \alpha A_t \quad\forall t \label{EqTAppBlanch_FOCK_infty} \\
+      w_t &= (1 - \alpha)(A_t) \quad\forall t \label{EqTAppBlanch_FOCL_infty}
+    \end{align}
+
+    The second case is that of unit elasticity ($\ve=1$), which results in a Cobb-Douglas production function of $K_t$ and $L_t$ with the corresponding first order conditions.
+    \begin{align}
+      Y_t &= A_t\bigl(K_t\bigr)^\alpha\bigl(L_t\bigr)^{1-\alpha} \quad\forall t \label{EqTAppBlanch_ProdFunc_1} \\
+      R_t &= \alpha A_t\left(\frac{L_t}{K_t}\right)^{1 - \alpha} \quad\forall t \label{EqTAppBlanch_FOCK_1} \\
+      w_t &= (1 - \alpha)(A_t)\left(\frac{K_t}{L_t}\right)^\alpha \quad\forall t \label{EqTAppBlanch_FOCL_1}
+    \end{align}
+
+  \subsection{Government budget constraint and market clearing}\label{SecTAppBlanchGBCMC}
+
+    The government budget constraint in \citet{Blanchard:2019} is a simple balanced one in which revenues taken lump sum from the young in every period $\bar{H}$ equal transfer expenditures given to the old each period $\bar{H}$. This does not cause any default or inability for the young to pay because the Blanchard analysis assumes the endowment $x_1$ is big enough so that no adverse shock will make $\bar{H}\geq w_t + x_1$.
+
+    The model includes four market clearing conditions, only three of which are necessary for the solution--the labor market \eqref{EqTAppBlanch_MC_L}, risky capital market \eqref{EqModelMC_K}, riskless bond market \eqref{EqTAppBlanch_MC_B}, and the goods market \eqref{EqTAppBlanch_MC_goods}. We will leave the goods market clearing condition \eqref{EqTAppBlanch_MC_goods} out of the solution method due to its redundancy by Walras' Law.
+    \begin{align}
+      L_t &= 1 \quad\forall t \label{EqTAppBlanch_MC_L} \\
+      K_t &= k_{2,t} \quad\forall t \tag{\ref{EqModelMC_K}} \\
+      B_t &= 0 \quad\forall t \label{EqTAppBlanch_MC_B} \\
+      \begin{split}
+        Y_t &= C_t + K_{t+1} \quad\forall t \\
+        &\quad\text{where}\quad C_t\equiv c_{1,t} + c_{2,t} \quad\text{and}\quad K_{t+1} = I_t
+      \end{split} \label{EqTAppBlanch_MC_goods}
+    \end{align}
+
+
+  \subsection{Equilibrium}\label{SecTAppBlanchEqlb}
+
+    The equilibrium in \citet{Blanchard:2019} is similar to Definition \ref{DefEqlb} from Section \ref{SecModelEqlb}.
+
+    \vspace{5mm}
+    \hrule
+    \vspace{-1mm}
+    \begin{definition}[\textbf{Blanchard (2019) functional stationary equilibrium}]\label{DefTAppBlanchEqlb}
+      A non-autarkic functional stationary equilibrium in the two-period-lived overlapping generations model with exogenous labor supply and aggregate shocks in \citet{Blanchard:2019} is defined by stationary price functions $R(k,z)$, $w(k,z)$, and $\bar{R}(k,z)$ and a stationary risky savings function $k'=\psi(k,z)$ for all current state wealth $k$ and total factor productivity component $z$ such that:
+      \begin{enumerate}
+        \item households optimize according to \eqref{EqTAppBlanch_bc1} and \eqref{EqTAppBlanch_bc2}, \eqref{EqTAppBlanch_Eul_c1}, and \eqref{EqTAppBlanch_Eul_b2}
+        \item firms optimize according to \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL},
+        \item markets clear according to \eqref{EqModelMC_L} and \eqref{EqModelMC_K}.
+      \end{enumerate}
+    \end{definition}
+    \vspace{-2mm}
+    \hrule
+    \vspace{5mm}
+
+
+    \subsubsection{Zero transfers and perfect substitutes}\label{SecTAppBlanchEqlb_inf}
+
+      When transfers are zero $\bar{H}=0$ and capital and labor are perfect substitutes in production $\ve=\infty$, the equilibrium has an analytical solution.
+      \begin{align}
+        R_t &= \alpha e^{z_t} \quad\forall z_t \label{EqTAppBlanch_EqlRt_inf} \\
+        w_t &= (1 - \alpha)e^{z_t} \quad\forall z_t \label{EqTAppBlahcn_Eqlwt_inf} \\
+        \bar{R}_t &= \alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2(1-2\gamma)}{2}} \quad\forall z_t \label{EqTAppBlahcn_EqlRbart_inf} \\
+        c_{1,t} &= (1 - \beta)\Bigl([1 - \alpha]e^{z_t}+ x_1\Bigr) \quad\forall z_t \label{EqTAppBlahcn_Eqlc1t_inf} \\
+        k_{2,t+1} &= \beta\Bigl([1 - \alpha]e^{z_t}+ x_1\Bigr) \quad\forall z_t \label{EqTAppBlahcn_Eqlk2tp1_inf} \\
+        c_{2,t} &= \alpha e^{z_t}k_{2,t} \quad\forall k_{2,t}, z_t \label{EqTAppBlahcn_Eqlc2t_inf}
+      \end{align}
+
+      An important relationship that comes out of the equilibrium solution described above is the percent spread between the expected risky gross return next period and the current riskless return.
+      \begin{equation}\label{EqTAppBlanch_ERtp1_inf}
+        E_t\bigl[R_{t+1}\bigr] = \alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}} \quad\forall t
+      \end{equation}
+      \begin{equation}\label{EqTAppBlanch_spread_inf}
+        \ln\Bigl(E_t\bigl[R_{t+1}\bigr]\Bigr) - \ln\bigl(\bar{R}_t\bigr) = \gamma\sigma^2 \quad\forall t
+      \end{equation}
+
+
+    \subsubsection{Zero transfers and unit elasticity}\label{SecTAppBlanchEqlb_1}
+
+      When transfers are zero $\bar{H}=0$ and capital and labor have unit elasticity in the production function $\ve=1$, the equilibrium also has an analytical solution.
+      \begin{align}
+        R_t &= \alpha e^{z_t}\bigl(k_{2,t}\bigr)^{\alpha-1} \quad\forall k_{2,t},z_t \label{EqTAppBlanch_EqlRt_1} \\
+        w_t &= (1 - \alpha)e^{z_t}\bigl(k_{2,t}\bigr)^\alpha \quad\forall k_{2,t},z_t \label{EqTAppBlahcn_Eqlwt_inf} \\
+        \bar{R}_t &= \frac{\alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2(1-2\gamma)}{2}}}{\Bigl(\beta\bigl[(1-\alpha)e^{z_t}(k_{2,t})^\alpha + x_1\bigr]\Bigr)^{1-\alpha}} \quad\forall k_{2,t},z_t \label{EqTAppBlahcn_EqlRbart_1} \\
+        c_{1,t} &= (1 - \beta)\Bigl([1 - \alpha]e^{z_t}\bigl(k_{2,t}\bigr)^\alpha+ x_1\Bigr) \quad\forall k_{2,t},z_t \label{EqTAppBlahcn_Eqlc1t_1} \\
+        k_{2,t+1} &= \beta\Bigl([1 - \alpha]e^{z_t}\bigl(k_{2,t}\bigr)^\alpha+ x_1\Bigr) \quad\forall k_{2,t},z_t \label{EqTAppBlahcn_Eqlk2tp1_1} \\
+        c_{2,t} &= \alpha e^{z_t}\bigl(k_{2,t}\bigr)^\alpha \quad\forall k_{2,t}, z_t \label{EqTAppBlahcn_Eqlc2t_1}
+      \end{align}
+
+      The analogous relationship to \eqref{EqTAppBlanch_spread_inf} that comes out of the equilibrium solution described above is the percent spread between the expected risky gross return next period and the current riskless return.
+      \begin{equation}\label{EqTAppBlanch_ERtp1_1}
+        E_t\bigl[R_{t+1}\bigr] = \alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}}\bigl(k_{2,t+1}\bigr)^{\alpha-1} \quad\forall t
+      \end{equation}
+      \begin{equation}\tag{\ref{EqTAppBlanch_spread_inf}}
+        \ln\Bigl(E_t\bigl[R_{t+1}\bigr]\Bigr) - \ln\bigl(\bar{R}_t\bigr) = \gamma\sigma^2 \quad\forall t
+      \end{equation}
+
+
+  \subsection{Calibration}\label{SecTAppBlanch_Calib}
+
+    Blanchard assumes that households inelastically supply a unit of labor when young $n_{1,t}=1$ and supply no labor when old $n_{2,t}=0$ for all $t$. He calibrates the capital share of income parameter $\alpha=1/3$. He calibrates the annual standard deviation of the normally distributed component of $z_t$ the total factor productivity process to be $\sigma_{an}=0.2$, which implies a model 25-year standard deviation of $\sigma\approx 0.615$. Blanchard assumes full depreciation of capital each period $\delta=1$.
+
+    Given a calibrated value for $\sigma$, \citet[p. 1213]{Blanchard:2019} identifies the value of $\mu$ independently of $\beta$ using the linear production expression for the expected value of the marginal product of capital \eqref{EqTAppBlanch_ERtp1_inf},
+    \begin{equation}\tag{\ref{EqTAppBlanch_ERtp1_inf}}
+        E_t\bigl[R_{t+1}\bigr] = \alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}} \quad\forall t
+      \end{equation}
+    and calibrates $\gamma$ from the difference in the expected marginal product from the riskless rate \eqref{EqTAppBlanch_spread_inf}, which expression holds in both the linear and Cobb-Douglas production cases.
+    \begin{equation}\tag{\ref{EqTAppBlanch_spread_inf}}
+      \ln\Bigl(E_t\bigl[R_{t+1}\bigr]\Bigr) - \ln\bigl(\bar{R}_t\bigr) = \gamma\sigma^2 \quad\forall t
+    \end{equation}
+    He then identifies $\beta$ independent of $\mu$ using the Cobb-Douglas expression for the expected value of the marginal product of capital, the derivation of which is given below in the lead up to \eqref{EqTAppBlanch_beta}. This use of two separate models to identify two respective parameters to be used in the same model is justified given the independence of the identifying equations on the other parameter.
+
+    To derive the independent expression for $\beta$ from the Cobb-Douglas specification of the model, we must solve for the long run average of $R_{t+1}$, $k_{2,t}$ and $w_t$, of which $x_1$ is a function. The long-run expected value version of the expected marginal product of capital from \eqref{EqTAppBlanch_ERtp1_1} is the following.
+    \begin{equation}\label{EqTAppBlanch_ERtp1_1bar}
+      E\bigl[R_{t+1}\bigr] = \alpha e^{\mu + \frac{\sigma^2}{2}}\beta^{\alpha-1}\bigl[(1-\alpha)e^\mu(\bar{k}_2)^\alpha + x_1\bigr]^{\alpha-1}
+    \end{equation}
+    We solve for the average capital stock as the expected value of savings tomorrow $E_t\bigl[k_{2,t+2}\bigr]$.
+    \begin{equation}\label{EqTAppBlanch_Ek2tp2}
+      E_t\bigl[k_{2,t+2}\bigr] = \beta\Bigl[(1-\alpha)e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}}\bigl(k_{2,t+1}\bigr)^\alpha + x_1\Bigr] \quad\forall t
+    \end{equation}
+    Then let $\bar{k}_2$ be the average $k_{2,t}$ across a simulation by setting $k_{2,t}=\bar{k}_2$ for all $t$ in \eqref{EqTAppBlanch_Ek2tp2} and set $z_t$ to its average value $z_t=\mu$ for all $t$.
+    \begin{equation}\label{EqTAppBlanch_k2bar}
+      \bar{k}_2 = \beta\Bigl[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}\bigl(\bar{k}_2\bigr)^\alpha + x_1\Bigr]
+    \end{equation}
+    We solve for the average wage as the expected value of the wage tomorrow $E_t[w_{t+1}]$.
+    \begin{equation}\label{EqTAppBlanch_Ewtp1}
+      E_t\bigl[w_{t+1}\bigr] = (1-\alpha)e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}}\bigl(k_{2,t+1}\bigr)^\alpha \quad\forall t
+    \end{equation}
+    Then set $k_{2,t}=\bar{k}_2$ and $z_t=\mu$ for all $t$, and the average wage $\bar{w}$ is the following.
+    \begin{equation}\label{EqTAppBlanch_wbar}
+      \bar{w} = (1-\alpha)e^{\mu + \frac{\sigma^2}{2}}\bigl(\bar{k}_2\bigr)^\alpha
+    \end{equation}
+    If we calibrate $x_1$ to be 100 percent of the average wage, then we can rewrite \eqref{EqTAppBlanch_wbar}.
+    \begin{equation}\label{EqTAppBlanch_x1calib}
+      x_1 = (1-\alpha)e^{\mu + \frac{\sigma^2}{2}}\bigl(\bar{k}_2\bigr)^\alpha
+    \end{equation}
+    Substituting \eqref{EqTAppBlanch_x1calib} into \eqref{EqTAppBlanch_k2bar} gives the following equation.
+    \begin{equation}\label{EqTAppBlanch_k2betax1}
+      \bar{k}_2 = 2\beta x_1
+    \end{equation}
+    Then dividing \eqref{EqTAppBlanch_x1calib} by \eqref{EqTAppBlanch_ERtp1_1bar} and substituting in \eqref{EqTAppBlanch_k2betax1} gives an expression for $\beta$ independent of $\mu$, $x_1$, and $\bar{k}_2$.
+    \begin{equation}\label{EqTAppBlanch_beta}
+      \beta = \left(\frac{\alpha}{1-\alpha}\right)\frac{1}{2 E[R_{t+1}]}
+    \end{equation}
+    Substituting \eqref{EqTAppBlanch_k2betax1} into \eqref{EqTAppBlanch_x1calib}, we can solve for $x_1$ as a function of $\mu$ and $\beta$.
+    \begin{equation}\label{EqTAppBlanch_x1}
+      x_1 = \Big[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}(2\beta)^\alpha\Bigr]^\frac{1}{1-\alpha}
+    \end{equation}
+    Finally, we solve for the long-run value of wealth $\bar{k}_2$ but substituting the expression for $x_1$ from \eqref{EqTAppBlanch_x1} into \eqref{EqTAppBlanch_k2betax1}.
+    \begin{equation}\label{EqTAppBlanch_k2barfinal}
+      \bar{k}_2 = 2\beta\Big[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}(2\beta)^\alpha\Bigr]^\frac{1}{1-\alpha}
+    \end{equation}
+
+
+
+
+
+
+
+
+  \subsection{Problems with Blanchard (2019) approach}\label{SecTAppBlanch_Probs}
+
+    \begin{enumerate}
+      \item The calibration approach for $\beta$ and $\mu$ is contradictory. Blanchard calibrates $\mu$ based on one model, the model with perfect substitutes production $\ve=\infty$. He assumes the unit elasticity Cobb-Douglas case $\ve=1$ to calibrate $\beta$ based on the independence of the $E_t[R_{t+1}]$ equation of the respective parameter in each case. But $\beta$ and $\mu$ are calibrated with two different models. [NOTE: The identification of $\gamma$ is nice using the $\ln(E_t[R_{t+1}]-\ln(\bar{R}_t)=\gamma\sigma^2$ equation.]
+    \end{enumerate}
+
+
+\newpage
 \setcounter{equation}{0}                         % reset counter
 \section{Description of calibration}\label{SecTAppCalib}
 

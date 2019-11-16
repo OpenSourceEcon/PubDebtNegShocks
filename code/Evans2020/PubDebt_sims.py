@@ -118,7 +118,8 @@ dict_endog   =
 ------------------------------------------------------------------------
 '''
 start_time = time.process_time()
-default_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, p.T))
+default_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, p.T),
+                       dtype=bool)
 unif_mat = \
     sts.uniform.rvs(loc=0, scale=1, size=((p.S, p.T - 1)),
                     random_state=p.rand_seed)
@@ -164,6 +165,7 @@ for H_ind in range(p.Hbar_size):
                 simulations.append(timepaths_s)
 
             simulations = delayed(simulations).compute()
+
             for S_ind in range(p.S):
                 S_ind_arr[H_ind, k_ind, x1_ind, S_ind] = \
                     simulations[S_ind][3]  # original S_ind
@@ -202,16 +204,68 @@ zt_arr = np.tile(zt_mat.reshape((1, 1, 1, p.S, p.T)),
 Kt_arr = (1 - default_p1) * k2t_arr
 Yt_arr = (1 - default_p1) * funcs.get_Y(Kt_arr, zt_arr, p)
 Ct_arr = (1 - default_p1) * funcs.get_C(c1t_arr, c2t_arr)
+dict_params = \
+    {
+        'yrs_in_per': p.yrs_in_per,
+        'beta_an': p.beta_an,
+        'beta': p.beta,
+        'gamma': p.gamma,
+        'c_min': p.c_min,
+        'K_min': p.K_min,
+        'n1': p.n1,
+        'n2': p.n2,
+        'nvec': p.nvec,
+        'alpha': p.alpha,
+        'epsilon': p.epsilon,
+        'delta_an': p.delta_an,
+        'delta': p.delta,
+        'rho_an': p.rho_an,
+        'rho': p.rho,
+        'mu_an': p.mu_an,
+        'sigma_an': p.sigma_an,
+        'sigma': p.sigma,
+        'mu': p.mu,
+        'A_min': p.A_min,
+        'z_min': p.z_min,
+        'Hbar_vec': p.Hbar_vec,
+        'Hbar_size': p.Hbar_size,
+        'Hbar': p.Hbar,
+        'k20_vec': p.k20_vec,
+        'k20_size': p.k20_size,
+        'k20': p.k20,
+        'x1_size': p.x1_size,
+        'w1n1_avg': p.w1n1_avg,
+        'x1_vec': p.x1_vec,
+        'x1': p.x1,
+        'x2': p.x2,
+        'z0': p.z0,
+        'tau': p.tau,
+        'T': p.T,
+        'S': p.S,
+        'rand_seed': p.rand_seed
+    }
 dict_endog = \
-    {'unif_mat': unif_mat, 'zt_mat': zt_mat, 'c1t_arr': c1t_arr,
-     'c2t_arr': c2t_arr, 'Ht_arr': Ht_arr, 'wt_arr': wt_arr,
-     'rt_arr': rt_arr, 'rbart_arr': rbart_arr,
-     'rbart_an_arr': rbart_an_arr, 'k2t_arr': k2t_arr,
-     'EulErr_arr': EulErr_arr, 'PathTime_arr': PathTime_arr,
-     'Kt_arr': Kt_arr, 'Yt_arr': Yt_arr, 'Ct_arr': Ct_arr,
-     'default_arr': default_arr, 'S_ind_arr': S_ind_arr,
-     'total_time': total_time}
+    {
+        'unif_mat': unif_mat,
+        'zt_mat': zt_mat,
+        'c1t_arr': c1t_arr,
+        'c2t_arr': c2t_arr,
+        'Ht_arr': Ht_arr,
+        'wt_arr': wt_arr,
+        'rt_arr': rt_arr,
+        'rbart_arr': rbart_arr,
+        'rbart_an_arr': rbart_an_arr,
+        'k2t_arr': k2t_arr,
+        'EulErr_arr': EulErr_arr,
+        'PathTime_arr': PathTime_arr,
+        'Kt_arr': Kt_arr,
+        'Yt_arr': Yt_arr,
+        'Ct_arr': Ct_arr,
+        'default_arr': default_arr,
+        'S_ind_arr': S_ind_arr,
+        'total_time': total_time
+    }
 
-results_sims = {'p': p, 'dict_endog': dict_endog}
+results_sims = {'dict_params': dict_params, 'dict_endog': dict_endog}
 outputfile = os.path.join(output_dir, 'results_sims.pkl')
 pickle.dump(results_sims, open(outputfile, 'wb'))

@@ -35,3 +35,6 @@ dist/*
 *.ipynb_checkpoints*
 *.cache*
 *dask-worker-space*
+
+# Microsoft Word utility files
+*~$*
