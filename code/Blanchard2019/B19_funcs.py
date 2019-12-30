@@ -138,7 +138,7 @@ def trunc_norm_draws(unif_vals, mu, sigma, cut_lb=None, cut_ub=None):
     return tnorm_draws
 
 
-def get_Y(k2t, zt, p):
+def get_Y(k2t, zt, args):
     '''
     --------------------------------------------------------------------
     Calculate aggregate output
@@ -151,24 +151,25 @@ def get_Y(k2t, zt, p):
 
     RETURNS: Yt
     '''
+    nvec, epsilon, alpha = args
     close_tol = 1e-6
     Kt = k2t
-    Lt = p.nvec.sum()
+    Lt = nvec.sum()
     At = np.exp(zt)
-    if np.isclose(p.epsilon, 1.0, atol=close_tol):
-        Yt = At * ((Kt) ** p.alpha) * ((Lt) ** (1 - p.alpha))
-    elif np.isinf(p.epsilon):
-        Yt = At * (p.alpha * Kt + (1 - p.alpha) * Lt)
+    if np.isclose(epsilon, 1.0, atol=close_tol):
+        Yt = At * ((Kt) ** alpha) * ((Lt) ** (1 - alpha))
+    elif np.isinf(epsilon):
+        Yt = At * (alpha * Kt + (1 - alpha) * Lt)
     elif (
-        (p.epsilon > 0) and
-        (not np.isclose(p.epsilon, 1.0, atol=close_tol)) and
-        (not np.isinf(p.epsilon))
+        (epsilon > 0) and
+        (not np.isclose(epsilon, 1.0, atol=close_tol)) and
+        (not np.isinf(epsilon))
     ):
-        Yt = At * ((p.alpha * (Kt ** ((p.epsilon - 1) / p.epsilon)) +
-                    (1 - p.alpha) * (Lt **
-                                     ((p.epsilon - 1) / p.epsilon))) **
-                   (p.epsilon / (p.epsilon - 1)))
-    elif p.epsilon <= 0:
+        Yt = At * ((alpha * (Kt ** ((epsilon - 1) / epsilon)) +
+                    (1 - alpha) * (Lt **
+                                   ((epsilon - 1) / epsilon))) **
+                   (epsilon / (epsilon - 1)))
+    elif epsilon <= 0:
         err_msg = 'ERROR get_Y(): epsilon <= 0'
         raise ValueError(err_msg)
 
@@ -181,48 +182,52 @@ def get_C(c1t, c2t):
     return C
 
 
-def get_w(k2t, zt, p):
-    Lt = p.nvec.sum()
+def get_w(k2t, zt, args):
+    nvec, epsilon, alpha = args
+    Lt = nvec.sum()
     At = np.exp(zt)
-    if np.isinf(p.epsilon):
-        wt = (1 - p.alpha) * At
-    elif p.epsilon > 0 and not np.isinf(p.epsilon):
-        Yt = get_Y(k2t, zt, p)
-        wt = ((1 - p.alpha) * (At ** ((p.epsilon - 1) / p.epsilon)) *
-              ((Yt / Lt) ** (1 / p.epsilon)))
-    elif p.epsilon <= 0:
+    if np.isinf(epsilon):
+        wt = (1 - alpha) * At
+    elif epsilon > 0 and not np.isinf(epsilon):
+        Yt = get_Y(k2t, zt, args)
+        wt = ((1 - alpha) * (At ** ((epsilon - 1) / epsilon)) *
+              ((Yt / Lt) ** (1 / epsilon)))
+    elif epsilon <= 0:
         err_msg = 'ERROR get_w(): epsilon <= 0'
         raise ValueError(err_msg)
 
     return wt
 
 
-def get_r(k2t, zt, p):
+def get_r(k2t, zt, args):
+    nvec, epsilon, alpha, delta = args
     Kt = k2t
     At = np.exp(zt)
-    if np.isinf(p.epsilon):
-        rt = p.alpha * At - p.delta
-    elif p.epsilon > 0 and not np.isinf(p.epsilon):
-        Yt = get_Y(k2t, zt, p)
-        rt = (p.alpha * (At ** ((p.epsilon - 1) / p.epsilon)) *
-              ((Yt / Kt) ** (1 / p.epsilon)) - p.delta)
-    elif p.epsilon <= 0:
+    if np.isinf(epsilon):
+        rt = alpha * At - delta
+    elif epsilon > 0 and not np.isinf(epsilon):
+        Y_args = (nvec, epsilon, alpha)
+        Yt = get_Y(k2t, zt, Y_args)
+        rt = (alpha * (At ** ((epsilon - 1) / epsilon)) *
+              ((Yt / Kt) ** (1 / epsilon)) - delta)
+    elif epsilon <= 0:
         err_msg = 'ERROR get_r(): epsilon <= 0'
         raise ValueError(err_msg)
 
     return rt
 
 
-def get_Ht(wt, p):
+def get_Ht(wt, args):
+    tau, Hbar, n1, x1, c_min, K_min = args
     default = False
-    if p.tau is None:
-        Ht = np.minimum(p.Hbar, wt * p.n1 + p.x1 - p.c_min - p.K_min)
-        if Ht < p.Hbar:
+    if tau is None:
+        Ht = np.minimum(Hbar, wt * n1 + x1 - c_min - K_min)
+        if Ht < Hbar:
             default = True
-    elif p.tau > 0.0 and p.tau < 1.0:
-        Ht = p.tau * (wt * p.n1 + p.x1)
-    elif p.tau <= 0.0 or p.tau >= 1.0:
-        err_msg = ('ERROR get_Ht(): tau=' + str(p.tau) + ' is not ' +
+    elif tau > 0.0 and tau < 1.0:
+        Ht = tau * (wt * n1 + x1)
+    elif tau <= 0.0 or tau >= 1.0:
+        err_msg = ('ERROR get_Ht(): tau=' + str(tau) + ' is not ' +
                    'valid value.')
         raise ValueError(err_msg)
 
@@ -235,22 +240,25 @@ def get_Hbar_err(zt, *args):
     period shock that sets w * n1 + x1 - c_min - K_min = Hbar. This is
     the minimum shock that does not create default.
     '''
-    k2t, p = args
-    wt = get_w(k2t, zt, p)
-    Hbar_err = p.Hbar - wt * p.n1 - p.x1 + p.c_min + p.K_min
+    k2t, nvec, epsilon, alpha, Hbar, x1, c_min, K_min = args
+    n1 = nvec[0]
+    w_args = (nvec, epsilon, alpha)
+    wt = get_w(k2t, zt, w_args)
+    Hbar_err = Hbar - wt * n1 - x1 + c_min + K_min
 
     return Hbar_err
 
 
-def get_zstar(k2t, ztm1, p):
-    z_init = 1.5 * p.mu
-    z_mu = p.rho * ztm1 + (1 - p.rho) * p.mu
-    zst_args = (k2t, p)
+def get_zstar(k2t, ztm1, args):
+    mu, rho, nvec, epsilon, alpha, Hbar, x1, c_min, K_min, sigma = args
+    z_init = 1.5 * mu
+    z_mu = rho * ztm1 + (1 - rho) * mu
+    zst_args = (k2t, nvec, epsilon, alpha, Hbar, x1, c_min, K_min)
     results = opt.root(get_Hbar_err, z_init, args=zst_args)
     z_star = results.x.item(0)
-    eps_star = z_star - p.rho * ztm1 - (1 - p.rho) * p.mu
+    eps_star = z_star - rho * ztm1 - (1 - rho) * mu
     A_star = np.exp(z_star)
-    prob_shut = sts.norm.cdf(z_star, z_mu, p.sigma)
+    prob_shut = sts.norm.cdf(z_star, z_mu, sigma)
     if not results.success:
         err_msg = ('zstar ERROR: Root finder did not solve in ' +
                    'get_zstar().')
@@ -261,11 +269,16 @@ def get_zstar(k2t, ztm1, p):
     return z_star, eps_star, A_star, prob_shut
 
 
-def get_c2t(k2t, zt, p):
-    wt = get_w(k2t, zt, p)
-    rt = get_r(k2t, zt, p)
-    Ht, default = get_Ht(wt, p)
-    c2t = (1 + rt) * k2t + wt * p.n2 + p.x2 + Ht
+def get_c2t(k2t, zt, args):
+    nvec, epsilon, alpha, delta, tau, Hbar, x1, c_min, K_min = args
+    n1, n2 = nvec
+    w_args = (nvec, epsilon, alpha)
+    wt = get_w(k2t, zt, w_args)
+    r_args = (nvec, epsilon, alpha, delta)
+    rt = get_r(k2t, zt, r_args)
+    H_args = (tau, Hbar, n1, x1, c_min, K_min)
+    Ht, default = get_Ht(wt, H_args)
+    c2t = (1 + rt) * k2t + wt * n2 + Ht
 
     return c2t
 
@@ -425,14 +438,17 @@ def get_1pr_MU_c2_pdf(Atp1, *args):
     (1 + r_{tp1})*((c_{2,t+1})**(-gamma)) * pdf(A|mu,sigma)
     for a given value of A and k2tp1
     '''
-    (k2tp1, zt, A_min_cdf, p) = args
+    (k2tp1, zt, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta, tau,
+     Hbar, x1, c_min, K_min, gamma, sigma) = args
     ztp1 = np.log(Atp1)
-    z_mu = p.rho * zt + (1 - p.rho) * p.mu
-    c2tp1 = get_c2t(k2tp1, ztp1, p)
-    rtp1 = get_r(k2tp1, ztp1, p)
-    MU_CRRA_c2tp1 = get_MUc_CRRA(c2tp1, p.gamma)
+    z_mu = rho * zt + (1 - rho) * mu
+    c2_args = (nvec, epsilon, alpha, delta, tau, Hbar, x1, c_min, K_min)
+    c2tp1 = get_c2t(k2tp1, ztp1, c2_args)
+    r_args = (nvec, epsilon, alpha, delta)
+    rtp1 = get_r(k2tp1, ztp1, r_args)
+    MU_CRRA_c2tp1 = get_MUc_CRRA(c2tp1, gamma)
     MU_c2tp1_pdf = ((1 + rtp1) * MU_CRRA_c2tp1 *
-                    (LN_pdf(Atp1, z_mu, p.sigma) / (1 - A_min_cdf)))
+                    (LN_pdf(Atp1, z_mu, sigma) / (1 - A_min_cdf)))
 
     return MU_c2tp1_pdf
 
@@ -445,13 +461,15 @@ def get_MU_c2_pdf(Atp1, *args):
     value of ((c_{2,t+1})**(-gamma)) * pdf(A|mu,sigma)
     for a given value of A and k2tp1
     '''
-    (k2tp1, zt, A_min_cdf, p) = args
+    (k2tp1, zt, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta, tau,
+     Hbar, x1, c_min, K_min, gamma, sigma) = args
     ztp1 = np.log(Atp1)
-    z_mu = p.rho * zt + (1 - p.rho) * p.mu
-    c2tp1 = get_c2t(k2tp1, ztp1, p)
-    MU_CRRA_c2tp1 = get_MUc_CRRA(c2tp1, p.gamma)
+    z_mu = rho * zt + (1 - rho) * mu
+    c2_args = (nvec, epsilon, alpha, delta, tau, Hbar, x1, c_min, K_min)
+    c2tp1 = get_c2t(k2tp1, ztp1, c2_args)
+    MU_CRRA_c2tp1 = get_MUc_CRRA(c2tp1, gamma)
     MU_c2tp1_pdf = (MU_CRRA_c2tp1 *
-                    (LN_pdf(Atp1, z_mu, p.sigma) / (1 - A_min_cdf)))
+                    (LN_pdf(Atp1, z_mu, sigma) / (1 - A_min_cdf)))
 
     return MU_c2tp1_pdf
 
@@ -464,23 +482,27 @@ def get_c2tp1_1mgam_pdf(Atp1, *args):
     value of ((c_{2,t+1})**(1-gamma)) * pdf(A|mu,sigma)
     for a given value of A and k2tp1
     '''
-    (k2tp1, zt, A_min_cdf, p) = args
+    (k2tp1, zt, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta, tau,
+     Hbar, x1, c_min, K_min, gamma, sigma) = args
     ztp1 = np.log(Atp1)
-    z_mu = p.rho * zt + (1 - p.rho) * p.mu
-    c2tp1 = get_c2t(k2tp1, ztp1, p)
-    c2tp1_1mgam = get_c1mgam(c2tp1, p.gamma)
+    z_mu = rho * zt + (1 - rho) * mu
+    c2_args = (nvec, epsilon, alpha, delta, tau, Hbar, x1, c_min, K_min)
+    c2tp1 = get_c2t(k2tp1, ztp1, c2_args)
+    c2tp1_1mgam = get_c1mgam(c2tp1, gamma)
     c2tp1_1mgam_pdf = (c2tp1_1mgam *
-                       (LN_pdf(Atp1, z_mu, p.sigma) / (1 - A_min_cdf)))
+                       (LN_pdf(Atp1, z_mu, sigma) / (1 - A_min_cdf)))
 
     return c2tp1_1mgam_pdf
 
 
 def get_ExpMU_c2tp1_k(k2tp1, zt, args):
-    (A_min_cdf, p) = args
-    Ex_args = (k2tp1, zt, A_min_cdf, p)
-    (Exp_1pr_MU_CRRA_c2, _) = intgr.quad(get_1pr_MU_c2_pdf, p.A_min,
+    (A_min, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta, tau, Hbar, x1,
+     c_min, K_min, gamma, sigma) = args
+    Ex_args = (k2tp1, zt, A_min_cdf, rho, mu, nvec, epsilon, alpha,
+               delta, tau, Hbar, x1, c_min, K_min, gamma, sigma)
+    (Exp_1pr_MU_CRRA_c2, _) = intgr.quad(get_1pr_MU_c2_pdf, A_min,
                                          np.inf, args=Ex_args)
-    (Exp_c2_1mgam, _) = intgr.quad(get_c2tp1_1mgam_pdf, p.A_min, np.inf,
+    (Exp_c2_1mgam, _) = intgr.quad(get_c2tp1_1mgam_pdf, A_min, np.inf,
                                    args=Ex_args)
     MU = Exp_1pr_MU_CRRA_c2 / Exp_c2_1mgam
 
@@ -488,11 +510,13 @@ def get_ExpMU_c2tp1_k(k2tp1, zt, args):
 
 
 def get_ExpMU_c2_b(k2tp1, zt, args):
-    (A_min_cdf, p) = args
-    Ex_args = (k2tp1, zt, A_min_cdf, p)
-    (Exp_MU_CRRA_c2, _) = intgr.quad(get_MU_c2_pdf, p.A_min, np.inf,
+    (k2tp1, zt, A_min, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta, tau,
+     Hbar, x1, c_min, K_min, gamma, sigma) = args
+    Ex_args = (k2tp1, zt, A_min_cdf, rho, mu, nvec, epsilon, alpha,
+               delta, tau, Hbar, x1, c_min, K_min, gamma, sigma)
+    (Exp_MU_CRRA_c2, _) = intgr.quad(get_MU_c2_pdf, A_min, np.inf,
                                      args=Ex_args)
-    (Exp_c2_1mgam, _) = intgr.quad(get_c2tp1_1mgam_pdf, p.A_min, np.inf,
+    (Exp_c2_1mgam, _) = intgr.quad(get_c2tp1_1mgam_pdf, A_min, np.inf,
                                    args=Ex_args)
     MU = Exp_MU_CRRA_c2 / Exp_c2_1mgam
 
@@ -500,24 +524,28 @@ def get_ExpMU_c2_b(k2tp1, zt, args):
 
 
 def get_Eul_err(k2tp1, *args):
-    (k2t, zt, Ht, p) = args
-    wt = get_w(k2t, zt, p)
-    c1 = wt * p.n1 + p.x1 - k2tp1 - Ht
+    (k2t, zt, Ht, nvec, epsilon, beta, alpha, delta, x1, rho, mu, sigma,
+     A_min, tau, Hbar, c_min, K_min, gamma, sigma) = args
+    n1 = nvec[0]
+    w_args = (nvec, epsilon, alpha)
+    wt = get_w(k2t, zt, w_args)
+    c1 = wt * n1 + x1 - k2tp1 - Ht
     MU_c1 = get_MUc_CRRA(c1, 1.0)
-    mu_ztp1 = p.rho * zt + (1 - p.rho) * p.mu
-    if p.A_min == 0.0:
+    mu_ztp1 = rho * zt + (1 - rho) * mu
+    if A_min == 0.0:
         A_min_cdf = 0.0
-    elif p.A_min > 0.0:
-        A_min_cdf = sts.norm.cdf(np.log(p.A_min), loc=mu_ztp1,
-                                 scale=p.sigma)
-    MU_args = (A_min_cdf, p)
+    elif A_min > 0.0:
+        A_min_cdf = sts.norm.cdf(np.log(A_min), loc=mu_ztp1,
+                                 scale=sigma)
+    MU_args = (A_min, A_min_cdf, rho, mu, nvec, epsilon, alpha, delta,
+               tau, Hbar, x1, c_min, K_min, gamma, sigma)
     Exp_MU_ctp1 = get_ExpMU_c2tp1_k(k2tp1, zt, MU_args)
-    Eul_err = MU_c1 - (p.beta / (1 - p.beta)) * Exp_MU_ctp1
+    Eul_err = MU_c1 - (beta / (1 - beta)) * Exp_MU_ctp1
 
     return Eul_err
 
 
-def get_k2tp1(k2t, zt, p):
+def get_k2tp1(k2t, zt, args):
     '''
     --------------------------------------------------------------------
     Solve for k2tp1
@@ -525,45 +553,67 @@ def get_k2tp1(k2t, zt, p):
     --------------------------------------------------------------------
     --------------------------------------------------------------------
     '''
+    (Hbar, beta, gamma, k20, rho, mu, sigma, x1, nvec, epsilon, alpha,
+     delta, tau, c_min, K_min, A_min, yrs_in_per) = args
+    n1 = nvec[0]
     krange_tol = 0.01
-    wt = get_w(k2t, zt, p)
-    Ht, default = get_Ht(wt, p)
-    rt = get_r(k2t, zt, p)
-    c2t = get_c2t(k2t, zt, p)
+    w_args = (nvec, epsilon, alpha)
+    wt = get_w(k2t, zt, w_args)
+    H_args = (tau, Hbar, n1, x1, c_min, K_min)
+    Ht, default = get_Ht(wt, H_args)
+    r_args = (nvec, epsilon, alpha, delta)
+    rt = get_r(k2t, zt, r_args)
+    c2_args = (nvec, epsilon, alpha, delta, tau, Hbar, x1, c_min, K_min)
+    c2t = get_c2t(k2t, zt, c2_args)
+    # Compute A_min_cdf
+    mu_ztp1 = rho * zt + (1 - rho) * mu
+    if A_min == 0.0:
+        A_min_cdf = 0.0
+    elif A_min > 0.0:
+        A_min_cdf = sts.norm.cdf(np.log(A_min), loc=mu_ztp1,
+                                 scale=sigma)
     if default:
         print('Default: Ht < Hbar ==> ' +
               'wt * n1 + x1 - c_min - K_min < Hbar')
-        k2tp1 = p.K_min
-        c1t = p.c_min
+        k2tp1 = K_min
+        c1t = c_min
+        MU_c1 = get_MUc_CRRA(c1t, 1.0)
         Eul_err = 0.0
     elif not default:  # wt * n1 + x1 - c_min - K_min >= Hbar
-        k2tp1_max = wt * p.n1 + p.x1 - p.c_min - Ht
+        # Compute k2tp1_max
+        k2tp1_max = wt * n1 + x1 - c_min - Ht
         if (
-            (k2tp1_max - p.K_min < krange_tol) and
-            (k2tp1_max - p.K_min >= 0.0)
+            (k2tp1_max - K_min < krange_tol) and
+            (k2tp1_max - K_min >= 0.0)
         ):
             print('Too small maximization range: ' +
                   'k2tp1_max - K_min too small.')
-            k2tp1 = 0.5 * p.K_min + 0.5 * k2tp1_max
-            c1t = wt * p.n1 + p.x1 - k2tp1 - Ht
-            eul_args = (k2t, zt, Ht, p)
+            k2tp1 = 0.5 * K_min + 0.5 * k2tp1_max
+            c1t = wt * n1 + x1 - k2tp1 - Ht
+            MU_c1 = get_MUc_CRRA(c1t, 1.0)
+            eul_args = (k2t, zt, Ht, nvec, epsilon, beta, alpha, delta,
+                        x1, rho, mu, sigma, A_min, A_min_cdf, tau, Hbar,
+                        c_min, K_min, gamma, sigma)
             Eul_err = get_Eul_err(k2tp1, *eul_args)
-        elif k2tp1_max - p.K_min < 0.0:
+        elif k2tp1_max - K_min < 0.0:
             err_msg = 'Problem in get_k2tp1(): k2tp1_max - K_min <= 0.'
             raise ValueError(err_msg)
-        elif k2tp1_max - p.K_min >= krange_tol:
-            k2_init = 0.5 * k2tp1_max - 0.5 * p.K_min
-            k_args = (k2t, zt, Ht, p)
+        elif k2tp1_max - K_min >= krange_tol:
+            k2_init = 0.5 * k2tp1_max + 0.5 * K_min
+            eul_args = (k2t, zt, Ht, nvec, epsilon, beta, alpha, delta,
+                        x1, rho, mu, sigma, A_min, tau, Hbar, c_min,
+                        K_min, gamma, sigma)
             # print('K_min=', K_min, ', k2tp1_max=', k2tp1_max)
-            results = opt.root(get_Eul_err, k2_init, args=k_args)
+            results = opt.root(get_Eul_err, k2_init, args=eul_args)
             # k2tp1 = results.root
             # results = opt.minimize_scalar(get_neg_lf_util,
             #                               bounds=(K_min, k2tp1_max),
             #                               method='bounded', args=k_args)
             # k2tp1 = results.root
             k2tp1 = results.x
-            c1t = wt * p.n1 + p.x1 - k2tp1 - Ht
+            c1t = wt * n1 + x1 - k2tp1 - Ht
             Eul_err = results.fun
+            MU_c1 = get_MUc_CRRA(c1t, 1.0)
             # if not results.converged:
             if not results.success:
                 err_msg = 'Root finder did not solve in get_Eul_err().'
@@ -572,25 +622,22 @@ def get_k2tp1(k2t, zt, p):
                 raise ValueError(err_msg)
 
     # Compute price of riskless one-period bond
-    MU_c1 = get_MUc_CRRA(c1t, 1.0)
-    mu_ztp1 = p.rho * zt + (1 - p.rho) * p.mu
-    if p.A_min == 0.0:
-        A_min_cdf = 0.0
-    elif p.A_min > 0.0:
-        A_min_cdf = sts.norm.cdf(np.log(p.A_min), loc=mu_ztp1,
-                                 scale=p.sigma)
-    Ex_args = (A_min_cdf, p)
+    Ex_args = (k2tp1, zt, A_min, A_min_cdf, rho, mu, nvec, epsilon,
+               alpha, delta, tau, Hbar, x1, c_min, K_min, gamma, sigma)
     Exp_MU_c2tp1 = get_ExpMU_c2_b(k2tp1, zt, Ex_args)
-    pbar_t = (p.beta / (1 - p.beta)) * (Exp_MU_c2tp1 / MU_c1)
+    pbar_t = (beta / (1 - beta)) * (Exp_MU_c2tp1 / MU_c1)
     rbar_t = (1 / pbar_t) - 1
-    rbar_t_an = ((1 / pbar_t) ** (1 / p.yrs_in_per)) - 1
+    rbar_t_an = ((1 / pbar_t) ** (1 / yrs_in_per)) - 1
 
     return (k2tp1, c1t, Ht, c2t, wt, rt, rbar_t, rbar_t_an, default,
             Eul_err)
 
 
 def sim_timepath(
-    p, H_ind=None, k_ind=None, x1_ind=None, S_ind=None, zt_vec=None,
+    Hbar, beta, gamma, k20, sigma, x1, T, z0, z_min, rho, mu, nvec,
+    epsilon, alpha, delta, tau, c_min, K_min, A_min, yrs_in_per,
+    H_ind=None, risk_type_ind=None, risk_val_ind=None,
+    avgrtp1_ind=None, avgrbart_ind=None, S_ind=None, zt_vec=None,
     rand_seed=None
 ):
     start_time = time.process_time()
@@ -598,46 +645,58 @@ def sim_timepath(
     #     eps, delta, mu, rho, sigma, A_min, z_min, yrs_in_per, T) = args
     if H_ind is None:
         H_ind = 0
-    if k_ind is None:
-        k_ind = 0
+    if risk_type_ind is None:
+        risk_type_ind = 0
+    if risk_val_ind is None:
+        risk_val_ind = 0
+    if avgrtp1_ind is None:
+        avgrtp1_ind = 0
+    if avgrbart_ind is None:
+        avgrbart_ind = 0
     if S_ind is None:
         S_ind = 0
     if zt_vec is None:
         if rand_seed is None:
             rand_seed = random.randint(1, 1000)
-        zt_vec = np.zeros(p.T)
-        unif_vec = sts.uniform.rvs(loc=0, scale=1, size=(p.T - 1),
+        zt_vec = np.zeros(T)
+        unif_vec = sts.uniform.rvs(loc=0, scale=1, size=(T - 1),
                                    random_state=rand_seed)
-        zt_vec[0] = p.z0
-        for t_ind in range(1, p.T):
-            cut_lb = (p.z_min - p.rho * zt_vec[t_ind - 1] -
-                      (1 - p.rho) * p.mu)
-            eps_t = trunc_norm_draws(unif_vec[t_ind - 1], 0, p.sigma,
+        zt_vec[0] = z0
+        for t_ind in range(1, T):
+            cut_lb = (z_min - rho * zt_vec[t_ind - 1] -
+                      (1 - rho) * mu)
+            eps_t = trunc_norm_draws(unif_vec[t_ind - 1], 0, sigma,
                                      cut_lb)
-            zt_vec[t_ind] = (p.rho * zt_vec[t_ind - 1] +
-                             (1 - p.rho) * p.mu + eps_t)
+            zt_vec[t_ind] = (rho * zt_vec[t_ind - 1] +
+                             (1 - rho) * mu + eps_t)
 
-    default_vec = np.zeros(p.T, dtype=bool)
-    c1t_vec = np.zeros(p.T)
-    c2t_vec = np.zeros(p.T)
-    Ht_vec = np.zeros(p.T)
-    wt_vec = np.zeros(p.T)
-    rt_vec = np.zeros(p.T)
-    k2t_vec = np.zeros(p.T + 1)
-    EulErr_vec = np.zeros(p.T)
-    k2t_vec[0] = p.k20
-    rbart_vec = np.zeros(p.T)
-    rbart_an_vec = np.zeros(p.T)
+    default_vec = np.zeros(T, dtype=bool)
+    c1t_vec = np.zeros(T)
+    c2t_vec = np.zeros(T)
+    Ht_vec = np.zeros(T)
+    wt_vec = np.zeros(T)
+    rt_vec = np.zeros(T)
+    k2t_vec = np.zeros(T + 1)
+    EulErr_vec = np.zeros(T)
+    k2t_vec[0] = k20
+    rbart_vec = np.zeros(T)
+    rbart_an_vec = np.zeros(T)
 
     default = False
     t_ind = 0
-    while (t_ind < p.T) and not default:
-        print('H_ind=', H_ind, ',k_ind=', k_ind, ',x1_ind=', x1_ind,
-              ',S_ind=', S_ind, ',t_ind=', t_ind)
+    while (t_ind < T) and not default:
+        # print('H_ind=', H_ind, ',risk_type_ind=', risk_type_ind,
+        #       ',risk_val_ind=', risk_val_ind,
+        #       ',avgrtp1_ind=', avgrtp1_ind,
+        #       ',avgrbart_ind=', avgrbart_ind,
+        #       ',S_ind=', S_ind, ',t_ind=', t_ind)
         k2t = k2t_vec[t_ind]
         zt = zt_vec[t_ind]
+        k2tp1_args = (Hbar, beta, gamma, k20, rho, mu, sigma, x1, nvec,
+                      epsilon, alpha, delta, tau, c_min, K_min, A_min,
+                      yrs_in_per)
         (k2tp1, c1t, Ht, c2t, wt, rt, rbart, rbart_an, default,
-            eul_err) = get_k2tp1(k2t, zt, p)
+            eul_err) = get_k2tp1(k2t, zt, k2tp1_args)
         k2t_vec[t_ind + 1] = k2tp1
         EulErr_vec[t_ind] = eul_err
         c1t_vec[t_ind] = c1t
@@ -650,9 +709,16 @@ def sim_timepath(
         if default:
             default_vec[t_ind:] = default
         t_ind += 1
+    ut_vec = ((1 - beta) * np.log(c1t_vec[:-1]) +
+              beta * (1 / (1 - gamma)) *
+              np.log(c2t_vec[1:] ** (1 - gamma)))
 
     elapsed_time = time.process_time() - start_time
+    print('H_ind=', H_ind, ',risk_type_ind=', risk_type_ind,
+          ',risk_val_ind=', risk_val_ind, ',avgrtp1_ind=', avgrtp1_ind,
+          ',avgrbart_ind=', avgrbart_ind, ',S_ind=', S_ind,)
 
-    return (H_ind, k_ind, x1_ind, S_ind, zt_vec, default_vec, c1t_vec,
-            c2t_vec, Ht_vec, wt_vec, rt_vec, k2t_vec, rbart_vec,
+    return (H_ind, risk_type_ind, risk_val_ind, avgrtp1_ind,
+            avgrbart_ind, S_ind, zt_vec, default_vec, c1t_vec,
+            c2t_vec, ut_vec, Ht_vec, wt_vec, rt_vec, k2t_vec, rbart_vec,
             rbart_an_vec, EulErr_vec, elapsed_time)

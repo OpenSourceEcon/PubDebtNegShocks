@@ -60,897 +60,305 @@
 \begin{document}
 
 \begin{titlepage}
-\title{A Note on Negative Shocks, Public Debt, and Interest Rates \thanks{This research benefited from support from the \href{https://www.oselab.org/}{Open Source Economics Laboratory} at the University of Chicago. All Python code and documentation for the computational model is available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
+\title{Public Debt, and Interest Rates, and Negative Shocks \thanks{This research benefited from support from the \href{https://www.oselab.org/}{Open Source Economics Laboratory} at the University of Chicago. All Python code and documentation for the computational model and quantitative analyses are available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
 }
 \author{
   Richard W. Evans\footnote{University of Chicago, M.A. Program in Computational Social Science, McGiffert House, Room 208, Chicago, IL 60637, (773) 702-9169, \href{mailto:rwevans@uchicago.edu}{rwevans@uchicago.edu}.}
   }
-\date{{\footnotesize{November 2019}} \\
-  {\scriptsize{(version 19.11.a)}}}
+\date{{\footnotesize{December 2019}} \\
+  {\scriptsize{(version 19.12.c)}}}
 \maketitle
 \vspace{-9mm}
 \begin{abstract}
-  Put abstract here.
+  Debt-to-GDP ratios across developed economies are at historically high levels and government borrowing rates have remained persistently low. Blanchard (2019) provides evidence that the fiscal costs are low of increased government debt in low interest rate environments and that long-run average welfare effects can be positive. This paper provides a replication of some of the Blanchard results and tests the robustness of those results to some key assumptions about risk in the model. This study finds that the replication of Blanchard's stated approach results in no long-run average welfare gains from increased government debt and that those welfare losses are exacerbated if some strong risk-reducing assumptions are relaxed to more realistic values. Furthermore, I argue that the Blanchard calibration strategy also biases the results toward more beneficial government debt.
   \vspace{3mm}
 
-  \noindent\textit{keywords:}\: [Put keywords here.]
+  \noindent\textit{keywords:}\: Public debt, overlapping generations, fiscal policy, interest rates
 
   \vspace{3mm}
 
-  \noindent\textit{JEL classification:} [Put JEL codes here.]
+  \noindent\textit{JEL classification:} C63, D15, E43, E62, G12, H63
 
 \end{abstract}
 \thispagestyle{empty}
 \end{titlepage}
 
 
-\begin{spacing}{1.5}
+% \begin{spacing}{1.5}
 
 
 \section{Introduction}\label{SecIntro}
 
-  % \noindent Outline
-  %    \begin{itemize}
-  %       \item Fiscal limits have become important in the aftermath of the Great Recession as many countries are facing the risk of defaulting on their sovereign debt. In order to avoid default and reduce unfunded policies, governments are also changing revenue and expenditure characteristics of their fiscal transfer programs. These policy changes could be defined as a type of fiscal default in that the governments are reneging on promised transfers.
-  %       \item \citet{LeeperWalker:2011} discuss ``models of fiscal limits and lays out a research agenda to integrate political economy and empirical considerations with general equilibrium models of monetary and fiscal interactions."
-  %          \begin{itemize}
-  %             \item They suggest that discussing large changes in fiscal policy, rather than sovereign debt default, is probably the more productive line to pursue for advanced economies.
-  %             \item They define the fiscal limit as ``the point beyond which taxes and government expenditures can no longer adjust to stabilize the value of government debt."
-  %          \end{itemize}
-  %       \item Popular measures of a country's degree of indebtedness or fiscal insolvency, such as the deficit or the debt-to-GDP ratio, are not well defined or offer an incomplete picture. \citet{AuerbachGokhaleKotlikoff:1991} proposed a long-run measure of fiscal insolvency---``generational accounting''---in which the long-run fiscal burden is calculated as the net present value of expected future government revenues minus the net present value of expected future government expenditures minus the current debt. In the face of unsustainable policy, we create a measure of the degree to which promised government transfers are not sustainable in the long-run by the government's ability to pay. We define the fiscal gap as the net present value of promised transfers minus the net present value of expected actual transfers as a percent of the net present value of real output.
-  %    \end{itemize}
+  Then outgoing President of the American Economic Association, Olivier Blanchard, gave the AEA Presidential Address at the January 2019 annual meeting on a timely topic on which a consensus has not yet been established in the field and among policy makers. \citet{Blanchard:2019} provides evidence that the fiscal and welfare costs of public debt may be very small in economic environments of low interest rates. A significant contribution of his paper shows that the United States is in a prolonged period of low interest rates, calculates a careful measure of average borrowing rate for U.S. government debt, and provides evidence that this low-interest-rate environment is likely to persist. This topic of fiscal and welfare costs of public debt is also timely because debt-to-GDP ratios among developed countries are historically high, and the policy response to increased debt has been varied since the 2008-2009 global recession.
+
+  It is mechanically true that the fiscal cost of expanded public debt is low in a low-interest-rate environment. That is, if the borrowing rate for government debt is less than the rate of economic growth $r_t<g_t$ and if new debt from the primary deficit $x_t$ does not outsize the natural reduction in debt-to-GDP from its previous stock $d_t$, then the future debt-to-GDP ratio $d_{t+1}$ falls.
+  \begin{equation*}
+    d_{t+1} = \left(\frac{1+r_{t+1}}{1+g_{t+1}}\right)d_t + x_t
+  \end{equation*}
+  Despite the many interesting questions having to do with the dynamics of fiscal costs on the government budget constraint, this paper only addresses them indirectly. Instead, I focus on the welfare effect of increased debt in a low interest rate environment.
+
+  This paper replicates the stated approach of the \citet{Blanchard:2019} paper and explores the robustness of its ``strong argument for using fiscal policy to sustain demand'' in a persistent low-interest-rate environment with respect to two of the paper's main assumptions. First, in my replication of the Blanchard approach, I am not able to find any positive long-run average welfare gains from increasing public debt in any of the suggested calibrations.\footnote{Although the code for \citet{Blanchard:2019} is publicly available at \href{https://piie.com/system/files/documents/wp19-4_0.zip}{https://piie.com/system/files/documents/wp19-4\_0.zip}, I was not able to isolate why the results of his results and my results differed. However, there do seem to be inconsistencies in the listed axes and calibration values in his Figures 7 through 10.} Next, using Blanchard's calibration strategy, I test whether his long-run average welfare effects of increased debt survive realistic increases in risk. In his model, Blanchard makes a strong assumption that forces the risk from public debt to be low. He assumes that each agent receives a ``manna from heaven'' consumption endowment when young that is large enough to preclude any form of government default on its commitment to transfer resources from the young to the old. The size of this assumed transfer is equal to the average wage an individual would expect to earn in a regime in which the government makes no fiscal tax on the young. Furthermore, this endowment does not enter into any government budget constraint or resource constraint and, therefore, provides a costless safety net to both individuals and government. This is a very strong assumption about risk exposure in this model economy.
+
+  A more subtle assumption of \citet{Blanchard:2019} is his calibration approach. The model is calibrated to match low average risky returns, low average riskless interest rates, and small average spreads between the two. The interaction with this calibration approach and the endowment assumption previously discussed bias Blanchard's results toward positive welfare effects of increased debt.
+
+  A large literature connects fiscal stress to increasing equity premia or spreads between the risky return and riskless return. The \citet{Blanchard:2019} modeling approach is nearly identical to the approach of \citet{EvansEtAl:2013}, who show that increased government debt leads to more frequent default which in turn increases the interest rate spread. In particular, \citet{EvansEtAl:2013} find that the equity premium increases as the economy gets closer to a default event.
+
+  \citet{RebeloEtAl:2019} study a model in which rare disasters generate increased hedging and savings behavior and increased credit spreads. \citet{TsaiWachter:2015} provide a broad survey of the rare disaster literature and its effect on asset prices, especially building off of the work by \citet{Gourio:2012} and \citet{Barro:2009}. All of these papers find that rare negative events generate higher equity premia, more insurance and hedging behavior, and lower overall utility, even when the economy is most often in a moderate macroeconomic range.
+
+  The modeling assumptions of \citet{Blanchard:2019} doubly bias the results toward welfare improvements from increased debt in low interest rate environment. First, the assumption of an endowment that precludes government default gets rid of any catastrophic rare events. Furthermore, the calibration of the model to an assumed low interest rate spread implements a parameterization that is associated with low fiscal stress. The quantitative results of this paper provide evidence that public debt has significant welfare costs in many different calibrations---evidence counter to the findings of \citet{Blanchard:2019}.
 
 
 \section{Economic Model}\label{SecModel}
 
-  We study a simple 2-period-lived agent overlapping generations model in which the government promises to make a lump sum transfer $\bar{H}\geq 0$ from the young to the old each period. Ricardian equivalence holds in the sense that households have rational expectations and can forecast the effects of government budget imbalances. The constraints of the model generate states of the world in which the government can only make a transfer that is less that the promised amount $0 \leq H_t \leq \bar{H}$.
+  A detailed specification and derivation of the model is available in the online technical appendix.\footnote{See online technical appendix here \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.} The economic environment is an overlapping generations model with two-period-lived agents for which age $s$ is indexed by $s=1$ for young and $s=2$ for old. Agents supply a unit of labor inelastically for the market wage $w_t$ when young and are retired and supply no labor when old. Agents choose how much to consume when they are young $c_{s=1,t}$ and old $c_{s=2,t+1}$, and they choose how much to save when young $k_{s=2,t+1}$ which comes back to them at the risky interest rate when old. The household optimization problem is the following,
+  \begin{align}
+    &\max_{k_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigl(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \label{EqHH_maxUtil} \\
+    &\qquad\text{such that}\quad c_{1,t} + k_{2,t+1} = w_t + x_1 - H_t \label{EqHH_bc1} \\
+    &\qquad\qquad\text{and}\quad c_{2,t+1} = R_{t+1}k_{2,t+1} + H_{t+1} \label{EqHH_bc2} \\
+    &\qquad\qquad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} > 0 \label{EqHH_nonneg}
+  \end{align}
+  where $R_t$ is the gross return on risky savings and $w_t$ is the wage on the unit of inelastically supplied labor by the young.
 
-  Our characterization of government budget insolvency relies on the assumption that when the state of the world is such that $\bar{H}$ generates negative consumption for the young, the agents in the economy resort to autarky rather than starvation (negative consumption). This shut-down result would not hold if the government merely reduced the size of the transfer program in the face of a shut down. Rational agents would expect this and incorporate that risk on the payment $\bar{H}$ in the second period of their lives.\footnote{The argument here is that a proportional transfer program will never shut down a government. However, if the government is locked in to some degree of nonproportional transfer program, then there are states of the world in which the government must either shut down or default on that debt. If they default in a way that the consumption of the young does not go to zero, then the government has changed its nonproportional transfer program to look like a proportional transfer program.}
+  The functional form for lifetime utility in \eqref{EqHH_maxUtil} is the Epstein-Zin-Weil utility used in \citet{Blanchard:2019}.\footnote{See also \citet{EpsteinZin:2013} and \citet{Weil:1990}.} The value $x_1$ in the young age $s=1$ budget constraint \eqref{EqHH_bc1} is the endowment that the young receive, and $H_t$ is the lump sum government transfer taken from the young and given to the old each period. In general, $H_t$ equals the promised amount $\bar{H}$. In \citet{Blanchard:2019}, the endowment $x_1$ guarantees that this is always the case. But I will allow $x_1$ to be small enough that the government might not always be able to collect $\bar{H}$ in every period, as is the case in \citet{EvansEtAl:2013}. I will specify $H_t$ in more detail in Equation \eqref{EqGovt_Ht}. The resulting Euler equation for optimal risky savings $k_{2,t+1}$ is the following.
+  \begin{equation}\label{EqHH_Eul_c1}
+    \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[R_{t+1}\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
+  \end{equation}
 
+  We can independently derive the equilibrium price of a riskless bond, the exogenous supply of which is arbitrarily set to zero, as is shown in the technical appendix. Let $\bar{R}_t$ be the return on the riskless bond (the inverse of the price). The derived Euler equation characterizing the equilibrium riskless bond return in each period is the following.
+  \begin{equation}\label{EqHH_Eul_Rbar}
+    \bar{R}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}\quad\forall t
+  \end{equation}
 
-  \subsection{Household problem}\label{SecModelHH}
+  I assume a unit measure of identical perfectly competitive firms that rent capital $K_t$ at rental rate $r_t$ and hire labor $L_t$ at wage $w_t$ to produce consumption good output $Y_t$ and maximize profits according to a constant elasticity of substitution production function with stochastic total factor productivity,
+  \begin{equation}\label{EqFirm_ProdFunc}
+    Y_t = F(K_t, L_t, z_t) = A_t\Bigl[\alpha(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t \quad\text{where}\quad A_t\equiv e^{z_t}
+  \end{equation}
+  where the capital share of income is given by $\alpha\in(0,1)$ and $\ve\geq 1$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t\equiv e^{z_t}$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process.
+  \begin{equation}\label{EqFirm_ZAR1}
+    z_t = \rho z_{t-1} + (1-\rho)\mu + \epsilon_t\quad \text{where}\quad \rho\in[0,1) \quad\text{and}\quad \epsilon_t \sim N(0,\sigma)
+  \end{equation}
 
-    A unit measure of identical consumer-worker households is born each period. A Household lives for exactly two periods indexed by $s=1,2$. They supply a unit of labor inelastically in both the young and old period of life $n_1>0$ and $n_2\geq 0$ in all periods $t$.
+  Two important special parameterizations of the production function \eqref{EqFirm_ProdFunc} are the unit elasticity case $\ve=1$ in which the limit is the Cobb-Douglas production function and the perfectly elastic case $\ve=\infty$ in which the production function is linear in $K_t$ and $L_t$ (perfect substitutes).
 
-    In the first period of life, consumer-worker households choose how to divide their net labor income between age-$1$ consumption $c_{1,t}$ and capital investment (savings) with the firms $k_{2,t+1}$. The objective of a household is to maximize Epstein-Zin-Weil utility subject to a period budget constraint and two nonnegativity constraints.\footnote{See \citet{EpsteinZin:2013} and \citet{Weil:1990}.}
-    \begin{align}
-      &\max_{c_{1,t},k_{2,t+1},c_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigr(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \label{EqHHmaxUtil} \\
-      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} = w_t n_1 + x_1 - H_t \label{EqHHbc1} \\
-      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \label{EqHHbc2} \\
-      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} > 0 \label{EqHHnonneg}
-    \end{align}
-    The variables $w_t$ and $r_t$ are the wage and interest rate, respectively. And we follow \citet{Blanchard:2019} in including a potential exogenous transfer unrelated to the intergenerational transfer $H_t$ in the first period of life $x_1$ and in the second period of life $x_2$. These solvency preserving income transfers are one of the key drivers of the results from \cite{Blanchard:2019}.
+  The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
+  \begin{equation}\label{EqFirm_ProfMax}
+    \max_{K_t, L_t}\:Pr_t = F(K_t, L_t, z_t) - w_t L_t - R_t K_t \quad\forall t
+  \end{equation}
+  where the marginal cost of capital is the gross interest rate $R_t$ because the depreciation rate is assumed to be 100 percent. Profit maximization implies that the wage and interest rate are determined by the standard first order conditions for the firm.
+  \begin{gather}
+    R_t = \alpha(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{K_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqFirm_FOCK} \\
+    w_t = (1 - \alpha)(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqFirm_FOCL}
+  \end{gather}
+  As can be seen from first order conditions \eqref{EqFirm_FOCK} and \eqref{EqFirm_FOCL}, in the case of perfect substitutes (linear production, $\ve=\infty$), the first order conditions are independent of capital and labor.
 
-    Let new households have no initial capital $k_{1,t} = 0$. Note that the nonnegativity constraints on consumption $c_{1,t}$ and $c_{2,t+1}$ are strict inequalities in equilibrium due to the Inada conditions on the period utility functions. Furthermore, we also do not allow the government transfer program to zero out the consumption and savings of the young, as shown in Section \ref{SecModelGovt} equation \eqref{EqGovt_Ht}. Finally, the strict inequality on savings $k_{2,t+1}>0$ is also an equilibrium condition that comes from the market clearing condition \eqref{EqModelMC_K}, that negative capital stock $K_t<0$ is not defined in the production function \eqref{EqModelFirmProdFunc}, and that zero capital stock $K_t=0$ would result in zero output $Y_t=0$ from \eqref{EqModelFirmProdFunc}, zero wage $w_t=0$ from \eqref{EqModelFirm_FOCL}, and an infinite interest rate $r_t=\infty$ from \eqref{EqModelFirm_FOCK}.
+  Because the interest rate $R_t$ in \eqref{EqFirm_FOCK} is not defined when the capital stock is zero $K_t=0$, the wage $w_t$ in \eqref{EqFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, and output $Y_t$ is not defined when capital or labor are less-than-or-equal-to zero, we know that both values must be strictly positive $K_t, L_t>0$ in equilibrium.
 
-    Consumption in the second period of life is characterized by the second period budget constraint.
-    \begin{equation}\tag{\ref{EqHHbc2}}
-      c_{2,t+1} = (1+r_{t+1})k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \quad\forall t
-    \end{equation}
-    Note that the nonnegativity constraint on old-age consumption $c_{2,t+1}$ will never bind because everything on the right-hand-side of \eqref{EqHHbc2} is weakly positive. Consumption in the first period of life $c_{1,t}$ and savings in the first period of life $k_{2,t+1}$ are jointly determined by the first period budget constraint \eqref{EqHHbc1} and by the Euler equation that characterizes the optimal young $s=1$ consumption-savings decision that maximizes lifetime utility \eqref{EqHHmaxUtil} subject to constraints \eqref{EqHHbc1}, \eqref{EqHHbc2}, and \eqref{EqHHnonneg}.
-    \begin{equation}\label{EqHHEul_c1}
-      \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[(1 + r_{t+1})\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
-    \end{equation}
+  The government has committed to a balanced-budget lump-sum transfer each period $\bar{H}\geq 0$ from the young to the old subject to feasibility of the transfer. Let $c_{min}>0$ and $K_{min}>0$ be minimum positive levels of consumption and aggregate capital. Then the government transfer rule characterizing $H_t$ is that it equals $\bar{H}$ except in periods when the promised transfer is greater than the total income minus minimum values of consumption and aggregate capital.\footnote{I remain agnostic about what happens after the government defaults on its promised transfer $\bar{H}$ in any period in which $w_t < \bar{H} - x_1 + c_{min} + K_{min}$ as shown in the second case in \eqref{EqGovt_Ht}. This case forces the consumption of young agents to be the minimum value $c_{1,t}=c_{min}$. Technically, that household can survive beyond the default period because consumption is positive. \citet{EvansEtAl:2013} study cases in which the government default causes either a complete economic shut down and reversion to autarky or cases in which it causes a regime shift to a new tax regime.}
+  \begin{equation}\label{EqGovt_Ht}
+    \begin{split}
+      H_t &\equiv
+        \begin{cases}
+          \bar{H} \qquad\qquad\qquad\qquad\qquad\text{if}\quad w_t \geq \bar{H} - x_1 + c_{min} + K_{min} \\
+          w_t + x_1 - c_{min} - K_{min} \quad\text{if}\quad w_t < \bar{H} - x_1 + c_{min} + K_{min}
+        \end{cases} \quad\forall t \\
+        &= \min\left(\bar{H}, w_t + x_1 - c_{min} - K_{min}\right) \quad\forall t
+    \end{split}
+  \end{equation}
 
-    By substituting the age $s=1$ and $s=2$ budget constraints \eqref{EqHHbc1} and \eqref{EqHHbc2} into the household Euler equation \eqref{EqHHEul_c1}, we can see that the characterizing equation for savings $k_{2,t+1}$ is one equation with one unknown.
-    \begin{equation}\label{EqHHEul_k2}
-      \frac{1-\beta}{w_t n_1 + x_1 - H_t - k_{2,t+1}} = \beta\frac{E_t\Bigl[(1 + r_{t+1})\bigl([1+r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl([1+r_{t+1}]k_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1}\bigr)^{1-\gamma}\Bigr]} \quad\forall t
-    \end{equation}
-    Equation \eqref{EqHHEul_k2} shows that the functional solution for household savings $k_{2,t+1}$ every period is a stationary function $\psi(\cdot)$ of the time path of transfers and prices over the lifetime of the household.
-    \begin{equation}\label{EqHH_psi}
-      k_{2,t+1} = \psi\bigl(H_t, H_{t+1}, w_t, w_{t+1}, r_{t+1}\bigr)
-    \end{equation}
-
-
-  \subsection{Firm problem}\label{SecModelFirm}
-
-    A unit measure of identical perfectly competitive firms exist in this economy that hire aggregate labor $L_t$ at wage $w_t$ and rent aggregate capital $K_t$ at rental rate $r_t$ every period in order to produce consumption good $Y_t$ according to a Cobb-Douglas production function,
-    \begin{equation}\label{EqModelFirmProdFunc}
-       Y_t = F(K_t, L_t, z_t) = A_t\Bigl[\alpha(K_t)^\frac{\ve-1}{\ve} + (1 - \alpha)(L_t)^\frac{\ve-1}{\ve}\Bigr]^\frac{\ve}{\ve-1} \quad\forall t
-    \end{equation}
-    where the capital share of income is given by $\alpha\in(0,1)$ and $\ve>0$ is the constant elasticity of substitution between capital and labor in the production process. Total factor productivity $A_t = e^{z_t}>0$ is distributed log normally, and $z_t$ follows a normally distributed $AR(1)$ process. Two important special parameterizations are the unit elasticity case $\ve=1$ in which the limit of \eqref{EqModelFirmProdFunc} is the Cobb-Douglas production function and the perfectly elastic case $\ve=\infty$ in which the production function is linear in $K_t$ and $L_t$ (perfect substitutes).
-    \begin{equation}\label{EqModelFirmZAR1}
-      \begin{split}
-        z_t &= \rho z_{t-1} + (1-\rho)\mu + \epsilon_t \\
-        &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \epsilon_t \sim N(0,\sigma)
-      \end{split}
-    \end{equation}
-    The firm's problem each period is to choose how much capital $K_t$ to rent and how much labor $L_t$ to hire in order to maximize profits,
-    \begin{equation}\label{EqModelFirmProfMax}
-      \max_{K_t, L_t}\:Pr_t = F(K_t, L_t, z_t) - w_t L_t - (r_t + \delta)K_t \quad\forall t
-    \end{equation}
-    where $\delta$ is the per-period depreciation rate of capital. Profit maximization implies that the real wage and real rental rate are determined by the standard first order conditions for the firm.
-    \begin{gather}
-      r_t = \alpha(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{K_t}\right]^\frac{1}{\ve} - \delta \quad\forall t \label{EqModelFirm_FOCK} \\
-      w_t = (1 - \alpha)(A_t)^\frac{\ve-1}{\ve}\left[\frac{Y_t}{L_t}\right]^\frac{1}{\ve} \quad\forall t \label{EqModelFirm_FOCL}
-    \end{gather}
-
-    Because the interest rate $r_t$ in \eqref{EqModelFirm_FOCK} is not defined when the capital stock is zero $K_t=0$ and because the wage $w_t$ in \eqref{EqModelFirm_FOCL} is not defined when aggregate labor is zero $L_t=0$, we know that both values must be strictly positive $K_t, L_t>0$.
-
-
-  \subsection{Government transfer program}\label{SecModelGovt}
-
-    We model a simple balanced budget public transfer program that takes an amount from the young each period $H_t$ and gives that same amount to the old each period, as shown in the young and old budget constraints.
-    \begin{gather}
-      c_{1,t} + k_{2,t+1} = w_t n_1 + x_1 - H_t \quad\forall t \tag{\ref{EqHHbc1}} \\
-      c_{2,t} = \bigl(1+r_t\bigr)k_{2,t} + w_t n_2 + x_2 + H_t \quad\forall t \tag{\ref{EqHHbc2}}
-    \end{gather}
-    In contrast to the way the old-age ($s=2$) budget constraint \eqref{EqHHbc2} is displayed in Section \ref{SecModelHH}, we show the budget constraints here for a young household and old household both in period $t$ (two separate individuals). The government budget is made up entirely of this transfer program, and the budget is always balanced because the government revenue taken from the young in period $H_t$ is always equal to the transfers to the old $H_t$ in all periods $t$.
-
-    In most periods, the government promises that the transfer will be $\bar{H}\geq 0$. However, in the case that $\bar{H}>0$, there could exist states of the economy such that $\bar{H}\geq w_t n_1 + x_1$. In these cases, net labor income is less than or equal to zero, so the strict inequalities on $c_{1,t}$ and $k_{2,t+1}$ in \eqref{EqHHnonneg} must be violated. To avoid negative consumption, we require that the most the government can take from the young in any period is all their income up to some arbitrarily small minimum consumption $c_{min}>0$ and an arbitrarily small amount of savings $K_{min}>0$.
-    \begin{equation}\label{EqGovt_Ht}
-      \begin{split}
-        H_t &\equiv
-          \begin{cases}
-            \bar{H} \qquad\qquad\qquad\qquad\qquad\:\:\:\,\text{if}\quad w_t n_1 \geq \bar{H} - x_1 + c_{min} + K_{min} \\
-            w_t n_1 + x_1 - c_{min} - K_{min} \quad\text{if}\quad w_t n_1 < \bar{H} - x_1 + c_{min} + K_{min}
-          \end{cases} \quad\forall t \\
-          &= \min\left(\bar{H}, w_t n_1 + x_1 - c_{min} - K_{min}\right) \quad\forall t
-      \end{split}
-    \end{equation}
-    This rule states that the government implements a balanced budget transfer program from the young to the old every period. And for $\bar{H}>0$, once the wage dips low enough, the government can no longer take $\bar{H}$ from the young. In this case, the government takes all that it can from the young $H_t = w_t n_1 + x_1 - c_{min} - K_{min}<\bar{H}$ and transfers that amount to the old. The young are left with consumption and savings equal to the minimum $c_{1,t}=c_{min}$ and $k_{2,t+1}=K_{min}$, and the economy shuts down and devolves into autarky.
+  In equilibrium, the aggregate capital, labor, riskless assets, and goods markets must clear. The goods market clearing condition \eqref{EqMC_Y} is redundant by Walras' Law.
+  \begin{align}
+    K_t &= k_{2,t} \quad\forall t \label{EqMC_K} \\
+    L_t &= 1 \quad\forall t \label{EqMC_L} \\
+    0 &= b_{2,t} \quad\forall t \label{EqMC_B} \\
+    \begin{split}
+      Y_t &= C_t + K_{t+1} - (1-\delta)K_t \quad\forall t \\
+      &\quad\text{where}\quad C_t\equiv c_{1,t} + c_{2,t}
+    \end{split} \label{EqMC_Y}
+  \end{align}
+  Equilibrium is defined as stationary allocation functions $a$ and price functions of the state for which household optimality conditions hold \eqref{EqHH_Eul_c1} and \eqref{EqHH_Eul_Rbar}, firm optimality conditions hold \eqref{EqFirm_FOCK} and \eqref{EqFirm_FOCL}, markets clear \eqref{EqMC_K} and \eqref{EqMC_L}, and government transfers follow the feasible transfer rule \eqref{EqGovt_Ht}.
 
 
-  \subsection{Market clearing}\label{SecModelShutMktClr}
+\section{Blanchard Calibration}\label{SecCalib}
 
-    Market clearing implies that the aggregate labor demand equals aggregate labor supply, aggregate capital demand equals aggregate capital supply, and output equals consumption plus investment in each period,
-    \begin{align}
-      L_t &= n_1 + n_2 \quad\forall t \label{EqModelMC_L} \\
-      K_t &= k_{2,t} \quad\forall t \label{EqModelMC_K} \\
-      \begin{split}
-        Y_t &= C_t + K_{t+1} - (1-\delta)K_t \quad\forall t \\
-        &\quad\text{where}\quad C_t\equiv c_{1,t} + c_{2,t}
-      \end{split} \label{EqModelMC_rescnstr}
-    \end{align}
-    where the goods market clearing condition or resource constraint \eqref{EqModelMC_rescnstr} is redundant by Walras' Law.
+  The online technical appendix provides a detailed description and derivation of the calibration.\footnote{See online technical appendix here \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.} Table \ref{TabCalib} shows the values of variables in the \citet{Blanchard:2019} calibration. Blanchard calibrates the capital share of income parameter $\alpha=1/3$. He calibrates the annual standard deviation of the normally distributed component of $z_t$ the total factor productivity process to be $\sigma_{an}=0.2$, consistent with U.S. stock market returns historical average, which implies a model 25-year standard deviation of $\sigma\approx 0.615$.
 
+  \begin{table}[htbp] \centering \captionsetup{width=6.0in}
+  \caption{\label{TabCalib}\textbf{Blanchard (2019) calibration values}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\small}c >{\small}c |>{\small}c >{\small}c |>{\small}c >{\small}c}
+      \hline\hline
+      Variable & Value(s) & Variable & Value(s) & Variable & Value(s) \\
+      \hline
+      $\alpha$ & 0.33 & $E[R_{t+1,an}]$ & [0.00, 0.04] & $\beta$ & func. of $E[R_{t+1}]$ \\
+      $\ve$    & 1.0 or $\infty$ & avg. $\bar{R}_{t,an}$ & [-0.02, 0.01] & $x_1$ & func. of $E[R_{t+1}]$ \\
+      $\rho_{an}$ & 0.95 & $\mu$ & func. of $E[R_{t+1}]$ & avg. $k_{2,t}$ & func. of $E[R_{t+1}]$ \\
+      $\rho$ & 0.21 & $\gamma$ & func. of $E[R_{t+1}]$ & $\bar{H}$ & [0, 0.05(avg. $k_{2,t}$)] \\
+      $z_0$ & $\mu$ & & and avg. $\bar{R}_{t}$ & & \\
+      \hline\hline
+    \end{tabular}
+    % \begin{tablenotes}
+    %   \scriptsize{\item[a]Put note here.}
+    % \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
 
-  \subsection{Equilibrium}\label{SecModelEqlb}
+  Given a calibrated value for $\sigma$, \citet[p. 1213]{Blanchard:2019} identifies the value of $\mu$ independently of $\beta$ using the linear production ($\ve=\infty$) expression for the average value of the risky return, derived from marginal product of capital \eqref{EqFirm_FOCK},
+  \begin{equation}\label{EqCalib_ERtp1_inf}
+    E_t\bigl[R_{t+1}\bigr] = \alpha e^{\rho z_t + (1-\rho)\mu + \frac{\sigma^2}{2}} \quad\forall t
+  \end{equation}
+  and calibrates the value for $\gamma$ given $\sigma$ from equilibrium expression for the spread between the log average risky return and the log riskless return derived from \eqref{EqFirm_FOCK} and \eqref{EqHH_Eul_Rbar}
+  \begin{equation}\label{EqCalib_spread}
+    \ln\Bigl(E_t\bigl[R_{t+1}\bigr]\Bigr) - \ln\bigl(\bar{R}_t\bigr) = \gamma\sigma^2 \quad\forall t
+  \end{equation}
+  For higher values of average risky returns $E[R_{t+1}]$ the calibrated value of $\mu$ is higher, which reduces risk and counterbalances the higher risky returns. And for larger average interest rate spreads, agents have higher risk aversion $\gamma$. Despite using these two specifications of the production function to calibrate $\mu$ and $\gamma$, Blanchard analyses the cases of both the Cobb-Douglas production function ($\ve=1$) and the perfect substitutes production function ($\ve=\infty$), separately.
 
-    In this section, we define a functional stationary equilibrium in which our definition of stationary is that the functional forms are not time dependent. That is, for a function $f(\bm{x})$ of vector of variables $\bm{x}$, the function does not change. Only the output values of the function changes in response to changing inputs $\bm{x}$.
+  \citet{Blanchard:2019} uses the Cobb-Douglas specification of the model ($\ve=1$) to identify $\beta$ independent of $\mu$ and as a function of the average risky return.
+  \begin{equation}\label{EqCalib_beta}
+    \beta = \left(\frac{\alpha}{1-\alpha}\right)\frac{1}{2 E[R_{t+1}]}
+  \end{equation}
 
-    \end{spacing}
-    \vspace{5mm}
-    \hrule
-    \vspace{-1mm}
-    \begin{definition}[\textbf{Functional stationary equilibrium}]\label{DefEqlb}
-      A non-autarkic functional stationary equilibrium in the two-period-lived overlapping generations model with exogenous labor supply and aggregate shocks is defined by stationary price functions $r(k,z)$ and $w(k,z)$ and a stationary savings function $k'=\psi(k,z)$ for all current state wealth $k$ and total factor productivity component $z$ such that:
-      \begin{enumerate}
-        \item households optimize according to \eqref{EqHHbc1} and \eqref{EqHHbc2}, and \eqref{EqHHEul_c1}
-        \item firms optimize according to \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL},
-        \item markets clear according to \eqref{EqModelMC_L} and \eqref{EqModelMC_K}.
-      \end{enumerate}
-    \end{definition}
-    \vspace{-2mm}
-    \hrule
-    \vspace{5mm}
-    \begin{spacing}{1.5}
-
-    We can solve for the stationary price functions analytically by substituting the market clearing conditions \eqref{EqModelMC_L} and \eqref{EqModelMC_K} into the firms' respective first order conditions \eqref{EqModelFirm_FOCK} and \eqref{EqModelFirm_FOCL}.
-    \begin{gather}
-      r_t\equiv r\bigl(k_{2,t}, z_t\bigr) = (e^{z_t})^\frac{\ve-1}{\ve}\left[\alpha\frac{F(k_{2,t},n_1+n_2,z_t)}{k_{2,t}}\right]^\frac{1}{\ve} - \delta \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_r} \\
-      w_t\equiv w\bigl(k_{2,t}, z_t\bigr) = (e^{z_t})^\frac{\ve-1}{\ve}\left[(1-\alpha)\frac{F(k_{2,t},n_1+n_2,z_t)}{n_1+n_2}\right]^\frac{1}{\ve} \quad\forall z_t \quad\text{and}\quad k_{2,t}>0 \label{EqModelEqlb_w}
-    \end{gather}
-    We can also solve analytically for the equilibrium expression for the transfer each period $H_t$ as a function of the wealth of the current-period old $k_{2,t}$ and the value of the normally distributed component $z_t$ of the total factor productivity process (as well as the parameters of the promised transfer amount $\bar{H}$ and minimum values of young age consumption $c_{min}$ and aggregate capital $K_{min}$)  by substituting the equilibrium wage expression \eqref{EqModelEqlb_w} into the expression for $H_t$ \eqref{EqGovt_Ht}.
-    \begin{equation}\label{EqModelEqlb_H}
-      H_t \equiv H\bigl(k_{2,t}, z_t\bigr) = \min\Bigl(\bar{H}, w(k_{2,t},z_t)n_1 + x_1 - c_{min} - K_{min}\Bigr) \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
-    \end{equation}
-
-    Finally, if we substitute the equilibrium expressions for prices $r(k,z)$ and $w(k,z)$ and the transfer $H(k,z)$ from \eqref{EqModelEqlb_r}, \eqref{EqModelEqlb_w}, and \eqref{EqModelEqlb_H} into the household Euler equation \eqref{EqHHEul_k2} and resulting policy function \eqref{EqHH_psi}, it is clear that the equilibrium savings function $k'=\psi(k,z)$ is a function of the wealth of the current-period old $k_{2,t}$ and the value $z_t$ of the normally distributed component of total factor productivity,
-    \begin{equation}\label{EqModelEqlb_Eul}
-      \begin{split}
-        &\frac{1-\beta}{w(k_{2,t},z_t) n_1 + x_1 - H(k_{2,t},z_t) - k_{2,t+1}} = \\
-        & \quad\beta\int_{z_{t+1}}\biggl[\bigl(1+r(k_{2,t+1},z_{t+1})\bigr)\times \\
-        &\qquad\qquad\qquad \Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)^{-\gamma}\times \\
-        &\qquad\qquad\qquad\qquad\qquad f\bigl(z_{t+1}|\rho z_t + (1 - \rho)\mu, \sigma\bigr)\biggr]dz_{t+1} \:\div \\
-        & \quad\int_{z_{t+1}}\biggl[\Bigl([1 + r(k_{2,t+1},z_{t+1})]k_{2,t+1} + w(k_{2,t+1},z_{t+1})n_2 + H(k_{2,t+1},z_{t+1})\Bigr)^{1-\gamma}\times \\
-        &\qquad\qquad\qquad\qquad\qquad f\bigl(z_{t+1}|\rho z_t + (1 - \rho)\mu, \sigma\bigr)\biggr]dz_{t+1} \\
-        &\qquad\qquad\qquad\qquad\qquad\qquad\qquad \forall z_t, z_{t+1} \quad\text{and}\quad k_{2,t}, k_{2,t+1}>0
-      \end{split}
-    \end{equation}
-    \begin{equation}\label{EqModelEqlb_psi}
-      k_{2,t+1} = \psi\bigl(k_{2,t},z_t\bigr)>0 \quad\forall z_t \quad\text{and}\quad k_{2,t}>0
-    \end{equation}
-    where $f(z_{t+1}|\rho z_t + (1-\rho)\mu,\sigma)$ is the probability density function of $z_{t+1}$ distributed normally with mean $\rho z_t + (1-\rho)\mu$ and standard deviation $\sigma$.
-
-
-  \subsection{One-period riskless bonds}\label{SecModelRiskless}
-
-    In this section, we derive the return on a riskless bond. We make the simplifying assumption that the riskless bonds are zero absolute supply. However, this characterization can be generalized to cases in which the riskless bonds have exogenous positive supply. Because of our zero-supply assumption on the riskless bond, we can separate its derivation from the characterization of the household problem in Section \ref{SecModelHH}. These zero-supply riskless bonds do not influence the rest of the economy. They simply represent another measure of the level of risk present in each period of the economy.
-
-    Assume that households have two potential instruments for saving. A household can invest income with the production sector $k_{2,t+1}$ and earn a stochastic risky return next period of $r_t$ and they can buy $b_{2,t+1}$ units of a one-period riskless bond  for price $p_t$ that returns exactly $b_{2,t+1}$ when old. It is clear that old-age households will have no demand for these bonds.
-
-    The maximization problem for a generic household can be characterized as choosing risky savings $k_{2,t+1}$ and riskless savings $b_{2,t+1}$ to maximize lifetime utility subject to budget constraints.
-    \begin{align}
-      &\max_{k_{2,t+1},b_{2,t+1}}\: (1-\beta)\ln(c_{1,t}) + \beta\frac{1}{1-\gamma}\ln\Bigl(E_t\bigl[(c_{2,t+1})^{1-\gamma}\bigr]\Bigr) \quad \forall t \label{EqModelRiskMaxUtil} \\
-      &\quad\text{such that}\quad c_{1,t} + k_{2,t+1} + p_t b_{2,t+1} = w_t n_1 + x_1 - H_t \label{EqModelRisk_bc1} \\
-      &\quad\text{and}\quad c_{2,t+1} = \bigl(1+r_{t+1}\bigr)k_{2,t+1} + b_{2,t+1} + w_{t+1}n_2 + x_2 + H_{t+1} \label{EqModelRisk_bc2} \\
-      &\quad\text{and}\quad c_{1,t},c_{2,t+1},k_{2,t+1} \geq 0 \label{EqModelRisk_nonneg}
-    \end{align}
-    The optimality condition for risky savings $k_{2,t+1}$ is the same Euler equation as in Section \ref{SecModelHH}.
-    \begin{equation}\tag{\ref{EqHHEul_c1}}
-       \frac{1-\beta}{c_{1,t}} = \beta \frac{E_t\left[(1 + r_{t+1})\bigl(c_{2,t+1}\bigr)^{-\gamma}\right]}{E_t\left[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\right]} \quad\forall t
-    \end{equation}
-    The Euler equation for riskless savings $b_{2,t+1}$ is the following,
-    \begin{equation}\label{EqModelRisk_rbart}
-      \begin{split}
-        \frac{1}{1 + \bar{r}_t} \equiv p_t = \left(\frac{\beta}{1-\beta}\right)\frac{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]}{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]} \quad \forall t \\
-        \Rightarrow\quad \bar{r}_t = \left(\frac{1-\beta}{\beta}\right)\frac{E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{1-\gamma}\Bigr]}{(c_{1,t})E_t\Bigl[\bigl(c_{2,t+1}\bigr)^{-\gamma}\Bigr]} - 1 \quad\forall t
-      \end{split}
-    \end{equation}
-    where the price of the riskless bond $p_t$ is defined as the reciprocal of the gross riskless return $1 + \bar{r}_t$. The optimality conditions of the production sector are the same as in Section \ref{SecModelFirm}.
-
-    Euler equation \eqref{EqModelRisk_rbart} determines the demand for riskless bonds. We assume, generally, an exogenous supply of riskless bonds that is nonnegative $B_t\geq 0$ for all $t$. However, specifically in this model, we assume a zero supply of riskless bonds $B_t=0$. So the general version of our riskless bond market clearing condition is the following.
-    \begin{equation}\label{EqModelMC_B_gen}
-      b_{2,t} = B_t \quad\forall t
-    \end{equation}
-    With our zero supply assumption $B_t = 0$, the household demand for riskless bonds is set to zero through the market clearing condition,
-    \begin{equation}\label{EqModelMC_B_zero}
-      b_{2,t} = 0 \quad\forall t
-    \end{equation}
-    all the other endogenous variables are determined by the equilibrium described in Section \ref{SecModelEqlb}, and the riskless return $\bar{r}_t$ is characterized by Euler equation \eqref{EqModelRisk_rbart}.
-
-    If we were to relax our zero-supply assumption on riskless bonds $B_t>0$, we would have to determine the riskless return $\bar{r}_t$ jointly with the rest of the endogenous variables.
-
-    And finally, because the agents in our model live for only two periods, it is intuitive that each model period must represent many years. If we assume that the average economic life is 60 years, then each model period represents 30 years. Let the parameter $yrs$ be the number of years represented in a model period. Then we can report the riskless interest rate $\bar{r}_t$ characterized in \eqref{EqModelRisk_rbart} as an annual rate $\bar{r}_{t,an}$ using the following expression.
-    \begin{equation}\label{}
-      \bar{r}_{t,an} = \bigl(1 + \bar{r}_t\bigr)^\frac{1}{yrs} - 1 \quad\forall t
-    \end{equation}
+  One of the main focuses of this paper is Blanchard's inclusion and calibration of the endowment to all young individuals $x_1$. He calibrates this value to be 100 percent of the average wage in the model in which the transfer is set to zero $\bar{H}=0$.
+  \begin{equation}\label{EqCalib_x1}
+    x_1 = \Big[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}(2\beta)^\alpha\Bigr]^\frac{1}{1-\alpha}
+  \end{equation}
+  This value constitutes a large safety net, and guarantees that the promised transfer never induces a default $w_t \geq \bar{H} - x_1 + c_{min} + K_{min}$. It is the effect of reducing this value $x_1$ that will be the main experiment of this paper.
 
 
 \section{Simulations}\label{SecSims}
 
-  We explore the properties of the model from Section \ref{SecModel} with respect to different values of the promised transfer $\bar{H}$, initial wealth $k_{2,0}$, and the extent and probability of low total factor productivity values $A_t$ by calibrating the other parameters of the model and simulating a time series of the model 3,000 times for different combinations of $\bar{H}$, $k_{2,0}$, and the support and distribution of $A_t$. The first three rows of Table \ref{TabCalibr} show the different values of $\bar{H}$, $k_{2,0}$, and $A_{min}$ that we test in our simulations. The remaining rows show our calibration of the other variables.\footnote{The code for these simulations is available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
+  The primary experiment of \citet{Blanchard:2019} is to measure the average change in realized lifetime utility of agents across simulations of the model from a baseline version of the model in which there is no government transfer program $\bar{H}=0$ to an economy in which the government transfer equals 5 percent of average savings $\bar{H}=0.05(\text{avg. }k_{2,t})$.\footnote{I show the results in Tables \ref{TabWelf_mucnst_orig} through \ref{TabWelf_muvar_x0} in percent change in average lifetime utility in which the levels used to calculate the units are in utils in order to remain consistent with the results in \citet{Blanchard:2019}. However, it is probably more appropriate to show the results in percent change in consumption equivalent compensating variation, the solution of which is a trivial transformation of lifetime utility.} I simulate 15 independent time series of 25 periods each and take averages.
 
-  \begin{table}[htbp]\centering\captionsetup{width=5.6in}
-  \caption{\label{TabCalibr}\textbf{Calibration of 2-period-lived agent OG model with promised transfer $\bar{H}$}}
-      \begin{threeparttable}
-      \begin{tabular}{>{\small}c >{\small}l >{\small}c}
-          \hline\hline
-          Parameter & \multicolumn{1}{c}{Source to match} & Value(s) \\
-          \hline
-          $\bar{H}$ & Promised transfer amount & $[0.00, 0.05, 0.11, 0.17]$ \\
-          $k_{2,0}$ & Initial period wealth of old household & $[0.11, 0.14, 0.17]$ \\
-          $A_{min}$ & Minimum value in support of $A_t$ & $[0.0, 0.75]$ \\
-          \hline
-          $z_0$ & Initial value of $z_t$ TFP component & $\mu$ \\
-          $n_1$ & Exogenous labor supply when young & 1.0 \\
-          $n_2$ & Exogenous labor supply when old & 0.0 \\
-          $\beta$  & Annual discount factor of 0.96 & 0.29 \\
-          $\gamma$ & Coefficient of relative risk aversion between &  2.0 \\
-                   & \quad 1.5 and 4.0 &  \\
-          $\alpha$ & Capital share of income &  0.35 \\
-          $\delta$ & Annual capital depreciation of 0.05 & 0.79 \\
-          $\rho$   & AR(1) persistence of normally distributed &  0.21 \\
-                   & \quad shock to match annual persistence of 0.95 &       \\
-          $\mu$    & AR(1) long-run average $z_t$ level &  0.0 \\
-          $\sigma$ & standard deviation of normally distributed $z_t$ &  1.55 \\
-                   & \quad to match annual standard deviation of U.S. &  \\
-                   & \quad real GDP of 0.49 & \\
-          $B_t$    & Exogenous supply of riskless bonds in every & 0 \\
-                   & \quad period & \\
-          \hline
-          $yrs$ & Number of years in a model period & 30 \\
-          $T$ & Maximum number of periods to simulate in a & 100 \\
-              & \quad given simulation & \\
-          $S$ & Number of simulated time series for a given & 3,000 \\
-              & \quad parameterization & \\
-          \hline\hline
-      \end{tabular}
-      \begin{tablenotes}
-          \scriptsize{\item[]The Technical Appendix \ref{SecTAppCalib} gives a detailed description of the calibration of all parameters.}
-      \end{tablenotes}
-      \end{threeparttable}
-  \end{table}
+  Table \ref{TabWelf_mucnst_orig} shows the percent change in average lifetime utility across simulations for nine different calibrations of the model based on all permutations of three values of average risky interest rates and average riskless interest rates and their implied spreads. The left-side panel of 3-by-3 results in Table \ref{TabWelf_mucnst_orig} is a replication of Figure 7 in \citet{Blanchard:2019}, and the right-side panel of 3-by-3 results is the replication of Figure 9 in \citet{Blanchard:2019}.
 
-  In our simulations we study a first layer of the parameter space by simulating combinations of different values of government transfer $\bar{H}\in[0.00, 0.05, 0.11, 0.17]$ and different values of initial wealth $k_{2,0}\in[0.11, 0.14, 0.17]$. We first study the behavior of the economy with these combinations of $\bar{H}$ and $k_{2,0}$ when the total factor productivity value $A_t\equiv e^{z_t}$ is distributed lognormally as described in \eqref{EqModelFirmZAR1} with the range of $A_t$ being $(0,\infty)$. This range of TFP shocks includes very small values close to zero, albeit with low probability, that can create fiscal insolvency when $\bar{H}>0$.
-
-  We then study those same combinations of $\bar{H}$ and $k_{2,0}$, but we assume a truncated support of the total factor productivity process $A_t\in[A_{min},\infty)$, where $A_{min}>0$. We implement this truncated TFP process by assuming that the shocks to the $z_t$ process are truncated normal $TrN()$ with mean 0, standard deviation $\sigma$, and lower bound cutoff $\ve_{t,min}$.\footnote{The truncated normal distribution $TrN(0,\sigma, \ve_{t,min})$ is the non-truncated normal distribution with mean 0 and standard deviation $\sigma$ that is then truncated at $\ve_{t,min}$ and rescaled to sum to 1. Technical Appendix \ref{SecTAppTrNdist} has a description of this distribution.}
-  \begin{equation}\label{EqSimsZAR1_trunc}
-    \begin{split}
-      z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
-      &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim TrN(0,\sigma, \ve_{t,min}) \\
-      &\text{and}\quad \ve_{t,min} = \ln(A_{min}) - \rho z_{t-1} - (1 - \rho)\mu
-    \end{split}
-  \end{equation}
-
-  We use these two alternative scenarios of $A_{min}=0$ versus $A_{min}=0.75$ to study how the properties of the economy change when there are more negative states of the world $A_{min}=0$ versus fewer negative states of the world $A_{min}=0.75$. The economy described by \citet{Blanchard:2019} is a case in which many negative states of the economy are assumed away. Many of the conclusions of \citet{Blanchard:2019} depend critically on these assumptions of relative safety. We show below that the properties of the economy and the costs of government promises change dramatically when the economy is faced with the possibility of more formidable negative shocks.
-
-
-  \begin{table}[htbp]\centering\captionsetup{width=5.3in}
-  \caption{\label{TabInitVal_A0}\textbf{Initial values relative to median values: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_mucnst_orig}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: constant $\mu=1.0786$}}
     \begin{threeparttable}
-    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
       \hline\hline
-      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
-      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
-      & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
       \hline
-      \multirow{2}{*}{$\bar{H}=0.00$}
-      & 0.281 & 0.101 & 0.282 & 0.101 & 0.282 & 0.101 \\
-      & 0.000 & 1.093 & 0.000 & 1.390 & 0.000 & 1.687 \\
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
       \hline
-      \multirow{2}{*}{$\bar{H}=0.05$}
-      & 0.445 & 0.083 & 0.449 & 0.085 & 0.450 & 0.085 \\
-      & 0.112 & 1.321 & 0.111 & 1.654 & 0.111 & 2.003 \\
-      \hline
-      \multirow{2}{*}{$\bar{H}=0.11$}
-      & 0.557 & 0.064 & 0.564 & 0.066 & 0.572 & 0.068 \\
-      & 0.197 & 1.710 & 0.195 & 2.108 & 0.192 & 2.515 \\
-      \hline
-      \multirow{2}{*}{$\bar{H}=0.17$}
-      & 0.648 & 0.048 & 0.658 & 0.051 & 0.667 & 0.052 \\
-      & 0.262 & 2.274 & 0.259 & 2.757 & 0.255 & 3.243 \\
+      average  & 0.00 & -0.59\% & -0.59\% &   n/a   & -0.78\% & -0.77\% & n/a \\
+      $R_t$    & 0.02 & -0.73\% & -0.73\% & -0.73\% & -1.62\% & -1.58\% & -1.54\% \\
+      (annual) & 0.04 & -0.86\% & -0.86\% & -0.86\% & -3.35\% & -3.23\% & -3.10\% \\
       \hline\hline
     \end{tabular}
     \begin{tablenotes}
-      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+  Notable is that the percent change in long-run average utility from an increase in the promised transfer $\bar{H}$ is nowhere positive. Another notable difference in these results from Blanchard's is that, although the qualitative relationship between welfare changes and respective risky and riskless interest rate changes are the same, the percent change in long-run average utility is most sensitive to different average risky returns and is relatively non responsive to different average riskless returns. This is opposite of Blanchard's findings and is almost certainly a result of the calibrated parameter values shown in Table \ref{TabCalib} being mostly functions of average risky returns and only $\gamma$ being a function of average riskless returns.
+
+  It is unclear why \citet[Figure 7]{Blanchard:2019} keeps $\mu$ constant at 1.0786 in the simulations, which we replicated in Table \ref{TabWelf_mucnst_orig}, given that the calibration strategy in Equation \eqref{EqCalib_ERtp1_inf} suggests that $\mu$ should be a function of the average risky rate $E[R_{t+1}]$. The difference in $\mu$ values is striking with calibrated values in the range $\mu\in[2.76,3.74]$ for average risky asset values in the range $E[R_{t+1,an}]\in[0.00,0.04]$. Table \ref{TabWelf_muvar_orig} shows the percent change in average lifetime welfare when the calibrated value of $\mu$ adjusts with the assumed average risky rate indicated in the different rows of the table.
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_muvar_orig}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: variable $\mu$ as a function of $E[R_{t+1}]$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
+      \hline\hline
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
+      \hline
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
+      \hline
+      average  & 0.00 & -0.42\% & -0.42\% &   n/a   & -0.25\% & -0.25\% & n/a \\
+      $R_t$    & 0.02 & -0.24\% & -0.24\% & -0.24\% & -0.18\% & -0.18\% & -0.17\% \\
+      (annual) & 0.04 & -0.14\% & -0.14\% & -0.14\% & -0.14\% & -0.13\% & -0.13\% \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
     \end{tablenotes}
     \end{threeparttable}
   \end{table}
 
-  \begin{table}[htbp]\centering\captionsetup{width=5.3in}
-  \caption{\label{TabInitVal_A75}\textbf{Initial values relative to median values: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
+  As with Table \ref{TabWelf_mucnst_orig}, all of the percent changes in average welfare from the increased transfer are negative. However, the direction of the relationship changes between percent changes in welfare and the calibrated average risky return. At higher average risky returns, the loss in welfare becomes smaller. It seems likely that, under this calibration strategy, there exists a higher risky return that would result in an increase in welfare from the increased transfer. But it is likely that this calibration strategy is not ideal.
+
+  I now proceed to test how the results of Table \ref{TabWelf_muvar_orig} change when more riskiness is added to the model. I first study the effect of reducing the endowment $x_1$. Table \ref{TabWelf_muvar_xhalf} shows the percent change in average lifetime utility across simulations from an increase in the transfer given the same calibrations of the model from Table \ref{TabWelf_muvar_orig} but with an endowment to the young that is equal to 50 percent of the average wage from the model in which there is no transfer---half the size of the endowment $x_1$ in the Blanchard calibration. In this setting, the government can default on its promised transfer, which default implies minimal consumption for the young in the default period. And some simulations default before the maximal 25 periods.
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_muvar_xhalf}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: variable $\mu$ as a function of $E[R_{t+1}]$, $x_1=0.5x_{1,orig}$}}
     \begin{threeparttable}
-    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
       \hline\hline
-      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
-      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
-      & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
       \hline
-      \multirow{2}{*}{$\bar{H}=0.00$}
-      & 1.319 & 0.388 & 1.320 & 0.388 & 1.321 & 0.388 \\
-      & 0.000 & 0.284 & 0.000 & 0.361 & 0.000 & 0.438 \\
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
       \hline
-      \multirow{2}{*}{$\bar{H}=0.05$}
-      & 1.158 & 0.281 & 1.160 & 0.281 & 1.161 & 0.281 \\
-      & 0.043 & 0.392 & 0.043 & 0.498 & 0.043 & 0.604 \\
-      \hline
-      \multirow{2}{*}{$\bar{H}=0.11$}
-      & 0.984 & 0.176 & 0.988 & 0.177 & 0.994 & 0.179 \\
-      & 0.112 & 0.625 & 0.111 & 0.789 & 0.111 & 0.950 \\
-      \hline
-      \multirow{2}{*}{$\bar{H}=0.17$}
-      & 0.953 & 0.128 & 0.950 & 0.128 & 0.960 & 0.130 \\
-      & 0.178 & 0.857 & 0.179 & 1.097 & 0.177 & 1.303 \\
+      average  & 0.00 & -0.78\% & -0.78\% &   n/a   & -0.52\% & -0.51\% & n/a \\
+      $R_t$    & 0.02 & -0.44\% & -0.44\% & -0.44\% & -0.37\% & -0.36\% & -0.35\% \\
+      (annual) & 0.04 & -0.25\% & -0.25\% & -0.25\% & -0.27\% & -0.26\% & -0.25\% \\
       \hline\hline
     \end{tabular}
     \begin{tablenotes}
-      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
     \end{tablenotes}
     \end{threeparttable}
   \end{table}
 
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-  \caption{\label{TabInitVal_tA0}\textbf{Initial values relative to median values: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
+  Table \ref{TabWelf_muvar_x0} shows the results for the highest risk environment in which the young agent endowment is completely removed $x_1=0$. In this setting, the government can default on its promised transfers, which default happens more often than in the simulation from Table \ref{TabWelf_muvar_xhalf}.
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_muvar_x0}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: variable $\mu$ as a function of $E[R_{t+1}]$, $x_1=0$}}
     \begin{threeparttable}
-    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
       \hline\hline
-      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
-      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
-      & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
       \hline
-      \multirow{2}{*}{$\tau=0.00$}
-      & 0.281 & 0.101 & 0.282 & 0.101 & 0.282 & 0.101 \\
-      & 0.000 & 1.093 & 0.000 & 1.390 & 0.000 & 1.687 \\
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
       \hline
-      \multirow{2}{*}{$\tau=0.11$}
-      & 0.248 & 0.069 & 0.248 & 0.069 & 0.248 & 0.069 \\
-      & 0.110 & 1.592 & 0.110 & 2.024 & 0.110 & 2.457 \\
-      \hline
-      \multirow{2}{*}{$\tau=0.20$}
-      & 0.222 & 0.049 & 0.222 & 0.049 & 0.222 & 0.049 \\
-      & 0.200 & 2.228 & 0.200 & 2.834 & 0.200 & 3.438 \\
-      \hline
-      \multirow{2}{*}{$\tau=0.25$}
-      & 0.208 & 0.040 & 0.208 & 0.040 & 0.208 & 0.040 \\
-      & 0.250 & 2.722 & 0.250 & 3.461 & 0.250 & 4.200 \\
+      average  & 0.00 & -3.61\% & -3.61\% &   n/a   & -3.42\% & -3.28\% & n/a \\
+      $R_t$    & 0.02 & -1.89\% & -1.88\% & -1.88\% & -2.14\% & -2.03\% & -1.91\% \\
+      (annual) & 0.04 & -1.01\% & -1.01\% & -1.01\% & -1.43\% & -1.33\% & -1.23\% \\
       \hline\hline
     \end{tabular}
     \begin{tablenotes}
-      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
     \end{tablenotes}
     \end{threeparttable}
   \end{table}
 
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-  \caption{\label{TabInitVal_tA75}\textbf{Initial values relative to median values: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
-      & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
-      & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ \\
-      \hline
-      \multirow{2}{*}{$\tau=0.00$}
-      & 1.319 & 0.388 & 1.320 & 0.388 & 1.321 & 0.388 \\
-      & 0.000 & 0.284 & 0.000 & 0.361 & 0.000 & 0.438 \\
-      \hline
-      \multirow{2}{*}{$\tau=0.11$}
-      & 1.106 & 0.232 & 1.107 & 0.232 & 1.108 & 0.232 \\
-      & 0.110 & 0.474 & 0.110 & 0.603 & 0.110 & 0.732 \\
-      \hline
-      \multirow{2}{*}{$\tau=0.20$}
-      & 0.943 & 0.145 & 0.943 & 0.145 & 0.944 & 0.145 \\
-      & 0.200 & 0.758 & 0.200 & 0.964 & 0.200 & 1.170 \\
-      \hline
-      \multirow{2}{*}{$\tau=0.25$}
-      & 0.857 & 0.109 & 0.857 & 0.110 & 0.858 & 0.110 \\
-      & 0.250 & 1.005 & 0.250 & 1.278 & 0.250 & 1.551 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
+  The direction of welfare effects in Tables \ref{TabWelf_muvar_xhalf} and \ref{TabWelf_muvar_x0} with respect to different average risky and riskless asset calibrations remains the same as in Table \ref{TabWelf_muvar_orig}. And the losses in welfare from the increased transfer become larger as the young agent endowment is reduced.
 
-  \clearpage
-
-  Partial equilibrium effects on measures of central tendency. We test the effect on the measures of central tendency in Tables \ref{TabInitVal_A0}to \ref{TabInitVal_tA75}. In the functions below the varialbe $pol\in\{H_t=\min(w_1 n_1,\bar{H}), \tau\}$.
-  \begin{gather*}
-    w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
-    k_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
-    \bar{H}/w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
-    \text{or} \\
-    H_{t,med}/w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
-    k_{2,0}/k_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr)
-  \end{gather*}
-
-  \begin{equation*}
-    \begin{split}
-      &\frac{\partial w_{med}(A_{min}=0.00)}{\partial\bar{H}}>0, \quad \frac{\partial w_{med}(A_{min}=0.75)}{\partial\bar{H}}<0, \quad \frac{\partial w_{med}}{\partial\tau}<0, \quad \frac{\partial w_{med}}{\partial k_{2,0}}\approx 0, \\
-      &\quad \frac{\partial w_{med}}{\partial pol}\leq0, \quad \frac{\partial w_{med}}{\partial A_{min}}>0
-    \end{split}
-  \end{equation*}
-
-  \begin{equation*}
-    \frac{\partial k_{med}}{\partial\bar{H}},\:\frac{\partial k_{med}}{\partial\tau}<0, \quad \frac{\partial k_{med}}{\partial k_{2,0}}\approx 0, \quad \frac{\partial k_{med}}{\partial pol}\leq0, \quad \frac{\partial k_{med}}{\partial A_{min}}>0
-  \end{equation*}
-
-  \begin{equation*}
-    \begin{split}
-      &\frac{\partial\bar{H}/w_{med}}{\partial\bar{H}},\:\frac{\partial H_{t,med}/w_{med}}{\partial\tau}>0, \quad \frac{\partial\bar{H}/w_{med}}{\partial k_{2,0}},\:\frac{\partial H_{t,med}/w_{med}}{\partial k_{2,0}}\approx 0, \\
-      &\quad \frac{\partial H_{t,med}/w_{med}(A_{min}=0.00)}{\partial pol}\approx 0, \quad \frac{\partial H_{t,med}/w_{med}(A_{min}=0.75)}{\partial pol}\geq 0, \\
-      &\quad \frac{\partial H_{t,med}/w_{med}(pol=\bar{H})}{\partial A_{min}}\leq 0, \quad \frac{\partial H_{t,med}/w_{med}(pol=\tau)}{\partial A_{min}}= 0
-    \end{split}
-  \end{equation*}
-
-  \begin{equation*}
-    \begin{split}
-      &\frac{\partial k_{2,0}/k_{med}}{\partial\bar{H}},\:\frac{\partial k_{2,0}/k_{med}}{\partial\tau}>0, \quad \frac{\partial k_{2,0}/k_{med}}{\partial k_{2,0}}> 0 \\
-      &\quad \frac{\partial k_{2,0}/k_{med}}{\partial pol}> 0, \quad \frac{\partial k_{2,0}/k_{med}}{\partial A_{min}}< 0
-    \end{split}
-  \end{equation*}
-
-  \newpage
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabPer2GO_A0}\textbf{Periods to shut down simulation statistics: $A_{min}=0.00$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & Periods & CDF & Periods & CDF & Periods & CDF \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.00$}
-      & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.05$}
-      & min & 1 & 0.160 & 1 & 0.152 & 1 & 0.148 \\
-      & med & 4 & 0.517 & 4 & 0.512 & 4 & 0.507 \\
-      & mean & 6.1 & 0.693 & 6.2 & 0.689 & 6.2 & 0.686 \\
-      & max & 50 & 1.000 & 50 & 1.000 & 50 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.11$}
-      & min & 1 & 0.344 & 1 & 0.328 & 1 & 0.317 \\
-      & med & 2 & 0.534 & 2 & 0.522 & 2 & 0.512 \\
-      & mean & 3.5 & 0.713 & 3.6 & 0.705 & 3.6 & 0.697 \\
-      & max & 27 & 1.000 & 27 & 1.000 & 27 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.17$}
-      & min & 1 & 0.498 & 1 & 0.474 & 1 & 0.459 \\
-      & med & 2 & 0.683 & 2 & 0.670 & 2 & 0.658 \\
-      & mean & 2.5 & 0.758 & 2.6 & 0.745 & 2.6 & 0.732 \\
-      & max & 21 & 1.000 & 21 & 1.000 & 21 & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabPer2GO_A75}\textbf{Periods to shut down simulation statistics: $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & Periods & CDF & Periods & CDF & Periods & CDF \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.00$}
-      & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.05$}
-      & min & 5 & 0.000 & 5 & 0.000 & 5 & 0.000 \\
-      & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      & mean & 99.8 & 0.008 & 99.8 & 0.007 & 99.8 & 0.007 \\
-      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.11$}
-      & min & 2 & 0.108 & 2 & 0.096 & 2 & 0.086 \\
-      & med & 23 & 0.500 & 25 & 0.506 & 25 & 0.502 \\
-      & mean & 34.1 & 0.620 & 34.9 & 0.608 & 35.2 & 0.613 \\
-      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      \hline
-      \multirow{4}{*}{$\bar{H}=0.17$}
-      & min & 1 & 0.302 & 1 & 0.261 & 1 & 0.228 \\
-      & med & 3 & 0.506 & 4 & 0.521 & 4 & 0.501 \\
-      & mean & 8.5 & 0.692 & 9.0 & 0.674 & 9.4 & 0.680 \\
-      & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \clearpage
-
-  Partial equilibrium effects on statistics on periods to shut down across simulations. We test the effect on the statistics on periods to shut down in Tables \ref{TabPer2GO_A0} and \ref{TabPer2GO_A75}.
-
-  \begin{equation*}
-    \begin{split}
-      &\frac{\partial\text{min}}{\partial\bar{H}}< 0, \quad \frac{\partial\text{min}}{\partial k_{2,0}}=0, \frac{\partial\text{min}}{\partial A_{min}}> 0 \\
-      &\frac{\partial\text{med}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{med}}{\partial k_{2,0}}> 0, \frac{\partial\text{med}}{\partial A_{min}}> 0 \\
-      &\frac{\partial\text{mean}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{mean}}{\partial k_{2,0}}> 0, \frac{\partial\text{mean}}{\partial A_{min}}> 0 \\
-      &\frac{\partial\text{max}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{max}}{\partial k_{2,0}}> 0, \frac{\partial\text{max}}{\partial A_{min}}> 0
-    \end{split}
-  \end{equation*}
-
-  \newpage
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabRiskl_A0}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t=\min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.00$}
-      & $t=0$ & -2.06\% & 0.483 & -2.12\% & 0.459 & -2.18\% & 0.440 \\
-      & min & -4.64\% & 0.000 & -4.64\% & 0.000 & -4.64\% & 0.000 \\
-      & med & -2.01\% & 0.500 & -2.01\% & 0.500 & -2.01\% & 0.500 \\
-      & mean & -1.58\% & 0.645 & -1.58\% & 0.645 & -1.59\% & 0.645 \\
-      & max & 19.01\% & 1.000 & 19.01\% & 1.000 & 19.01\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.05$}
-      & $t=0$ & -1.47\% & 0.589 & -1.54\% & 0.563 & -1.60\% & 0.541 \\
-      & min & -4.39\% & 0.000 & -4.39\% & 0.000 & -4.39\% & 0.000 \\
-      & med & -1.69\% & 0.500 & -1.70\% & 0.500 & -1.71\% & 0.500 \\
-      & mean & -1.14\% & 0.715 & -1.14\% & 0.720 & -1.14\% & 0.720 \\
-      & max & 36.56\% & 1.000 & 36.52\% & 1.000 & 36.49\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.11$}
-      & $t=0$ & -1.71\% & 0.651 & -1.80\% & 0.609 & -1.87\% & 0.580 \\
-      & min & -4.38\% & 0.000 & -4.38\% & 0.000 & -4.38\% & 0.000 \\
-      & med & -1.99\% & 0.500 & -2.00\% & 0.500 & -2.01\% & 0.500 \\
-      & mean & -1.42\% & 0.750 & -1.40\% & 0.759 & -1.43\% & 0.756 \\
-      & max & 34.67\% & 1.000 & 36.29\% & 1.000 & 32.10\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.17$}
-      & $t=0$ & -1.53\% & 0.743 & -1.71\% & 0.704 & -1.83\% & 0.674 \\
-      & min & -4.37\% & 0.000 & -4.37\% & 0.000 & -4.37\% & 0.000 \\
-      & med & -2.13\% & 0.500 & -2.16\% & 0.500 & -2.18\% & 0.500 \\
-      & mean & -1.51\% & 0.751 & -1.53\% & 0.754 & -1.59\% & 0.749 \\
-      & max & 35.69\% & 1.000 & 41.27\% & 1.000 & 35.76\% & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabRiskl_A75}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t=\min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.00$}
-      & $t=0$ & 3.91\% & 0.955 & 3.69\% & 0.940 & 3.51\% & 0.926 \\
-      & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
-      & med & 0.47\% & 0.500 & 0.47\% & 0.500 & 0.47\% & 0.500 \\
-      & mean & 0.52\% & 0.509 & 0.52\% & 0.509 & 0.52\% & 0.509 \\
-      & max & 6.19\% & 1.000 & 6.19\% & 1.000 & 6.19\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.05$}
-      & $t=0$ & 5.40\% & 0.912 & 5.06\% & 0.895 & 4.80\% & 0.879 \\
-      & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
-      & med & 1.15\% & 0.500 & 1.14\% & 0.500 & 1.14\% & 0.500 \\
-      & mean & 1.43\% & 0.537 & 1.43\% & 0.537 & 1.42\% & 0.537 \\
-      & max & 41.95\% & 1.000 & 41.95\% & 1.000 & 41.95\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.11$}
-      & $t=0$ & 7.62\% & 0.855 & 7.07\% & 0.836 & 6.65\% & 0.819 \\
-      & min & -4.57\% & 0.000 & -4.57\% & 0.000 & -4.57\% & 0.000 \\
-      & med & 2.26\% & 0.500 & 2.24\% & 0.500 & 2.23\% & 0.500 \\
-      & mean & 3.20\% & 0.588 & 3.16\% & 0.587 & 3.14\% & 0.586 \\
-      & max & 70.01\% & 1.000 & 76.72\% & 1.000 & 74.84\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.17$}
-      & $t=0$ & 9.56\% & 0.859 & 8.92\% & 0.838 & 8.43\% & 0.822 \\
-      & min & -4.29\% & 0.000 & -4.29\% & 0.000 & -4.30\% & 0.000 \\
-      & med & 3.13\% & 0.500 & 3.13\% & 0.500 & 3.09\% & 0.500 \\
-      & mean & 4.30\% & 0.584 & 4.26\% & 0.582 & 4.21\% & 0.584 \\
-      & max & 69.65\% & 1.000 & 67.07\% & 1.000 & 70.83\% & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabRiskl_tA0}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
-      \hline
-      \multirow{5}{*}{$\tau=0.00$}
-      & $t=0$ & -2.06\% & 0.483 & -2.12\% & 0.459 & -2.18\% & 0.440 \\
-      & min & -4.64\% & 0.000 & -4.64\% & 0.000 & -4.64\% & 0.000 \\
-      & med & -2.01\% & 0.500 & -2.01\% & 0.500 & -2.01\% & 0.500 \\
-      & mean & -1.58\% & 0.645 & -1.58\% & 0.645 & -1.59\% & 0.645 \\
-      & max & 20.00\% & 1.000 & 20.00\% & 1.000 & 20.00\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.11$}
-      & $t=0$ & -2.08\% & 0.446 & -2.15\% & 0.423 & -2.20\% & 0.405 \\
-      & min & -4.63\% & 0.000 & -4.63\% & 0.000 & -4.63\% & 0.000 \\
-      & med & -1.93\% & 0.500 & -1.93\% & 0.500 & -1.93\% & 0.500 \\
-      & mean & -1.34\% & 0.678 & -1.34\% & 0.678 & -1.35\% & 0.678 \\
-      & max & 22.45\% & 1.000 & 22.45\% & 1.000 & 22.45\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.20$}
-      & $t=0$ & -2.07\% & 0.415 & -2.13\% & 0.393 & -2.19\% & 0.374 \\
-      & min & -4.61\% & 0.000 & -4.61\% & 0.000 & -4.61\% & 0.000 \\
-      & med & -1.81\% & 0.500 & -1.81\% & 0.500 & -1.81\% & 0.500 \\
-      & mean & -1.06\% & 0.705 & -1.06\% & 0.705 & -1.06\% & 0.705 \\
-      & max & 24.51\% & 1.000 & 24.51\% & 1.000 & 24.51\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.25$}
-      & $t=0$ & -2.04\% & 0.397 & -2.11\% & 0.374 & -2.17\% & 0.356 \\
-      & min & -4.61\% & 0.000 & -4.61\% & 0.000 & -4.61\% & 0.000 \\
-      & med & -1.72\% & 0.500 & -1.72\% & 0.500 & -1.72\% & 0.500 \\
-      & mean & -0.86\% & 0.721 & -0.86\% & 0.721 & -0.86\% & 0.721 \\
-      & max & 25.71\% & 1.000 & 25.71\% & 1.000 & 25.71\% & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=4.6in}
-  \caption{\label{TabRiskl_tA75}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
-      \hline\hline
-      & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
-      & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
-      \hline
-      \multirow{5}{*}{$\tau=0.00$}
-      & $t=0$ & 3.91\% & 0.955 & 3.69\% & 0.940 & 3.51\% & 0.926 \\
-      & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
-      & med & 0.47\% & 0.500 & 0.47\% & 0.500 & 0.47\% & 0.500 \\
-      & mean & 0.52\% & 0.509 & 0.52\% & 0.509 & 0.52\% & 0.509 \\
-      & max & 6.19\% & 1.000 & 6.19\% & 1.000 & 6.19\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.11$}
-      & $t=0$ & 4.62\% & 0.916 & 4.38\% & 0.896 & 4.19\% & 0.878 \\
-      & min & -4.59\% & 0.000 & -4.59\% & 0.000 & -4.59\% & 0.000 \\
-      & med & 1.31\% & 0.500 & 1.31\% & 0.500 & 1.31\% & 0.500 \\
-      & mean & 1.33\% & 0.503 & 1.33\% & 0.503 & 1.33\% & 0.503 \\
-      & max & 7.80\% & 1.000 & 7.80\% & 1.000 & 7.80\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.20$}
-      & $t=0$ & 5.23\% & 0.872 & 4.98\% & 0.849 & 4.79\% & 0.829 \\
-      & min & -4.57\% & 0.000 & -4.57\% & 0.000 & -4.57\% & 0.000 \\
-      & med & 2.15\% & 0.500 & 2.15\% & 0.500 & 2.15\% & 0.500 \\
-      & mean & 2.13\% & 0.497 & 2.12\% & 0.497 & 2.12\% & 0.497 \\
-      & max & 9.20\% & 1.000 & 9.20\% & 1.000 & 9.20\% & 1.000 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.25$}
-      & $t=0$ & 5.59\% & 0.844 & 5.34\% & 0.819 & 5.13\% & 0.798 \\
-      & min & -4.55\% & 0.000 & -4.55\% & 0.000 & -4.55\% & 0.000 \\
-      & med & 2.68\% & 0.500 & 2.68\% & 0.500 & 2.68\% & 0.500 \\
-      & mean & 2.63\% & 0.493 & 2.63\% & 0.493 & 2.63\% & 0.493 \\
-      & max & 10.03\% & 1.000 & 10.03\% & 1.000 & 10.03\% & 1.000 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-    \caption{\label{TabEqPrem_A0}\textbf{Components of the equity premium in annual terms: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
-      \hline\hline
-      & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.7\% & 102.7\% & 102.7\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.090 & 5.090 & 5.089 \\
-      & \quad Avg. $\bar{R_t}$ & 98.4\% & 98.4\% & 98.4\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.3\% & 4.3\% & 4.3\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.848 & 0.848 & 0.847 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.05$} & \quad Avg. $E[R_{t+1}]$ & 104.1\% & 104.0\% & 103.9\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.546 & 5.538 & 5.525 \\
-      & \quad Avg. $\bar{R_t}$ & 98.9\% & 98.9\% & 98.9\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.2\% & 5.1\% & 5.1\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.938 & 0.925 & 0.918 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.11$} & \quad Avg. $E[R_{t+1}]$ & 105.1\% & 104.9\% & 104.8\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.593 & 5.516 & 5.473 \\
-      & \quad Avg. $\bar{R_t}$ & 98.6\% & 98.6\% & 98.6\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 6.6\% & 6.3\% & 6.2\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 1.171 & 1.148 & 1.140 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.17$} & \quad Avg. $E[R_{t+1}]$ & 106.4\% & 106.1\% & 105.8\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.789 & 5.627 & 5.553 \\
-      & \quad Avg. $\bar{R_t}$ & 98.5\% & 98.5\% & 98.4\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 7.9\% & 7.6\% & 7.4\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 1.367 & 1.352 & 1.337 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-    \caption{\label{TabEqPrem_A75}\textbf{Components of the equity premium in annual terms: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
-      \hline\hline
-      & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.8\% & 102.8\% & 102.8\% \\
-      & \quad $\sigma(R_{t+1})$ & 3.944 & 3.941 & 3.938 \\
-      & \quad Avg. $\bar{R_t}$ & 100.5\% & 100.5\% & 100.5\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.3\% & 2.3\% & 2.3\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.584 & 0.583 & 0.583 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.05$} & \quad Avg. $E[R_{t+1}]$ & 103.7\% & 103.7\% & 103.6\% \\
-      & \quad $\sigma(R_{t+1})$ & 4.418 & 4.412 & 4.408 \\
-      & \quad Avg. $\bar{R_t}$ & 101.4\% & 101.4\% & 101.4\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.2\% & 2.2\% & 2.2\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.504 & 0.504 & 0.504 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.11$} & \quad Avg. $E[R_{t+1}]$ & 105.1\% & 105.0\% & 105.0\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.462 & 5.436 & 5.408 \\
-      & \quad Avg. $\bar{R_t}$ & 103.2\% & 103.2\% & 103.1\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 1.9\% & 1.9\% & 1.9\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.345 & 0.347 & 0.347 \\
-      \hline
-      \multirow{5}{*}{$\bar{H}=0.17$} & \quad Avg. $E[R_{t+1}]$ & 106.3\% & 106.2\% & 106.1\% \\
-      & \quad $\sigma(R_{t+1})$ & 6.257 & 6.131 & 6.030 \\
-      & \quad Avg. $\bar{R_t}$ & 104.3\% & 104.3\% & 104.2\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.0\% & 1.9\% & 1.9\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.324 & 0.318 & 0.310 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-    \caption{\label{TabEqPrem_tA0}\textbf{Components of the equity premium in annual terms: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
-      \hline\hline
-      & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
-      \hline
-      \multirow{5}{*}{$\tau=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.7\% & 102.7\% & 102.7\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.090 & 5.090 & 5.089 \\
-      & \quad Avg. $\bar{R_t}$ & 98.4\% & 98.4\% & 98.4\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.3\% & 4.3\% & 4.3\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.848 & 0.848 & 0.847 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.11$} & \quad Avg. $E[R_{t+1}]$ & 103.4\% & 103.4\% & 103.4\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.273 & 5.272 & 5.272 \\
-      & \quad Avg. $\bar{R_t}$ & 98.7\% & 98.7\% & 98.7\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.7\% & 4.7\% & 4.7\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.895 & 0.895 & 0.894 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.20$} & \quad Avg. $E[R_{t+1}]$ & 104.0\% & 103.9\% & 103.9\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.417 & 5.417 & 5.416 \\
-      & \quad Avg. $\bar{R_t}$ & 98.9\% & 98.9\% & 98.9\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.0\% & 5.0\% & 5.0\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.925 & 0.925 & 0.925 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.25$} & \quad Avg. $E[R_{t+1}]$ & 104.3\% & 104.3\% & 104.3\% \\
-      & \quad $\sigma(R_{t+1})$ & 5.493 & 5.493 & 5.493 \\
-      & \quad Avg. $\bar{R_t}$ & 99.1\% & 99.1\% & 99.1\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.2\% & 5.2\% & 5.1\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.938 & 0.938 & 0.938 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \begin{table}[htbp]\centering\captionsetup{width=6.0in}
-    \caption{\label{TabEqPrem_tA75}\textbf{Components of the equity premium in annual terms: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
-    \begin{threeparttable}
-    \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
-      \hline\hline
-      & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
-      \hline
-      \multirow{5}{*}{$\tau=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.8\% & 102.8\% & 102.8\% \\
-      & \quad $\sigma(R_{t+1})$ & 3.944 & 3.941 & 3.938 \\
-      & \quad Avg. $\bar{R_t}$ & 100.5\% & 100.5\% & 100.5\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.3\% & 2.3\% & 2.3\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.584 & 0.583 & 0.583 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.11$} & \quad Avg. $E[R_{t+1}]$ & 103.8\% & 103.8\% & 103.8\% \\
-      & \quad $\sigma(R_{t+1})$ & 4.193 & 4.190 & 4.187 \\
-      & \quad Avg. $\bar{R_t}$ & 101.3\% & 101.3\% & 101.3\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.5\% & 2.5\% & 2.5\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.592 & 0.592 & 0.592 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.20$} & \quad Avg. $E[R_{t+1}]$ & 104.7\% & 104.7\% & 104.7\% \\
-      & \quad $\sigma(R_{t+1})$ & 4.404 & 4.401 & 4.399 \\
-      & \quad Avg. $\bar{R_t}$ & 102.1\% & 102.1\% & 102.1\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.6\% & 2.6\% & 2.6\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.594 & 0.593 & 0.593 \\
-      \hline
-      \multirow{5}{*}{$\tau=0.25$} & \quad Avg. $E[R_{t+1}]$ & 105.3\% & 105.3\% & 105.3\% \\
-      & \quad $\sigma(R_{t+1})$ & 4.523 & 4.520 & 4.518 \\
-      & \quad Avg. $\bar{R_t}$ & 102.6\% & 102.6\% & 102.6\% \\
-      & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.7\% & 2.7\% & 2.7\% \\
-      & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.593 & 0.593 & 0.593 \\
-      \hline\hline
-    \end{tabular}
-    \begin{tablenotes}
-      \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
-    \end{tablenotes}
-    \end{threeparttable}
-  \end{table}
-
-  \clearpage
+  I tested the effect of holding the original endowment $x_1$ constant and instead adding risk by implementing a mean preserving spread of the TFP shock. The effects of this type of increase in risk were predictably small and are reported separately in the online technical appendix.\footnote{See online technical appendix at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
 
 
 \section{Conclusion}\label{SecConclusion}
 
+  This paper replicates the modeling and calibration approaches of \citet{Blanchard:2019} and finds contrasting results that no calibrated parameterizations of the model produce positive long-run average utility changes from an increase in public debt. Furthermore, I find that those negative long-run welfare effects are exacerbated when Blanchard's strong assumption of a large endowment to young agents is relaxed. Reducing the endowment results in an economic environment in which rare negative economic events can occur. A large literature described in the introduction has shown that rare negative events can produce large equity premia and welfare losses, even in moderate times leading up to the negative shocks. Finally, I argue that Blanchard's calibration approach based on small equity premia or interest rate spreads further biases the results toward long-run average welfare enhancing government debt expansion.
 
-\end{spacing}
+  Blanchard's results provide support for governments to expand government debt in times of economic growth as long as interest rates are low enough. I provide evidence in this paper that the long-run welfare costs of expansionary debt policies might be significant for a wider range of model parameterizations than previously known.
 
-\bibliography{Evans2020}
+  % \begin{itemize}
+  %   \item Questions
+  %   \begin{itemize}
+  %     \item What are effects of increased deficits in expansion?
+  %   \end{itemize}
+  %   \vspace{3mm}
+  %   \item 80-period lived model.
+  %   \begin{itemize}
+  %     \item Include potential for default
+  %     \item How does government debt affect young/middle aged/old vs poor/rich?
+  %     \item Allow gap for gov't rate vs. MPK (multiple rates)
+  %     \item Allow for multiple maturities, calibrate percent in each by gov't
+  %   \end{itemize}
+  %   \vspace{3mm}
+  %   \item Is this calibration approach appropriate?
+  %   \begin{itemize}
+  %     \item Blanchard (2019) calibrates off assumed low interest rates
+  %     \item Calibrate other macro targets, let interest rates be endogenous
+  %   \end{itemize}
+  % \end{itemize}
+
+
+% \end{spacing}
+
+\bibliography{Evans2020.bib}
 
 
 \newpage
@@ -1175,22 +583,16 @@
     \begin{equation}\label{EqTAppBlanch_x1}
       x_1 = \Big[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}(2\beta)^\alpha\Bigr]^\frac{1}{1-\alpha}
     \end{equation}
-    Finally, we solve for the long-run value of wealth $\bar{k}_2$ but substituting the expression for $x_1$ from \eqref{EqTAppBlanch_x1} into \eqref{EqTAppBlanch_k2betax1}.
+    Finally, we solve for the long-run value of wealth $\bar{k}_2$ by substituting the expression for $x_1$ from \eqref{EqTAppBlanch_x1} into \eqref{EqTAppBlanch_k2betax1}.
     \begin{equation}\label{EqTAppBlanch_k2barfinal}
       \bar{k}_2 = 2\beta\Big[(1-\alpha)e^{\mu + \frac{\sigma^2}{2}}(2\beta)^\alpha\Bigr]^\frac{1}{1-\alpha}
     \end{equation}
 
 
-
-
-
-
-
-
   \subsection{Problems with Blanchard (2019) approach}\label{SecTAppBlanch_Probs}
 
     \begin{enumerate}
-      \item The calibration approach for $\beta$ and $\mu$ is contradictory. Blanchard calibrates $\mu$ based on one model, the model with perfect substitutes production $\ve=\infty$. He assumes the unit elasticity Cobb-Douglas case $\ve=1$ to calibrate $\beta$ based on the independence of the $E_t[R_{t+1}]$ equation of the respective parameter in each case. But $\beta$ and $\mu$ are calibrated with two different models. [NOTE: The identification of $\gamma$ is nice using the $\ln(E_t[R_{t+1}]-\ln(\bar{R}_t)=\gamma\sigma^2$ equation.]
+      \item asdf
     \end{enumerate}
 
 
@@ -1257,26 +659,701 @@
 
 
 \newpage
-\section{Comments and Notes}\label{TAppCommentsNotes}
+\setcounter{equation}{0}                         % reset counter
+\section{Other Results}\label{SecTAppOtherResults}
 
-  \begin{itemize}
-    \item Interesting papers on debt and rare events: \citet{RebeloEtAl:2019}, \citet{ReinhartEtAl:2015}
-    \item Equity premium puzzle explanations
-    \begin{itemize}
-      \item General: \citet{DeLongMagin:2009}, \citet{FarhiGourio:2019}
-      \item Prospect theory by Kahneman and Tversky
-      \item the role of personal debt
-      \item the importance of credit risk and liquidity: \citet{Gourio:2013}
-      \item the impact of government regulation
-      \item consideration of taxes
-      \item rare events/disasters: see references in \citet{TsaiWachter:2015}, including \citet{Barro:2009}, \citet{Gourio:2012}
-    \end{itemize}
-    \item Our current calibration does not match the NBER paper because I am not sure I like the way we calculated the median (see last paragraph of Technical Appendix \ref{SecTAppCalib}.).
-    \item Rick thinks we should use language of ``fiscal limit'', and not use the more extreme terms such as ``shutdown" or ``game over".
-    \item Does Ricardian equivalence hold in this model? Agents have rational expectations, and they smooth consumption. But the government runs a balanced budget in each period. My intuition is that this is a Ricardian model because agents expect that the government will eventually have to default on its promised transfer $\bar{H}$.
-    \item In describing the transfer program, justify lump sum transfers as approximating a degree of fiscal inertia or fiscal stickiness. Policy stickiness could either speed up the  expected time until the economy hits its fiscal limit, or it could delay policy responses after hitting the limit which make outcomes worse. Papers that incorporate policy stickiness into stochastic OLG models are \citet{AuerbachHassett:1992,AuerbachHassett:2001,AuerbachHassett:2002,AuerbachHassett:2007} and \citet{HassettMetcalf:1999}. \citet{AlesinaDrazen:1991} discuss the foundations of fiscal stickiness.
-    \item List of papers that focus ``on important intergenerational and distributional consequences of fiscal stress and fiscal limits": \citet{AuerbachKotlikoff:1987}, \citet{KotlikoffSmettersWalliser:1998a,KotlikoffSmettersWalliser:1998b,KotlikoffSmettersWalliser:2007}, \citet{Imrohoroglu2Joines:1995,Imrohoroglu2Joines:1999}, \citet{HuggettVentura:1999}, \citet{CooleySoares:1999}, \citet{DeNardiImrohorogluSargent:1999}, \citet{AltigAuerbachKotlikoffSmettersWalliser:2001}, \citet{SmettersWalliser:2004}, and \citet{NishiyamaSmetters:2007}.
-  \end{itemize}
+  In addition to the reduced endowment comparisons of Tables \ref{TabWelf_muvar_xhalf} and \ref{TabWelf_muvar_x0} to the Blanchard replication results in Table \ref{TabWelf_muvar_orig}, I also show how a different type of increased risk affects the percent welfare increase results from Table \ref{TabWelf_muvar_orig}. Tables \ref{TabWelf_muvar_sig5} and \ref{TabWelf_muvar_sig10} hold the endowment $x_1$ constant at the original level and increase the standard deviation of the TFP shock by 5 percent and 10 percent respectively. In each case, we reduce the mean of the shock $\mu$ by the corresponding amount that keeps the expected value of the shock $E[e^{z_{t+1}}]$ constant. This mean-preserving spread increases risk in the economy while holding average values relatively constant.
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_muvar_sig5}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: variable $\mu$ as a function of $E[R_{t+1}]$, $\sigma=1.05\sigma_{orig}$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
+      \hline\hline
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
+      \hline
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
+      \hline
+      average  & 0.00 & -0.42\% & -0.42\% &   n/a   & -0.25\% & -0.25\% & n/a \\
+      $R_t$    & 0.02 & -0.24\% & -0.24\% & -0.24\% & -0.18\% & -0.18\% & -0.17\% \\
+      (annual) & 0.04 & -0.14\% & -0.14\% & -0.14\% & -0.14\% & -0.13\% & -0.13\% \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  \begin{table}[htbp]\centering\captionsetup{width=5.0in}
+  \caption{\label{TabWelf_muvar_sig10}\textbf{Percent change in average lifetime utility from increased transfer $\bar{H}$: variable $\mu$ as a function of $E[R_{t+1}]$, $\sigma=1.10\sigma_{orig}$}}
+    \begin{threeparttable}
+    \begin{tabular}{>{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c |>{\normalsize}c >{\normalsize}c >{\normalsize}c}
+      \hline\hline
+      & & \multicolumn{3}{c}{Linear production $\ve=\infty$} & \multicolumn{3}{c}{Cobb-Douglas $\ve=1$} \\
+      \hline
+      & & \multicolumn{3}{c}{average $\bar{R}$ (annual)} & \multicolumn{3}{c}{average $\bar{R}$ (annual)} \\
+      & & -0.020 & -0.005 & 0.010 & -0.020 & -0.005 & 0.010 \\
+      \hline
+      average  & 0.00 & -0.42\% & -0.42\% &   n/a   & -0.25\% & -0.25\% & n/a \\
+      $R_t$    & 0.02 & -0.24\% & -0.24\% & -0.24\% & -0.19\% & -0.18\% & -0.18\% \\
+      (annual) & 0.04 & -0.14\% & -0.14\% & -0.14\% & -0.14\% & -0.14\% & -0.13\% \\
+      \hline\hline
+    \end{tabular}
+    \begin{tablenotes}
+      \scriptsize{\item[*]NOTE: The upper left element of each 3-by-3 set of percent changes in welfare is labeled ``n/a'' because that combination of average risky rate and average riskless rate implies a negative spread $\text{avg. }R_t<\text{avg. }\bar{R}_t$, which is not possible in equilibrium given equation \eqref{EqCalib_spread}. Averages calculated as average over 15 simulated time series of 25 periods each.}
+    \end{tablenotes}
+    \end{threeparttable}
+  \end{table}
+
+  As a check that the model's theory is correctly coded and solved, the results in the right-side 3-by-3 panels of Tables \ref{TabWelf_muvar_sig5} and \ref{TabWelf_muvar_sig10} are identical to the right-side 3-by-3 panel of Table \ref{TabWelf_muvar_orig}. The mean preserving spread of the TFP shock does not change the equilibrium results when production is linear. In the Cobb-Douglas cases, the mean preserving increase in risk of either a 5-percent increase in the TFP standard deviation in Table \ref{TabWelf_muvar_sig5} or a 10-percent increase in standard deviation in Table \ref{TabWelf_muvar_sig10} have almost no effect on the welfare changes. The results in the left-side 3-by-3 panels of Tables \ref{TabWelf_muvar_sig5} and \ref{TabWelf_muvar_sig10} are different from Table \ref{TabWelf_muvar_orig}, and the welfare changes decline monotonically as $\sigma$ increases. But the changes are very small.
+
+
+  % \subsection{Other other results}
+
+  %   We explore the properties of the model from Section \ref{SecModel} with respect to different values of the promised transfer $\bar{H}$, initial wealth $k_{2,0}$, and the extent and probability of low total factor productivity values $A_t$ by calibrating the other parameters of the model and simulating a time series of the model 3,000 times for different combinations of $\bar{H}$, $k_{2,0}$, and the support and distribution of $A_t$. The first three rows of Table \ref{TabCalibr} show the different values of $\bar{H}$, $k_{2,0}$, and $A_{min}$ that we test in our simulations. The remaining rows show our calibration of the other variables.\footnote{The code for these simulations is available at \href{https://github.com/OpenSourceEcon/PubDebtNegShocks}{https://github.com/OpenSourceEcon/PubDebtNegShocks}.}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=5.6in}
+  %   \caption{\label{TabCalibr}\textbf{Calibration of 2-period-lived agent OG model with promised transfer $\bar{H}$}}
+  %       \begin{threeparttable}
+  %       \begin{tabular}{>{\small}c >{\small}l >{\small}c}
+  %           \hline\hline
+  %           Parameter & \multicolumn{1}{c}{Source to match} & Value(s) \\
+  %           \hline
+  %           $\bar{H}$ & Promised transfer amount & $[0.00, 0.05, 0.11, 0.17]$ \\
+  %           $k_{2,0}$ & Initial period wealth of old household & $[0.11, 0.14, 0.17]$ \\
+  %           $A_{min}$ & Minimum value in support of $A_t$ & $[0.0, 0.75]$ \\
+  %           \hline
+  %           $z_0$ & Initial value of $z_t$ TFP component & $\mu$ \\
+  %           $n_1$ & Exogenous labor supply when young & 1.0 \\
+  %           $n_2$ & Exogenous labor supply when old & 0.0 \\
+  %           $\beta$  & Annual discount factor of 0.96 & 0.29 \\
+  %           $\gamma$ & Coefficient of relative risk aversion between &  2.0 \\
+  %                    & \quad 1.5 and 4.0 &  \\
+  %           $\alpha$ & Capital share of income &  0.35 \\
+  %           $\delta$ & Annual capital depreciation of 0.05 & 0.79 \\
+  %           $\rho$   & AR(1) persistence of normally distributed &  0.21 \\
+  %                    & \quad shock to match annual persistence of 0.95 &       \\
+  %           $\mu$    & AR(1) long-run average $z_t$ level &  0.0 \\
+  %           $\sigma$ & standard deviation of normally distributed $z_t$ &  1.55 \\
+  %                    & \quad to match annual standard deviation of U.S. &  \\
+  %                    & \quad real GDP of 0.49 & \\
+  %           $B_t$    & Exogenous supply of riskless bonds in every & 0 \\
+  %                    & \quad period & \\
+  %           \hline
+  %           $yrs$ & Number of years in a model period & 30 \\
+  %           $T$ & Maximum number of periods to simulate in a & 100 \\
+  %               & \quad given simulation & \\
+  %           $S$ & Number of simulated time series for a given & 3,000 \\
+  %               & \quad parameterization & \\
+  %           \hline\hline
+  %       \end{tabular}
+  %       \begin{tablenotes}
+  %           \scriptsize{\item[]The Technical Appendix \ref{SecTAppCalib} gives a detailed description of the calibration of all parameters.}
+  %       \end{tablenotes}
+  %       \end{threeparttable}
+  %   \end{table}
+
+  %   In our simulations we study a first layer of the parameter space by simulating combinations of different values of government transfer $\bar{H}\in[0.00, 0.05, 0.11, 0.17]$ and different values of initial wealth $k_{2,0}\in[0.11, 0.14, 0.17]$. We first study the behavior of the economy with these combinations of $\bar{H}$ and $k_{2,0}$ when the total factor productivity value $A_t\equiv e^{z_t}$ is distributed lognormally as described in \eqref{EqModelFirmZAR1} with the range of $A_t$ being $(0,\infty)$. This range of TFP shocks includes very small values close to zero, albeit with low probability, that can create fiscal insolvency when $\bar{H}>0$.
+
+  %   We then study those same combinations of $\bar{H}$ and $k_{2,0}$, but we assume a truncated support of the total factor productivity process $A_t\in[A_{min},\infty)$, where $A_{min}>0$. We implement this truncated TFP process by assuming that the shocks to the $z_t$ process are truncated normal $TrN()$ with mean 0, standard deviation $\sigma$, and lower bound cutoff $\ve_{t,min}$.\footnote{The truncated normal distribution $TrN(0,\sigma, \ve_{t,min})$ is the non-truncated normal distribution with mean 0 and standard deviation $\sigma$ that is then truncated at $\ve_{t,min}$ and rescaled to sum to 1. Technical Appendix \ref{SecTAppTrNdist} has a description of this distribution.}
+  %   \begin{equation}\label{EqSimsZAR1_trunc}
+  %     \begin{split}
+  %       z_t &= \rho z_{t-1} + (1-\rho)\mu + \ve_t \\
+  %       &\text{where}\quad \rho\in[0,1),\quad\mu\geq 0, \quad\text{and}\quad \ve_t \sim TrN(0,\sigma, \ve_{t,min}) \\
+  %       &\text{and}\quad \ve_{t,min} = \ln(A_{min}) - \rho z_{t-1} - (1 - \rho)\mu
+  %     \end{split}
+  %   \end{equation}
+
+  %   We use these two alternative scenarios of $A_{min}=0$ versus $A_{min}=0.75$ to study how the properties of the economy change when there are more negative states of the world $A_{min}=0$ versus fewer negative states of the world $A_{min}=0.75$. The economy described by \citet{Blanchard:2019} is a case in which many negative states of the economy are assumed away. Many of the conclusions of \citet{Blanchard:2019} depend critically on these assumptions of relative safety. We show below that the properties of the economy and the costs of government promises change dramatically when the economy is faced with the possibility of more formidable negative shocks.
+
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=5.3in}
+  %   \caption{\label{TabInitVal_A0}\textbf{Initial values relative to median values: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+  %       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+  %       & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.00$}
+  %       & 0.281 & 0.101 & 0.282 & 0.101 & 0.282 & 0.101 \\
+  %       & 0.000 & 1.093 & 0.000 & 1.390 & 0.000 & 1.687 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.05$}
+  %       & 0.445 & 0.083 & 0.449 & 0.085 & 0.450 & 0.085 \\
+  %       & 0.112 & 1.321 & 0.111 & 1.654 & 0.111 & 2.003 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.11$}
+  %       & 0.557 & 0.064 & 0.564 & 0.066 & 0.572 & 0.068 \\
+  %       & 0.197 & 1.710 & 0.195 & 2.108 & 0.192 & 2.515 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.17$}
+  %       & 0.648 & 0.048 & 0.658 & 0.051 & 0.667 & 0.052 \\
+  %       & 0.262 & 2.274 & 0.259 & 2.757 & 0.255 & 3.243 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=5.3in}
+  %   \caption{\label{TabInitVal_A75}\textbf{Initial values relative to median values: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+  %       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+  %       & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ & $\bar{H}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.00$}
+  %       & 1.319 & 0.388 & 1.320 & 0.388 & 1.321 & 0.388 \\
+  %       & 0.000 & 0.284 & 0.000 & 0.361 & 0.000 & 0.438 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.05$}
+  %       & 1.158 & 0.281 & 1.160 & 0.281 & 1.161 & 0.281 \\
+  %       & 0.043 & 0.392 & 0.043 & 0.498 & 0.043 & 0.604 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.11$}
+  %       & 0.984 & 0.176 & 0.988 & 0.177 & 0.994 & 0.179 \\
+  %       & 0.112 & 0.625 & 0.111 & 0.789 & 0.111 & 0.950 \\
+  %       \hline
+  %       \multirow{2}{*}{$\bar{H}=0.17$}
+  %       & 0.953 & 0.128 & 0.950 & 0.128 & 0.960 & 0.130 \\
+  %       & 0.178 & 0.857 & 0.179 & 1.097 & 0.177 & 1.303 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %   \caption{\label{TabInitVal_tA0}\textbf{Initial values relative to median values: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+  %       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+  %       & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.00$}
+  %       & 0.281 & 0.101 & 0.282 & 0.101 & 0.282 & 0.101 \\
+  %       & 0.000 & 1.093 & 0.000 & 1.390 & 0.000 & 1.687 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.11$}
+  %       & 0.248 & 0.069 & 0.248 & 0.069 & 0.248 & 0.069 \\
+  %       & 0.110 & 1.592 & 0.110 & 2.024 & 0.110 & 2.457 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.20$}
+  %       & 0.222 & 0.049 & 0.222 & 0.049 & 0.222 & 0.049 \\
+  %       & 0.200 & 2.228 & 0.200 & 2.834 & 0.200 & 3.438 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.25$}
+  %       & 0.208 & 0.040 & 0.208 & 0.040 & 0.208 & 0.040 \\
+  %       & 0.250 & 2.722 & 0.250 & 3.461 & 0.250 & 4.200 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %   \caption{\label{TabInitVal_tA75}\textbf{Initial values relative to median values: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{2-7}
+  %       & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ & $w_{med}$ & $k_{med}$ \\
+  %       & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ & $H_{t,med}/w_{med}$ & $k_{2,0}/k_{med}$ \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.00$}
+  %       & 1.319 & 0.388 & 1.320 & 0.388 & 1.321 & 0.388 \\
+  %       & 0.000 & 0.284 & 0.000 & 0.361 & 0.000 & 0.438 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.11$}
+  %       & 1.106 & 0.232 & 1.107 & 0.232 & 1.108 & 0.232 \\
+  %       & 0.110 & 0.474 & 0.110 & 0.603 & 0.110 & 0.732 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.20$}
+  %       & 0.943 & 0.145 & 0.943 & 0.145 & 0.944 & 0.145 \\
+  %       & 0.200 & 0.758 & 0.200 & 0.964 & 0.200 & 1.170 \\
+  %       \hline
+  %       \multirow{2}{*}{$\tau=0.25$}
+  %       & 0.857 & 0.109 & 0.857 & 0.110 & 0.858 & 0.110 \\
+  %       & 0.250 & 1.005 & 0.250 & 1.278 & 0.250 & 1.551 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]$w_{med}$ is the median wage and $k_{med}$ is the median capital stock across all 3,000 simulations before economic shut down.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \clearpage
+
+  %   Partial equilibrium effects on measures of central tendency. We test the effect on the measures of central tendency in Tables \ref{TabInitVal_A0}to \ref{TabInitVal_tA75}. In the functions below the varialbe $pol\in\{H_t=\min(w_1 n_1,\bar{H}), \tau\}$.
+  %   \begin{gather*}
+  %     w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
+  %     k_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
+  %     \bar{H}/w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
+  %     \text{or} \\
+  %     H_{t,med}/w_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr) \\
+  %     k_{2,0}/k_{med}\bigl(pol, A_{min}, \bar{H} \:\text{or}\: \tau, k_{2,0}\bigr)
+  %   \end{gather*}
+
+  %   \begin{equation*}
+  %     \begin{split}
+  %       &\frac{\partial w_{med}(A_{min}=0.00)}{\partial\bar{H}}>0, \quad \frac{\partial w_{med}(A_{min}=0.75)}{\partial\bar{H}}<0, \quad \frac{\partial w_{med}}{\partial\tau}<0, \quad \frac{\partial w_{med}}{\partial k_{2,0}}\approx 0, \\
+  %       &\quad \frac{\partial w_{med}}{\partial pol}\leq0, \quad \frac{\partial w_{med}}{\partial A_{min}}>0
+  %     \end{split}
+  %   \end{equation*}
+
+  %   \begin{equation*}
+  %     \frac{\partial k_{med}}{\partial\bar{H}},\:\frac{\partial k_{med}}{\partial\tau}<0, \quad \frac{\partial k_{med}}{\partial k_{2,0}}\approx 0, \quad \frac{\partial k_{med}}{\partial pol}\leq0, \quad \frac{\partial k_{med}}{\partial A_{min}}>0
+  %   \end{equation*}
+
+  %   \begin{equation*}
+  %     \begin{split}
+  %       &\frac{\partial\bar{H}/w_{med}}{\partial\bar{H}},\:\frac{\partial H_{t,med}/w_{med}}{\partial\tau}>0, \quad \frac{\partial\bar{H}/w_{med}}{\partial k_{2,0}},\:\frac{\partial H_{t,med}/w_{med}}{\partial k_{2,0}}\approx 0, \\
+  %       &\quad \frac{\partial H_{t,med}/w_{med}(A_{min}=0.00)}{\partial pol}\approx 0, \quad \frac{\partial H_{t,med}/w_{med}(A_{min}=0.75)}{\partial pol}\geq 0, \\
+  %       &\quad \frac{\partial H_{t,med}/w_{med}(pol=\bar{H})}{\partial A_{min}}\leq 0, \quad \frac{\partial H_{t,med}/w_{med}(pol=\tau)}{\partial A_{min}}= 0
+  %     \end{split}
+  %   \end{equation*}
+
+  %   \begin{equation*}
+  %     \begin{split}
+  %       &\frac{\partial k_{2,0}/k_{med}}{\partial\bar{H}},\:\frac{\partial k_{2,0}/k_{med}}{\partial\tau}>0, \quad \frac{\partial k_{2,0}/k_{med}}{\partial k_{2,0}}> 0 \\
+  %       &\quad \frac{\partial k_{2,0}/k_{med}}{\partial pol}> 0, \quad \frac{\partial k_{2,0}/k_{med}}{\partial A_{min}}< 0
+  %     \end{split}
+  %   \end{equation*}
+
+  %   \newpage
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabPer2GO_A0}\textbf{Periods to shut down simulation statistics: $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & Periods & CDF & Periods & CDF & Periods & CDF \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.00$}
+  %       & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.05$}
+  %       & min & 1 & 0.160 & 1 & 0.152 & 1 & 0.148 \\
+  %       & med & 4 & 0.517 & 4 & 0.512 & 4 & 0.507 \\
+  %       & mean & 6.1 & 0.693 & 6.2 & 0.689 & 6.2 & 0.686 \\
+  %       & max & 50 & 1.000 & 50 & 1.000 & 50 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.11$}
+  %       & min & 1 & 0.344 & 1 & 0.328 & 1 & 0.317 \\
+  %       & med & 2 & 0.534 & 2 & 0.522 & 2 & 0.512 \\
+  %       & mean & 3.5 & 0.713 & 3.6 & 0.705 & 3.6 & 0.697 \\
+  %       & max & 27 & 1.000 & 27 & 1.000 & 27 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.17$}
+  %       & min & 1 & 0.498 & 1 & 0.474 & 1 & 0.459 \\
+  %       & med & 2 & 0.683 & 2 & 0.670 & 2 & 0.658 \\
+  %       & mean & 2.5 & 0.758 & 2.6 & 0.745 & 2.6 & 0.732 \\
+  %       & max & 21 & 1.000 & 21 & 1.000 & 21 & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabPer2GO_A75}\textbf{Periods to shut down simulation statistics: $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & Periods & CDF & Periods & CDF & Periods & CDF \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.00$}
+  %       & min & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & mean & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.05$}
+  %       & min & 5 & 0.000 & 5 & 0.000 & 5 & 0.000 \\
+  %       & med & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       & mean & 99.8 & 0.008 & 99.8 & 0.007 & 99.8 & 0.007 \\
+  %       & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.11$}
+  %       & min & 2 & 0.108 & 2 & 0.096 & 2 & 0.086 \\
+  %       & med & 23 & 0.500 & 25 & 0.506 & 25 & 0.502 \\
+  %       & mean & 34.1 & 0.620 & 34.9 & 0.608 & 35.2 & 0.613 \\
+  %       & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       \hline
+  %       \multirow{4}{*}{$\bar{H}=0.17$}
+  %       & min & 1 & 0.302 & 1 & 0.261 & 1 & 0.228 \\
+  %       & med & 3 & 0.506 & 4 & 0.521 & 4 & 0.501 \\
+  %       & mean & 8.5 & 0.692 & 9.0 & 0.674 & 9.4 & 0.680 \\
+  %       & max & 100 & 1.000 & 100 & 1.000 & 100 & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The ``min", ``med", ``mean", and ``max" rows in the ``Periods" column represent the minimum, median, mean, and maximum number of periods, respectively, in which the simulated time series hit the economic shut down. The ``CDF" column represents the percent of simulations that shut down in $t$ periods or less, where $t$ is the value in the ``Periods" column. For the CDF value of the ``mean" row, we used linear interpolation.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \clearpage
+
+  %   Partial equilibrium effects on statistics on periods to shut down across simulations. We test the effect on the statistics on periods to shut down in Tables \ref{TabPer2GO_A0} and \ref{TabPer2GO_A75}.
+
+  %   \begin{equation*}
+  %     \begin{split}
+  %       &\frac{\partial\text{min}}{\partial\bar{H}}< 0, \quad \frac{\partial\text{min}}{\partial k_{2,0}}=0, \frac{\partial\text{min}}{\partial A_{min}}> 0 \\
+  %       &\frac{\partial\text{med}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{med}}{\partial k_{2,0}}> 0, \frac{\partial\text{med}}{\partial A_{min}}> 0 \\
+  %       &\frac{\partial\text{mean}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{mean}}{\partial k_{2,0}}> 0, \frac{\partial\text{mean}}{\partial A_{min}}> 0 \\
+  %       &\frac{\partial\text{max}}{\partial\bar{H}}> 0, \quad \frac{\partial\text{max}}{\partial k_{2,0}}> 0, \frac{\partial\text{max}}{\partial A_{min}}> 0
+  %     \end{split}
+  %   \end{equation*}
+
+  %   \newpage
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabRiskl_A0}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t=\min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.00$}
+  %       & $t=0$ & -2.06\% & 0.483 & -2.12\% & 0.459 & -2.18\% & 0.440 \\
+  %       & min & -4.64\% & 0.000 & -4.64\% & 0.000 & -4.64\% & 0.000 \\
+  %       & med & -2.01\% & 0.500 & -2.01\% & 0.500 & -2.01\% & 0.500 \\
+  %       & mean & -1.58\% & 0.645 & -1.58\% & 0.645 & -1.59\% & 0.645 \\
+  %       & max & 19.01\% & 1.000 & 19.01\% & 1.000 & 19.01\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.05$}
+  %       & $t=0$ & -1.47\% & 0.589 & -1.54\% & 0.563 & -1.60\% & 0.541 \\
+  %       & min & -4.39\% & 0.000 & -4.39\% & 0.000 & -4.39\% & 0.000 \\
+  %       & med & -1.69\% & 0.500 & -1.70\% & 0.500 & -1.71\% & 0.500 \\
+  %       & mean & -1.14\% & 0.715 & -1.14\% & 0.720 & -1.14\% & 0.720 \\
+  %       & max & 36.56\% & 1.000 & 36.52\% & 1.000 & 36.49\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.11$}
+  %       & $t=0$ & -1.71\% & 0.651 & -1.80\% & 0.609 & -1.87\% & 0.580 \\
+  %       & min & -4.38\% & 0.000 & -4.38\% & 0.000 & -4.38\% & 0.000 \\
+  %       & med & -1.99\% & 0.500 & -2.00\% & 0.500 & -2.01\% & 0.500 \\
+  %       & mean & -1.42\% & 0.750 & -1.40\% & 0.759 & -1.43\% & 0.756 \\
+  %       & max & 34.67\% & 1.000 & 36.29\% & 1.000 & 32.10\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.17$}
+  %       & $t=0$ & -1.53\% & 0.743 & -1.71\% & 0.704 & -1.83\% & 0.674 \\
+  %       & min & -4.37\% & 0.000 & -4.37\% & 0.000 & -4.37\% & 0.000 \\
+  %       & med & -2.13\% & 0.500 & -2.16\% & 0.500 & -2.18\% & 0.500 \\
+  %       & mean & -1.51\% & 0.751 & -1.53\% & 0.754 & -1.59\% & 0.749 \\
+  %       & max & 35.69\% & 1.000 & 41.27\% & 1.000 & 35.76\% & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabRiskl_A75}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t=\min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.00$}
+  %       & $t=0$ & 3.91\% & 0.955 & 3.69\% & 0.940 & 3.51\% & 0.926 \\
+  %       & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
+  %       & med & 0.47\% & 0.500 & 0.47\% & 0.500 & 0.47\% & 0.500 \\
+  %       & mean & 0.52\% & 0.509 & 0.52\% & 0.509 & 0.52\% & 0.509 \\
+  %       & max & 6.19\% & 1.000 & 6.19\% & 1.000 & 6.19\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.05$}
+  %       & $t=0$ & 5.40\% & 0.912 & 5.06\% & 0.895 & 4.80\% & 0.879 \\
+  %       & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
+  %       & med & 1.15\% & 0.500 & 1.14\% & 0.500 & 1.14\% & 0.500 \\
+  %       & mean & 1.43\% & 0.537 & 1.43\% & 0.537 & 1.42\% & 0.537 \\
+  %       & max & 41.95\% & 1.000 & 41.95\% & 1.000 & 41.95\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.11$}
+  %       & $t=0$ & 7.62\% & 0.855 & 7.07\% & 0.836 & 6.65\% & 0.819 \\
+  %       & min & -4.57\% & 0.000 & -4.57\% & 0.000 & -4.57\% & 0.000 \\
+  %       & med & 2.26\% & 0.500 & 2.24\% & 0.500 & 2.23\% & 0.500 \\
+  %       & mean & 3.20\% & 0.588 & 3.16\% & 0.587 & 3.14\% & 0.586 \\
+  %       & max & 70.01\% & 1.000 & 76.72\% & 1.000 & 74.84\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.17$}
+  %       & $t=0$ & 9.56\% & 0.859 & 8.92\% & 0.838 & 8.43\% & 0.822 \\
+  %       & min & -4.29\% & 0.000 & -4.29\% & 0.000 & -4.30\% & 0.000 \\
+  %       & med & 3.13\% & 0.500 & 3.13\% & 0.500 & 3.09\% & 0.500 \\
+  %       & mean & 4.30\% & 0.584 & 4.26\% & 0.582 & 4.21\% & 0.584 \\
+  %       & max & 69.65\% & 1.000 & 67.07\% & 1.000 & 70.83\% & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabRiskl_tA0}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.00$}
+  %       & $t=0$ & -2.06\% & 0.483 & -2.12\% & 0.459 & -2.18\% & 0.440 \\
+  %       & min & -4.64\% & 0.000 & -4.64\% & 0.000 & -4.64\% & 0.000 \\
+  %       & med & -2.01\% & 0.500 & -2.01\% & 0.500 & -2.01\% & 0.500 \\
+  %       & mean & -1.58\% & 0.645 & -1.58\% & 0.645 & -1.59\% & 0.645 \\
+  %       & max & 20.00\% & 1.000 & 20.00\% & 1.000 & 20.00\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.11$}
+  %       & $t=0$ & -2.08\% & 0.446 & -2.15\% & 0.423 & -2.20\% & 0.405 \\
+  %       & min & -4.63\% & 0.000 & -4.63\% & 0.000 & -4.63\% & 0.000 \\
+  %       & med & -1.93\% & 0.500 & -1.93\% & 0.500 & -1.93\% & 0.500 \\
+  %       & mean & -1.34\% & 0.678 & -1.34\% & 0.678 & -1.35\% & 0.678 \\
+  %       & max & 22.45\% & 1.000 & 22.45\% & 1.000 & 22.45\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.20$}
+  %       & $t=0$ & -2.07\% & 0.415 & -2.13\% & 0.393 & -2.19\% & 0.374 \\
+  %       & min & -4.61\% & 0.000 & -4.61\% & 0.000 & -4.61\% & 0.000 \\
+  %       & med & -1.81\% & 0.500 & -1.81\% & 0.500 & -1.81\% & 0.500 \\
+  %       & mean & -1.06\% & 0.705 & -1.06\% & 0.705 & -1.06\% & 0.705 \\
+  %       & max & 24.51\% & 1.000 & 24.51\% & 1.000 & 24.51\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.25$}
+  %       & $t=0$ & -2.04\% & 0.397 & -2.11\% & 0.374 & -2.17\% & 0.356 \\
+  %       & min & -4.61\% & 0.000 & -4.61\% & 0.000 & -4.61\% & 0.000 \\
+  %       & med & -1.72\% & 0.500 & -1.72\% & 0.500 & -1.72\% & 0.500 \\
+  %       & mean & -0.86\% & 0.721 & -0.86\% & 0.721 & -0.86\% & 0.721 \\
+  %       & max & 25.71\% & 1.000 & 25.71\% & 1.000 & 25.71\% & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=4.6in}
+  %   \caption{\label{TabRiskl_tA75}\textbf{Annualized Riskless return $\bar{r}_{t,an}$ simulation statistics: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}c >{\small}l| >{\small}c >{\small}c| >{\small}c >{\small}c| >{\small}c >{\small}c}
+  %       \hline\hline
+  %       & & \multicolumn{2}{c}{$k_{2,0}=0.11$} & \multicolumn{2}{c}{$k_{2,0}=0.14$} & \multicolumn{2}{c}{$k_{2,0}=0.17$} \\ \cline{3-8}
+  %       & & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF & $\bar{r}_{t,an}$ & CDF \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.00$}
+  %       & $t=0$ & 3.91\% & 0.955 & 3.69\% & 0.940 & 3.51\% & 0.926 \\
+  %       & min & -4.60\% & 0.000 & -4.60\% & 0.000 & -4.60\% & 0.000 \\
+  %       & med & 0.47\% & 0.500 & 0.47\% & 0.500 & 0.47\% & 0.500 \\
+  %       & mean & 0.52\% & 0.509 & 0.52\% & 0.509 & 0.52\% & 0.509 \\
+  %       & max & 6.19\% & 1.000 & 6.19\% & 1.000 & 6.19\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.11$}
+  %       & $t=0$ & 4.62\% & 0.916 & 4.38\% & 0.896 & 4.19\% & 0.878 \\
+  %       & min & -4.59\% & 0.000 & -4.59\% & 0.000 & -4.59\% & 0.000 \\
+  %       & med & 1.31\% & 0.500 & 1.31\% & 0.500 & 1.31\% & 0.500 \\
+  %       & mean & 1.33\% & 0.503 & 1.33\% & 0.503 & 1.33\% & 0.503 \\
+  %       & max & 7.80\% & 1.000 & 7.80\% & 1.000 & 7.80\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.20$}
+  %       & $t=0$ & 5.23\% & 0.872 & 4.98\% & 0.849 & 4.79\% & 0.829 \\
+  %       & min & -4.57\% & 0.000 & -4.57\% & 0.000 & -4.57\% & 0.000 \\
+  %       & med & 2.15\% & 0.500 & 2.15\% & 0.500 & 2.15\% & 0.500 \\
+  %       & mean & 2.13\% & 0.497 & 2.12\% & 0.497 & 2.12\% & 0.497 \\
+  %       & max & 9.20\% & 1.000 & 9.20\% & 1.000 & 9.20\% & 1.000 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.25$}
+  %       & $t=0$ & 5.59\% & 0.844 & 5.34\% & 0.819 & 5.13\% & 0.798 \\
+  %       & min & -4.55\% & 0.000 & -4.55\% & 0.000 & -4.55\% & 0.000 \\
+  %       & med & 2.68\% & 0.500 & 2.68\% & 0.500 & 2.68\% & 0.500 \\
+  %       & mean & 2.63\% & 0.493 & 2.63\% & 0.493 & 2.63\% & 0.493 \\
+  %       & max & 10.03\% & 1.000 & 10.03\% & 1.000 & 10.03\% & 1.000 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]All riskless returns $\bar{r}_{t,an}$ are reported in percentage rates. The rate of return 0.0206 is reported in this table as 2.06\%.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %     \caption{\label{TabEqPrem_A0}\textbf{Components of the equity premium in annual terms: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
+  %       \hline\hline
+  %       & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.7\% & 102.7\% & 102.7\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.090 & 5.090 & 5.089 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.4\% & 98.4\% & 98.4\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.3\% & 4.3\% & 4.3\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.848 & 0.848 & 0.847 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.05$} & \quad Avg. $E[R_{t+1}]$ & 104.1\% & 104.0\% & 103.9\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.546 & 5.538 & 5.525 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.9\% & 98.9\% & 98.9\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.2\% & 5.1\% & 5.1\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.938 & 0.925 & 0.918 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.11$} & \quad Avg. $E[R_{t+1}]$ & 105.1\% & 104.9\% & 104.8\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.593 & 5.516 & 5.473 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.6\% & 98.6\% & 98.6\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 6.6\% & 6.3\% & 6.2\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 1.171 & 1.148 & 1.140 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.17$} & \quad Avg. $E[R_{t+1}]$ & 106.4\% & 106.1\% & 105.8\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.789 & 5.627 & 5.553 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.5\% & 98.5\% & 98.4\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 7.9\% & 7.6\% & 7.4\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 1.367 & 1.352 & 1.337 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %     \caption{\label{TabEqPrem_A75}\textbf{Components of the equity premium in annual terms: $H_t = \min\bigl(w_t n_1, \bar{H}\bigr)$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
+  %       \hline\hline
+  %       & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.8\% & 102.8\% & 102.8\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 3.944 & 3.941 & 3.938 \\
+  %       & \quad Avg. $\bar{R_t}$ & 100.5\% & 100.5\% & 100.5\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.3\% & 2.3\% & 2.3\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.584 & 0.583 & 0.583 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.05$} & \quad Avg. $E[R_{t+1}]$ & 103.7\% & 103.7\% & 103.6\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 4.418 & 4.412 & 4.408 \\
+  %       & \quad Avg. $\bar{R_t}$ & 101.4\% & 101.4\% & 101.4\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.2\% & 2.2\% & 2.2\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.504 & 0.504 & 0.504 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.11$} & \quad Avg. $E[R_{t+1}]$ & 105.1\% & 105.0\% & 105.0\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.462 & 5.436 & 5.408 \\
+  %       & \quad Avg. $\bar{R_t}$ & 103.2\% & 103.2\% & 103.1\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 1.9\% & 1.9\% & 1.9\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.345 & 0.347 & 0.347 \\
+  %       \hline
+  %       \multirow{5}{*}{$\bar{H}=0.17$} & \quad Avg. $E[R_{t+1}]$ & 106.3\% & 106.2\% & 106.1\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 6.257 & 6.131 & 6.030 \\
+  %       & \quad Avg. $\bar{R_t}$ & 104.3\% & 104.3\% & 104.2\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.0\% & 1.9\% & 1.9\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.324 & 0.318 & 0.310 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %     \caption{\label{TabEqPrem_tA0}\textbf{Components of the equity premium in annual terms: $H_t = \tau w_t n_1$, $A_{min}=0.00$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
+  %       \hline\hline
+  %       & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.7\% & 102.7\% & 102.7\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.090 & 5.090 & 5.089 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.4\% & 98.4\% & 98.4\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.3\% & 4.3\% & 4.3\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.848 & 0.848 & 0.847 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.11$} & \quad Avg. $E[R_{t+1}]$ & 103.4\% & 103.4\% & 103.4\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.273 & 5.272 & 5.272 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.7\% & 98.7\% & 98.7\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 4.7\% & 4.7\% & 4.7\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.895 & 0.895 & 0.894 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.20$} & \quad Avg. $E[R_{t+1}]$ & 104.0\% & 103.9\% & 103.9\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.417 & 5.417 & 5.416 \\
+  %       & \quad Avg. $\bar{R_t}$ & 98.9\% & 98.9\% & 98.9\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.0\% & 5.0\% & 5.0\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.925 & 0.925 & 0.925 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.25$} & \quad Avg. $E[R_{t+1}]$ & 104.3\% & 104.3\% & 104.3\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 5.493 & 5.493 & 5.493 \\
+  %       & \quad Avg. $\bar{R_t}$ & 99.1\% & 99.1\% & 99.1\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 5.2\% & 5.2\% & 5.1\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.938 & 0.938 & 0.938 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \begin{table}[htbp]\centering\captionsetup{width=6.0in}
+  %     \caption{\label{TabEqPrem_tA75}\textbf{Components of the equity premium in annual terms: $H_t = \tau w_t n_1$, $A_{min}=0.75$ and $z_0=0.0$}}
+  %     \begin{threeparttable}
+  %     \begin{tabular}{>{\small}l| >{\small}l| >{\small}c| >{\small}c| >{\small}c}
+  %       \hline\hline
+  %       & & $k_{2,0}=0.11$ & $k_{2,0}=0.14$ & $k_{2,0}=0.17$ \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.00$} & \quad Avg. $E[R_{t+1}]$ & 102.8\% & 102.8\% & 102.8\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 3.944 & 3.941 & 3.938 \\
+  %       & \quad Avg. $\bar{R_t}$ & 100.5\% & 100.5\% & 100.5\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.3\% & 2.3\% & 2.3\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.584 & 0.583 & 0.583 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.11$} & \quad Avg. $E[R_{t+1}]$ & 103.8\% & 103.8\% & 103.8\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 4.193 & 4.190 & 4.187 \\
+  %       & \quad Avg. $\bar{R_t}$ & 101.3\% & 101.3\% & 101.3\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.5\% & 2.5\% & 2.5\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.592 & 0.592 & 0.592 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.20$} & \quad Avg. $E[R_{t+1}]$ & 104.7\% & 104.7\% & 104.7\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 4.404 & 4.401 & 4.399 \\
+  %       & \quad Avg. $\bar{R_t}$ & 102.1\% & 102.1\% & 102.1\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.6\% & 2.6\% & 2.6\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.594 & 0.593 & 0.593 \\
+  %       \hline
+  %       \multirow{5}{*}{$\tau=0.25$} & \quad Avg. $E[R_{t+1}]$ & 105.3\% & 105.3\% & 105.3\% \\
+  %       & \quad $\sigma(R_{t+1})$ & 4.523 & 4.520 & 4.518 \\
+  %       & \quad Avg. $\bar{R_t}$ & 102.6\% & 102.6\% & 102.6\% \\
+  %       & \quad Avg. eq. prem. $E[R_{t+1}] - \bar{R_t]}$ & 2.7\% & 2.7\% & 2.7\% \\
+  %       & \quad Avg. Sharpe ratio $\frac{E[R_{t+1}] - \bar{R_t]}}{\sigma(R_{t+1})}$ & 0.593 & 0.593 & 0.593 \\
+  %       \hline\hline
+  %     \end{tabular}
+  %     \begin{tablenotes}
+  %       \scriptsize{\item[]The gross risky one-period return on capital is $R_{t+1} = 1 + r_{t+1}$ and the average expected gross risky return (Avg. $E[R_{t+1}]$) is the average value of $R_{t+1}$ across simulations. The annualized gross risky one-period return is $(R_{t+1})^{1/30}$. The standard deviation of $R_{t+1}$ is just the standard deviation of its realized value across simulations. The average riskless gross return (Avg. $\bar{R}_t$) is the average value across simulations, where $\bar{R}_t=1+\bar{r}_t$.}
+  %     \end{tablenotes}
+  %     \end{threeparttable}
+  %   \end{table}
+
+  %   \clearpage
 
 
 \end{document}

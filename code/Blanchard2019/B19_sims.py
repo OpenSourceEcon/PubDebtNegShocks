@@ -5,15 +5,15 @@ Replicate Blanchard (2019)
 '''
 
 # Import packages
-# import time
+import time
 import numpy as np
-# import scipy.stats as sts
-# import multiprocessing
-# from dask import delayed
-# from dask.distributed import Client
-# import pickle
-# import B19_funcs as funcs
-import B19_parameters as params
+import scipy.stats as sts
+import multiprocessing
+from dask import delayed
+from dask.distributed import Client
+import pickle
+import B19_funcs as funcs
+# import B19_parameters as params
 
 import os
 
@@ -67,14 +67,60 @@ S          = integer >= 1, number of simulations
 rand_seed  = integer > 0, random seed for simulation
 ------------------------------------------------------------------------
 '''
-p = params.parameters()
+yrs_in_per = 25
+beta_an = 0.96
+beta = beta_an ** yrs_in_per
+gamma = 2.2
+c_min = 1e-5
+K_min = 1e-5
 
-# # Set up parallel processing
-# max_cores = multiprocessing.cpu_count()
-# print('Cores available on this machine =', max_cores)
-# num_workers = min(max_cores, p.S)
-# print('Number of workers =', num_workers)
-# client = Client(processes=False)
+# Firm parameters
+alpha = 1 / 3
+epsilon = 1.0  # np.inf
+delta_an = 0.0
+delta = 1 - ((1 - delta_an) ** yrs_in_per)
+nvec = np.array([1.0, 0.0])
+
+# Aggregate shock z parameters
+rho_an = 0.95
+rho = rho_an ** yrs_in_per
+mu_an = 0.0
+sigma_an = 0.2  # 0.4946
+rho_sum = 0.0
+rho2_sum = 0.0
+for y_ind in range(yrs_in_per):
+    rho_sum += rho_an ** y_ind
+    rho2_sum += rho_an ** (2 * y_ind)
+sigma = np.sqrt(rho2_sum * (sigma_an ** 2))
+mu = mu_an * rho_sum
+A_min = 0.0
+if A_min == 0.0:
+    z_min = -np.inf
+elif (A_min > 0.0) and (A_min < np.exp(mu)):
+    z_min = np.log(A_min)
+elif A_min >= np.exp(mu):
+    err_msg = 'Parameter Error: A_min >= e ** (mu)'
+    raise ValueError(err_msg)
+
+# Set government parameters, transfer parameters, and initial values
+Hbar_vec = np.array([0.0, 0.05])
+# self.Hbar_vec = np.array([0.0, 0.05, 0.11, 0.17])
+Hbar_size = Hbar_vec.shape[0]
+Hbar = Hbar_vec[0]
+tau = None
+z0 = mu
+
+# Set simulation parameters
+T = 25
+S = 15
+rand_seed = 25
+
+# Set up parallel processing
+max_cores = multiprocessing.cpu_count()
+print('Cores available on this machine =', max_cores)
+num_workers = min(max_cores, S)
+print('Number of workers =', num_workers)
+client = Client(processes=False)
 
 
 '''
@@ -82,13 +128,12 @@ p = params.parameters()
 Re-set some parameter values
 ------------------------------------------------------------------------
 '''
-# p.sigma = 0.2
-print('p.sigma')
-print(p.sigma)
-print('')
-print('p.beta')
-print(p.beta)
-print('')
+# print('sigma')
+# print(sigma)
+# print('')
+# print('beta')
+# print(beta)
+# print('')
 
 '''
 ------------------------------------------------------------------------
@@ -96,17 +141,19 @@ Define functions
 ------------------------------------------------------------------------
 '''
 
-
+# Put functions hers
 
 '''
 ------------------------------------------------------------------------
 Calibrate beta, mu, gamma
 ------------------------------------------------------------------------
 '''
-avg_rtp1_an_vec = np.array([0.00, 0.04])
-avg_Rtp1_vec = (1 + avg_rtp1_an_vec) ** p.yrs_in_per
-avg_rbart_an_vec = np.array([-0.02, 0.01])
-avg_Rbart_vec = (1 + avg_rbart_an_vec) ** p.yrs_in_per
+avg_rtp1_size = 3
+avg_rtp1_an_vec = np.linspace(0.00, 0.04, avg_rtp1_size)
+avg_Rtp1_vec = (1 + avg_rtp1_an_vec) ** yrs_in_per
+avg_rbart_size = 3
+avg_rbart_an_vec = np.linspace(-0.02, 0.01, avg_rbart_size)
+avg_Rbart_vec = (1 + avg_rbart_an_vec) ** yrs_in_per
 
 print('avg_Rtp1_vec')
 print(avg_Rtp1_vec)
@@ -115,43 +162,101 @@ print('avg_Rbart_vec')
 print(avg_Rbart_vec)
 print('')
 
+avgRtp1_mat = np.tile(avg_Rtp1_vec.reshape((avg_rtp1_size, 1)),
+                      (1, avg_rbart_size))
+avgRbart_mat = np.tile(avg_Rbart_vec.reshape((1, avg_rbart_size)),
+                       (avg_rtp1_size, 1))
+avgRtp1_gt_avgRbart = avgRtp1_mat - avgRbart_mat > 0
+
+print(avgRtp1_gt_avgRbart)
+
 # Calibrate mu using linear production expected MPK
-mu_vec = (np.log(avg_Rtp1_vec) - np.log(p.alpha) -
-          np.log((p.sigma ** 2) / 2))
+mu_vec = (np.log(avg_Rtp1_vec) - np.log(alpha) -
+          np.log((sigma ** 2) / 2))
+mu_mat = np.tile(mu_vec.reshape((avg_rtp1_size, 1)),
+                 (1, avg_rbart_size))
+mu_mat[~avgRtp1_gt_avgRbart] = np.nan
 
 # Calibrate beta using Cobb-Douglas expected values expression for beta
-beta_vec = (p.alpha / (1 - p.alpha)) * (1 / (2 * avg_Rtp1_vec))
-beta_an_vec = beta_vec ** (1 / p.yrs_in_per)
+beta_vec = (alpha / (1 - alpha)) * (1 / (2 * avg_Rtp1_vec))
+beta_an_vec = beta_vec ** (1 / yrs_in_per)
+beta_mat = np.tile(beta_vec.reshape((avg_rtp1_size, 1)),
+                   (1, avg_rbart_size))
+beta_mat[~avgRtp1_gt_avgRbart] = np.nan
 
 # Calibrate gamma
-gamma_vec = ((np.log(avg_Rtp1_vec) - np.log(avg_Rbart_vec)) /
-             (p.sigma ** 2))
+gamma_mat = ((np.log(avgRtp1_mat) - np.log(avgRbart_mat)) /
+             (sigma ** 2))
+gamma_mat[~avgRtp1_gt_avgRbart] = np.nan
 
 # Calibrate x_1
-x1_vec = (((1 - p.alpha) * np.exp(mu_vec + ((p.sigma ** 2) / 2)) *
-           ((2 * beta_vec) ** p.alpha)) ** (1 / (1 - p.alpha)))
+x1_mat = (((1 - alpha) * np.exp(mu_mat + ((sigma ** 2) / 2)) *
+           ((2 * beta_mat) ** alpha)) ** (1 / (1 - alpha)))
 
 # Calibrate kbar_2
-kbar2_vec = 2 * beta_vec * x1_vec
+kbar2_mat = 2 * beta_mat * x1_mat
+Hbar_vec[1] = 0.05 * kbar2_mat[0, 0]  # 1.0786
+print('Hbar_vec=', Hbar_vec)
 
-# print('mu_vec')
-# print(mu_vec)
+# Calibrate x_1 array for different values of x1, given calibration
+x1_arr = np.zeros((avg_rtp1_size, avg_rbart_size, 3))
+x1_arr[:, :, 0] = x1_mat
+x1_arr[:, :, 1] = 0.5 * x1_mat
+x1_arr[:, :, 2] = 0.0 * x1_mat
+
+# Calibrate sigma vector of 5% and 10% increases
+sigma_vec = np.zeros(3)
+sigma_vec[0] = sigma
+sigma_vec[1] = 1.05 * sigma
+sigma_vec[2] = 1.10 * sigma
+
+# Calibrate corresponding mu_arr that holds the expected value of the
+# TFP shock while expanding the variance. If z is the expected value of
+# the TFP shock, then z = exp(mu + (sig ** 2) / 2), then
+# log(z) = mu + (sig ** 2) / 2
+logz = mu_mat + (sigma ** 2) / 2
+mu_arr = np.zeros((avg_rtp1_size, avg_rbart_size, 3))
+mu_arr[:, :, 0] = mu_mat
+mu_arr[:, :, 1] = logz - (sigma_vec[1] ** 2) / 2
+mu_arr[:, :, 2] = logz - (sigma_vec[2] ** 2) / 2
+
+# print('mu_mat')
+# print(mu_mat)
 # print('')
-# print('beta_vec')
-# print(beta_vec)
+# print('beta_mat')
+# print(beta_mat)
 # print('')
-# print('beta_an_vec')
-# print(beta_an_vec)
+# print('gamma_mat')
+# print(gamma_mat)
 # print('')
-# print('gamma_vec')
-# print(gamma_vec)
+# print('x1_mat')
+# print(x1_mat)
 # print('')
-# print('x1_vec')
-# print(x1_vec)
+# print('kbar2_mat')
+# print(kbar2_mat)
 # print('')
-# print('kbar2_vec')
-# print(kbar2_vec)
+# print('x1_arr 0')
+# print(x1_arr[:, :, 0])
 # print('')
+# print('x1_arr 1')
+# print(x1_arr[:, :, 1])
+# print('')
+# print('x1_arr 2')
+# print(x1_arr[:, :, 2])
+# print('')
+# print('sigma_vec')
+# print(sigma_vec)
+# print('')
+# print('mu_arr 0')
+# print(mu_arr[:, :, 0])
+# print('')
+# print('mu_arr 1')
+# print(mu_arr[:, :, 1])
+# print('')
+# print('mu_arr 2')
+# print(mu_arr[:, :, 2])
+# print('')
+
 
 '''
 ------------------------------------------------------------------------
@@ -192,155 +297,291 @@ dict_params  =
 dict_endog   =
 ------------------------------------------------------------------------
 '''
-# start_time = time.process_time()
-# default_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, p.T),
-#                        dtype=bool)
-# unif_mat = \
-#     sts.uniform.rvs(loc=0, scale=1, size=((p.S, p.T - 1)),
-#                     random_state=p.rand_seed)
-# zt_mat = np.zeros((p.S, p.T))
-# zt_mat[:, 0] = p.z0
-# for t_ind in range(1, p.T):
-#     cut_lb_vec = (p.z_min - p.rho * zt_mat[:, t_ind - 1] -
-#                   (1 - p.rho) * p.mu)
-#     eps_t_vec = funcs.trunc_norm_draws(unif_mat[:, t_ind - 1], 0,
-#                                        p.sigma, cut_lb_vec)
-#     zt_mat[:, t_ind] = (p.rho * zt_mat[:, t_ind - 1] +
-#                         (1 - p.rho) * p.mu + eps_t_vec)
+start_time = time.process_time()
+default_arr = np.zeros((Hbar_size, 2, 3, avg_rtp1_size,
+                        avg_rbart_size, S, T), dtype=bool)
+unif_mat = \
+    sts.uniform.rvs(loc=0, scale=1, size=((S, T - 1)),
+                    random_state=rand_seed)
+zt_mat = np.zeros((S, T))
+zt_mat[:, 0] = z0
+for t_ind in range(1, T):
+    cut_lb_vec = (z_min - rho * zt_mat[:, t_ind - 1] -
+                  (1 - rho) * mu)
+    eps_t_vec = funcs.trunc_norm_draws(unif_mat[:, t_ind - 1], 0,
+                                       sigma, cut_lb_vec)
+    zt_mat[:, t_ind] = (rho * zt_mat[:, t_ind - 1] +
+                        (1 - rho) * mu + eps_t_vec)
 
-# c1t_arr = np.zeros_like(default_arr)
-# c2t_arr = np.zeros_like(default_arr)
-# Ht_arr = np.zeros_like(default_arr)
-# wt_arr = np.zeros_like(default_arr)
-# rt_arr = np.zeros_like(default_arr)
-# k2t_arr = np.zeros_like(default_arr)
-# rbart_arr = np.zeros_like(default_arr)
-# rbart_an_arr = np.zeros_like(default_arr)
-# EulErr_arr = np.zeros_like(default_arr)
-# PathTime_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S))
-# S_ind_arr = np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S))
-# for k_ind in range(p.k20_size):
-#     k2t_arr[:, k_ind, :, :, 0] = p.k20_vec[k_ind]
+c1t_arr = np.zeros_like(default_arr)
+c2t_arr = np.zeros_like(default_arr)
+ut_arr = np.zeros((Hbar_size, 2, 3, avg_rtp1_size, avg_rbart_size, S,
+                   T - 1))
+Ht_arr = np.zeros_like(default_arr)
+wt_arr = np.zeros_like(default_arr)
+rt_arr = np.zeros_like(default_arr)
+k2t_arr = np.zeros_like(default_arr)
+rbart_arr = np.zeros_like(default_arr)
+rbart_an_arr = np.zeros_like(default_arr)
+EulErr_arr = np.zeros_like(default_arr)
+PathTime_arr = np.zeros((Hbar_size, 2, 3, avg_rtp1_size,
+                         avg_rbart_size, S))
+S_ind_arr = np.zeros((Hbar_size, 2, 3, avg_rtp1_size, avg_rbart_size,
+                      S))
+for rtp1_ind in range(avg_rtp1_size):
+    for rbart_ind in range(avg_rbart_size):
+        k2t_arr[:, :, :, rtp1_ind, rbart_ind, :, 0] = \
+            kbar2_mat[rtp1_ind, rbart_ind]
 
-# for H_ind in range(p.Hbar_size):
-#     p.Hbar = p.Hbar_vec[H_ind]
-#     for k_ind in range(p.k20_size):
-#         p.k20 = p.k20_vec[k_ind]
-#         for x1_ind in range(p.x1_size):
-#             p.x1 = p.x1_vec[x1_ind]
-#             simulations = []
-#             for S_ind in range(p.S):
-#                 # (H_ind, k_ind, x1_ind, S_ind, zt_vec, default_vec,
-#                 #     c1t_vec, c2t_vec, Ht_vec, wt_vec, rt_vec, k2t_vec,
-#                 #     rbart_vec, rbart_an_vec, EulErr_vec, path_time) = \
-#                 timepaths_s = delayed(funcs.sim_timepath)(
-#                     p, H_ind=H_ind, k_ind=k_ind, x1_ind=x1_ind,
-#                     S_ind=S_ind, zt_vec=zt_mat[S_ind, :],
-#                     rand_seed=p.rand_seed)
-#                 simulations.append(timepaths_s)
+for H_ind in range(Hbar_size):
+    Hbar_in = Hbar_vec[H_ind]
+    for risk_type_ind in range(2):  # 0=xval, 1=sigval
+        for risk_val_ind in range(3):
+            for avgrtp1_ind in range(avg_rtp1_size):
+                for avgrbart_ind in range(avg_rbart_size):
+                    if avgRtp1_gt_avgRbart[avgrtp1_ind, avgrbart_ind]:
+                        simulations = []
+                        beta_in = beta_mat[avgrtp1_ind, avgrbart_ind]
+                        gamma_in = gamma_mat[avgrtp1_ind, avgrbart_ind]
+                        k20_in = kbar2_mat[avgrtp1_ind, avgrbart_ind]
+                        if risk_type_ind == 0:
+                            mu_in = mu_mat[avgrtp1_ind, avgrbart_ind]
+                            sigma_in = sigma
+                            x1_in = x1_arr[avgrtp1_ind, avgrbart_ind,
+                                           risk_val_ind]
+                            z0_in = mu_in
+                        elif risk_type_ind == 1:
+                            mu_in = mu_arr[avgrtp1_ind, avgrbart_ind,
+                                           risk_val_ind]
+                            sigma_in = sigma_vec[risk_val_ind]
+                            x1_in = x1_mat[avgrtp1_ind, avgrbart_ind]
+                            z0_in = mu_in
+                        for S_ind in range(S):
+                            timepaths_s = delayed(funcs.sim_timepath)(
+                                Hbar_in, beta_in, gamma_in, k20_in,
+                                sigma_in, x1_in, T, z0_in, z_min, rho,
+                                mu_in, nvec, epsilon, alpha, delta, tau,
+                                c_min, K_min, A_min, yrs_in_per, H_ind=H_ind,
+                                risk_type_ind=risk_type_ind,
+                                risk_val_ind=risk_val_ind,
+                                avgrtp1_ind=avgrtp1_ind,
+                                avgrbart_ind=avgrbart_ind, S_ind=S_ind,
+                                zt_vec=zt_mat[S_ind, :],
+                                rand_seed=rand_seed)
+                            simulations.append(timepaths_s)
 
-#             simulations = delayed(simulations).compute()
+                        simulations = delayed(simulations).compute()
 
-#             for S_ind in range(p.S):
-#                 S_ind_arr[H_ind, k_ind, x1_ind, S_ind] = \
-#                     simulations[S_ind][3]  # original S_ind
-#                 default_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][5]  # default_vec
-#                 c1t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][6]  # c1t_vec
-#                 c2t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][7]  # c2t_vec
-#                 Ht_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][8]  # Ht_vec
-#                 wt_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][9]  # wt_vec
-#                 rt_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][10]  # rt_vec
-#                 k2t_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][11][:-1]  # k2t_vec[:-1]
-#                 rbart_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][12]  # rbart_vec
-#                 rbart_an_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][13]  # rbart_an_vec
-#                 EulErr_arr[H_ind, k_ind, x1_ind, S_ind, :] = \
-#                     simulations[S_ind][14]  # EulErr_vec
-#                 PathTime_arr[H_ind, k_ind, x1_ind, S_ind] = \
-#                     simulations[S_ind][15]  # path_time
+                        for S_ind in range(S):
+                            S_ind_arr[H_ind, risk_type_ind,
+                                      risk_val_ind, avgrtp1_ind,
+                                      avgrbart_ind, S_ind] = \
+                                simulations[S_ind][5]  # original S_ind
+                            default_arr[H_ind, risk_type_ind,
+                                        risk_val_ind, avgrtp1_ind,
+                                        avgrbart_ind, S_ind, :] = \
+                                simulations[S_ind][7]  # default_vec
+                            c1t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                    avgrtp1_ind, avgrbart_ind, S_ind,
+                                    :] = \
+                                simulations[S_ind][8]  # c1t_vec
+                            c2t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                    avgrtp1_ind, avgrbart_ind, S_ind,
+                                    :] = \
+                                simulations[S_ind][9]  # c2t_vec
+                            ut_arr[H_ind, risk_type_ind, risk_val_ind,
+                                   avgrtp1_ind, avgrbart_ind, S_ind,
+                                   :] = \
+                                simulations[S_ind][10]  # ut_vec
+                            Ht_arr[H_ind, risk_type_ind, risk_val_ind,
+                                   avgrtp1_ind, avgrbart_ind, S_ind,
+                                   :] = \
+                                simulations[S_ind][11]  # Ht_vec
+                            wt_arr[H_ind, risk_type_ind, risk_val_ind,
+                                   avgrtp1_ind, avgrbart_ind, S_ind,
+                                   :] = \
+                                simulations[S_ind][12]  # wt_vec
+                            rt_arr[H_ind, risk_type_ind, risk_val_ind,
+                                   avgrtp1_ind, avgrbart_ind, S_ind,
+                                   :] = \
+                                simulations[S_ind][13]  # rt_vec
+                            k2t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                    avgrtp1_ind, avgrbart_ind, S_ind,
+                                    :] = \
+                                simulations[S_ind][14][:-1]  # k2t_vec[:-1]
+                            rbart_arr[H_ind, risk_type_ind,
+                                      risk_val_ind, avgrtp1_ind,
+                                      avgrbart_ind, S_ind, :] = \
+                                simulations[S_ind][15]  # rbart_vec
+                            rbart_an_arr[H_ind, risk_type_ind,
+                                         risk_val_ind, avgrtp1_ind,
+                                         avgrbart_ind, S_ind, :] = \
+                                simulations[S_ind][16]  # rbart_an_vec
+                            EulErr_arr[H_ind, risk_type_ind,
+                                       risk_val_ind, avgrtp1_ind,
+                                       avgrbart_ind, S_ind, :] = \
+                                simulations[S_ind][17]  # EulErr_vec
+                            PathTime_arr[H_ind, risk_type_ind,
+                                         risk_val_ind, avgrtp1_ind,
+                                         avgrbart_ind, S_ind] = \
+                                simulations[S_ind][18]  # path_time
 
-# # Print computation time
-# total_time = time.process_time() - start_time
-# funcs.print_time(total_time, 'All cases-simulations')
+                    else:  # avg_Rtp1 <= avg_rbart
+                        S_ind_arr[H_ind, risk_type_ind, risk_val_ind,
+                                  avgrtp1_ind, avgrbart_ind, :] = np.nan
+                        default_arr[H_ind, risk_type_ind, risk_val_ind,
+                                    avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # default_vec
+                        c1t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # c1t_vec
+                        c2t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # c2t_vec
+                        ut_arr[H_ind, risk_type_ind, risk_val_ind,
+                               avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # ut_vec
+                        Ht_arr[H_ind, risk_type_ind, risk_val_ind,
+                               avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # Ht_vec
+                        wt_arr[H_ind, risk_type_ind, risk_val_ind,
+                               avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # wt_vec
+                        rt_arr[H_ind, risk_type_ind, risk_val_ind,
+                               avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # rt_vec
+                        k2t_arr[H_ind, risk_type_ind, risk_val_ind,
+                                avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # k2t_vec[:-1]
+                        rbart_arr[H_ind, risk_type_ind, risk_val_ind,
+                                  avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # rbart_vec
+                        rbart_an_arr[H_ind, risk_type_ind, risk_val_ind,
+                                     avgrtp1_ind, avgrbart_ind, :,
+                                     :] = np.nan  # rbart_an_vec
+                        EulErr_arr[H_ind, risk_type_ind, risk_val_ind,
+                                   avgrtp1_ind, avgrbart_ind, :, :] = \
+                            np.nan  # EulErr_vec
+                        PathTime_arr[H_ind, risk_type_ind, risk_val_ind,
+                                     avgrtp1_ind, avgrbart_ind, :] = \
+                            np.nan  # path_time
 
-# default_p1 = \
-#     np.append(np.zeros((p.Hbar_size, p.k20_size, p.x1_size, p.S, 1),
-#                        dtype=bool), default_arr[:, :, :, :, 1:], axis=4)
-# zt_arr = np.tile(zt_mat.reshape((1, 1, 1, p.S, p.T)),
-#                  (p.Hbar_size, p.k20_size, p.x1_size, 1, 1))
-# Kt_arr = (1 - default_p1) * k2t_arr
-# Yt_arr = (1 - default_p1) * funcs.get_Y(Kt_arr, zt_arr, p)
-# Ct_arr = (1 - default_p1) * funcs.get_C(c1t_arr, c2t_arr)
-# dict_params = \
-#     {
-#         'yrs_in_per': p.yrs_in_per,
-#         'beta_an': p.beta_an,
-#         'beta': p.beta,
-#         'gamma': p.gamma,
-#         'c_min': p.c_min,
-#         'K_min': p.K_min,
-#         'n1': p.n1,
-#         'n2': p.n2,
-#         'nvec': p.nvec,
-#         'alpha': p.alpha,
-#         'epsilon': p.epsilon,
-#         'delta_an': p.delta_an,
-#         'delta': p.delta,
-#         'rho_an': p.rho_an,
-#         'rho': p.rho,
-#         'mu_an': p.mu_an,
-#         'sigma_an': p.sigma_an,
-#         'sigma': p.sigma,
-#         'mu': p.mu,
-#         'A_min': p.A_min,
-#         'z_min': p.z_min,
-#         'Hbar_vec': p.Hbar_vec,
-#         'Hbar_size': p.Hbar_size,
-#         'Hbar': p.Hbar,
-#         'k20_vec': p.k20_vec,
-#         'k20_size': p.k20_size,
-#         'k20': p.k20,
-#         'x1_size': p.x1_size,
-#         'w1n1_avg': p.w1n1_avg,
-#         'x1_vec': p.x1_vec,
-#         'x1': p.x1,
-#         'x2': p.x2,
-#         'z0': p.z0,
-#         'tau': p.tau,
-#         'T': p.T,
-#         'S': p.S,
-#         'rand_seed': p.rand_seed
-#     }
-# dict_endog = \
-#     {
-#         'unif_mat': unif_mat,
-#         'zt_mat': zt_mat,
-#         'c1t_arr': c1t_arr,
-#         'c2t_arr': c2t_arr,
-#         'Ht_arr': Ht_arr,
-#         'wt_arr': wt_arr,
-#         'rt_arr': rt_arr,
-#         'rbart_arr': rbart_arr,
-#         'rbart_an_arr': rbart_an_arr,
-#         'k2t_arr': k2t_arr,
-#         'EulErr_arr': EulErr_arr,
-#         'PathTime_arr': PathTime_arr,
-#         'Kt_arr': Kt_arr,
-#         'Yt_arr': Yt_arr,
-#         'Ct_arr': Ct_arr,
-#         'default_arr': default_arr,
-#         'S_ind_arr': S_ind_arr,
-#         'total_time': total_time
-#     }
+            dict_endog_new = \
+                {
+                    'unif_mat': unif_mat,
+                    'zt_mat': zt_mat,
+                    'c1t_arr': c1t_arr,
+                    'c2t_arr': c2t_arr,
+                    'ut_arr': ut_arr,
+                    'Ht_arr': Ht_arr,
+                    'wt_arr': wt_arr,
+                    'rt_arr': rt_arr,
+                    'rbart_arr': rbart_arr,
+                    'rbart_an_arr': rbart_an_arr,
+                    'k2t_arr': k2t_arr,
+                    'EulErr_arr': EulErr_arr,
+                    'PathTime_arr': PathTime_arr,
+                    'default_arr': default_arr,
+                    'S_ind_arr': S_ind_arr,
+                }
+            # outputfile = os.path.join(output_dir, 'dict_endog_new.pkl')
+            # pickle.dump(dict_endog_new, open(outputfile, 'wb'))
+            exec('outputfile = os.path.join(output_dir, \'dict_endog_' +
+                 str(H_ind) + str(risk_type_ind) + str(risk_val_ind) +
+                 '.pkl\')')
+            exec('pickle.dump(dict_endog_new, open(outputfile, ' +
+                 '\'wb\'))')
 
-# results_sims = {'dict_params': dict_params, 'dict_endog': dict_endog}
-# outputfile = os.path.join(output_dir, 'results_sims.pkl')
-# pickle.dump(results_sims, open(outputfile, 'wb'))
+# Print computation time
+total_time = time.process_time() - start_time
+funcs.print_time(total_time, 'All cases-simulations')
+
+default_p1 = \
+    np.append(np.zeros((H_ind, risk_type_ind, risk_val_ind, avgrtp1_ind,
+                        avgrbart_ind, S, 1), dtype=bool),
+              default_arr[:, :, :, :, :, :, 1:], axis=6)
+zt_arr = np.tile(zt_mat.reshape((1, 1, 1, 1, 1, S, T)),
+                 (Hbar_size, 2, 3, avg_rtp1_size, avg_rbart_size, 1, 1))
+Kt_arr = (1 - default_p1) * k2t_arr
+Y_args = (nvec, epsilon, alpha)
+Yt_arr = (1 - default_p1) * funcs.get_Y(Kt_arr, zt_arr, Y_args)
+Ct_arr = (1 - default_p1) * funcs.get_C(c1t_arr, c2t_arr)
+dict_params = \
+    {
+        'yrs_in_per': yrs_in_per,
+        'beta_an': beta_an,
+        'beta': beta,
+        'gamma': gamma,
+        'c_min': c_min,
+        'K_min': K_min,
+        'nvec': nvec,
+        'n1': nvec[0],
+        'n2': nvec[1],
+        'alpha': alpha,
+        'epsilon': epsilon,
+        'delta_an': delta_an,
+        'delta': delta,
+        'rho_an': rho_an,
+        'rho': rho,
+        'mu_an': mu_an,
+        'sigma_an': sigma_an,
+        'sigma': sigma,
+        'mu': mu,
+        'A_min': A_min,
+        'z_min': z_min,
+        'Hbar_vec': Hbar_vec,
+        'Hbar_size': Hbar_size,
+        'Hbar': Hbar,
+        'tau': tau,
+        'T': T,
+        'S': S,
+        'rand_seed': rand_seed,
+        'max_cores': max_cores,
+        'num_workers': num_workers,
+        'avg_rtp1_size': avg_rtp1_size,
+        'avg_rtp1_an_vec': avg_rtp1_an_vec,
+        'avg_Rtp1_vec': avg_Rtp1_vec,
+        'avg_rbart_size': avg_rbart_size,
+        'avg_rbart_an_vec': avg_rbart_an_vec,
+        'avg_Rbart_vec': avg_Rbart_vec,
+        'avgRtp1_mat': avgRtp1_mat,
+        'avgRbart_mat': avgRbart_mat,
+        'avgRtp1_gt_avgRbart': avgRtp1_gt_avgRbart,
+        'mu_vec': mu_vec,
+        'mu_mat': mu_mat,
+        'mu_arr': mu_arr,
+        'beta_vec': beta_vec,
+        'beta_mat': beta_mat,
+        'gamma_mat': gamma_mat,
+        'x1_mat': x1_mat,
+        'x1_arr': x1_arr,
+        'kbar2_mat': kbar2_mat,
+        'sigma_vec': sigma_vec,
+        'logz': logz,
+    }
+dict_endog = \
+    {
+        'unif_mat': unif_mat,
+        'zt_mat': zt_mat,
+        'c1t_arr': c1t_arr,
+        'c2t_arr': c2t_arr,
+        'ut_arr': ut_arr,
+        'Ht_arr': Ht_arr,
+        'wt_arr': wt_arr,
+        'rt_arr': rt_arr,
+        'rbart_arr': rbart_arr,
+        'rbart_an_arr': rbart_an_arr,
+        'k2t_arr': k2t_arr,
+        'EulErr_arr': EulErr_arr,
+        'PathTime_arr': PathTime_arr,
+        'Kt_arr': Kt_arr,
+        'Yt_arr': Yt_arr,
+        'Ct_arr': Ct_arr,
+        'default_arr': default_arr,
+        'S_ind_arr': S_ind_arr,
+        'total_time': total_time
+    }
+
+results_sims = {'dict_params': dict_params, 'dict_endog': dict_endog}
+outputfile = os.path.join(output_dir, 'results_sims.pkl')
+pickle.dump(results_sims, open(outputfile, 'wb'))

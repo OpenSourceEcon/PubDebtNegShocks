@@ -1,0 +1,5 @@
+Dear reader,
+
+In these four folders you will find the MATLAB code used to produce the figures for the Pay-As-You-Go (PAYGO) and Debt Rollover simulations in the paper.
+
+In each of the folders you will find a brief "readme.txt" file with specific explanations of which files to run, and in which order, to produce the appropriate figures.

@@ -1,0 +1,3 @@
+* mu increases with avg R
+* Effect of (Hbar up) increase pct change in utility (less negative) as mu and avg R increase
+* Inefficiency of larger transfer is reduced as larger transfer is a smaller percentage of steady-state values

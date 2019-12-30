@@ -33,7 +33,7 @@ class parameters:
         self.rho_an = 0.95
         self.rho = self.rho_an ** self.yrs_in_per
         self.mu_an = 0.0
-        self.sigma_an =  0.2  # 0.4946
+        self.sigma_an = 0.2  # 0.4946
         rho_sum = 0.0
         rho2_sum = 0.0
         for y_ind in range(self.yrs_in_per):
@@ -41,6 +41,14 @@ class parameters:
             rho2_sum += self.rho_an ** (2 * y_ind)
         self.sigma = np.sqrt(rho2_sum * (self.sigma_an ** 2))
         self.mu = self.mu_an * rho_sum
+        self.A_min = 0.0
+        if self.A_min == 0.0:
+            self.z_min = -np.inf
+        elif (self.A_min > 0.0) and (self.A_min < np.exp(self.mu)):
+            self.z_min = np.log(self.A_min)
+        elif self.A_min >= np.exp(self.mu):
+            err_msg = 'Parameter Error: A_min >= e ** (mu)'
+            raise ValueError(err_msg)
 
         # Set government parameters, transfer parameters, and initial values
         self.Hbar_vec = np.array([0.0, 0.05])
@@ -59,5 +67,5 @@ class parameters:
 
         # Set simulation parameters
         self.T = 25
-        self.S = 30
+        self.S = 15
         self.rand_seed = 25
