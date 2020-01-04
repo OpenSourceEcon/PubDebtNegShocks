@@ -171,8 +171,7 @@ avgRtp1_gt_avgRbart = avgRtp1_mat - avgRbart_mat > 0
 
 # Calibrate mu using linear production expected MPK
 mu_vec = 1.0786 * np.ones_like(avg_Rtp1_vec)
-# mu_vec = (np.log(avg_Rtp1_vec) - np.log(alpha) -
-#           np.log((sigma ** 2) / 2))
+# mu_vec = np.log(avg_Rtp1_vec) - np.log(alpha) - (sigma ** 2) / 2)
 mu_mat = np.tile(mu_vec.reshape((avg_rtp1_size, 1)),
                  (1, avg_rbart_size))
 mu_mat[~avgRtp1_gt_avgRbart] = np.nan

@@ -1,0 +1,50 @@
+Mu variable, linear production epsilon = infinity
+
+REMAINING PROBLEMS:
+
+Script closed with the following error:
+
+Traceback (most recent call last):
+  File "B19_sims.py", line 532, in <module>
+    default_arr[:, :, :, :, :, :, 1:], axis=6)
+  File "<__array_function__ internals>", line 6, in append
+  File "/Users/rwe/opt/anaconda3/lib/python3.7/site-packages/numpy/lib/function_base.py", line 4700, in append
+    return concatenate((arr, values), axis=axis)
+  File "<__array_function__ internals>", line 6, in concatenate
+ValueError: all the input array dimensions for the concatenation axis must match exactly, but along dimension 0, the array at index 0 has size 1 and the array at index 1 has size 2
+
+RESULTS:
+
+All cases-simulations computation time: 3 hrs, 12 min, 30.4 sec
+
+ut_pctdif_100 for perfect substitutes, mu variable
+[[-0.00659777 -0.00659798         nan]
+ [-0.00305221 -0.0030517  -0.00305163]
+ [-0.00162464 -0.0016241  -0.00162373]]
+
+ut_pctdif_101 for perfect substitutes, mu variable
+[[-0.01441524 -0.01441581         nan]
+ [-0.00550115 -0.0054998  -0.00549958]
+ [-0.00273043 -0.00272909 -0.00272816]]
+
+ut_pctdif_102 for perfect substitutes, mu variable
+[[-0.20585652 -0.20586208         nan]
+ [-0.01826749 -0.01825759 -0.01825498]
+ [-0.00729251 -0.00728473 -0.00727915]]
+
+ut_pctdif_110 for perfect substitutes, mu variable
+[[-0.00662007 -0.00662035         nan]
+ [-0.00305667 -0.0030562  -0.00305617]
+ [-0.00162733 -0.0016268  -0.00162644]]
+
+ut_pctdif_111 for perfect substitutes, mu variable
+[[-0.00662009 -0.00662035         nan]
+ [-0.00305683 -0.00305624 -0.00305616]
+ [-0.00162755 -0.00162693 -0.00162649]]
+
+ut_pctdif_112 for perfect substitutes, mu variable
+[[-0.00662013 -0.00662035         nan]
+ [-0.00305701 -0.00305629 -0.00305615]
+ [-0.0016278  -0.00162707 -0.00162654]]
+
+

@@ -1,0 +1,52 @@
+Mu variable, Cobb-Douglas production epsilon = 1
+
+REMAINING PROBLEMS
+
+Script closed with the following error:
+
+All cases-simulations computation time: 10 hrs, 56 min, 52.5 sec
+Traceback (most recent call last):
+  File "B19_sims.py", line 534, in <module>
+    default_arr[:, :, :, :, :, :, 1:], axis=6)
+  File "<__array_function__ internals>", line 6, in append
+  File "/Users/richardevans/opt/anaconda3/lib/python3.7/site-packages/
+        numpy/lib/function_base.py", line 4700, in append
+    return concatenate((arr, values), axis=axis)
+  File "<__array_function__ internals>", line 6, in concatenate
+ValueError: all the input array dimensions for the concatenation axis
+must match exactly, but along dimension 0, the array at index 0 has
+size 1 and the array at index 1 has size 2
+
+RESULTS:
+
+All cases-simulations computation time: 11 hrs, 38 min, 35.7 sec
+
+ut_pctdif_100 for Cobb-Douglas, mu variable
+[[-0.00996049 -0.00981872         nan]
+ [-0.0051814  -0.0050571  -0.0049181 ]
+ [-0.00318465 -0.00307357 -0.00295231]]
+
+ut_pctdif_101 for Cobb-Douglas, mu variable
+[[-0.03142765 -0.03080006         nan]
+ [-0.01275221 -0.01234776 -0.01190941]
+ [-0.00710204 -0.00678776 -0.00645411]]
+
+ut_pctdif_102 for Cobb-Douglas, mu variable
+[[ 0.3986661   0.38300607         nan]
+ [-0.19045734 -0.18012669 -0.17003602]
+ [-0.05840559 -0.05434193 -0.05039257]]
+
+ut_pctdif_110 for Cobb-Douglas, mu variable
+[[-0.01000047 -0.00985958         nan]
+ [-0.00518823 -0.0050647  -0.00492656]
+ [-0.0031853  -0.0030749  -0.00295436]]
+
+ut_pctdif_111 for Cobb-Douglas, mu variable
+[[-0.0100141  -0.00986031         nan]
+ [-0.00521566 -0.00508299 -0.00493268]
+ [-0.00322339 -0.00310602 -0.00297619]]
+
+ut_pctdif_112 for Cobb-Douglas, mu variable
+[[-0.01002813 -0.00986107         nan]
+ [-0.00524346 -0.00510177 -0.00493903]
+ [-0.0032616  -0.00313763 -0.00299864]]
