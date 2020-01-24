@@ -1,6 +1,6 @@
 # Public Debt, Interest Rates, and Negative Shocks
 
-This repository contains the code and documentation for the calibration, computational solutions, and simulations in the paper "Public Debt, Interest Rates, and Negative Shocks", by Richard W. Evans.
+This repository contains the code and documentation for the calibration, computational solutions, and simulations in the paper "Public Debt, Interest Rates, and Negative Shocks", by Richard W. Evans, *American Economic Review*, Papers and Proceedings (forthcoming, 2020).
 
 
 ## Documentation
